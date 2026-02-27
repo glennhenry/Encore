@@ -22,21 +22,21 @@ export default defineConfig({
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 6 },
       credits: true,
       lastUpdated: true,
-      title: "REPLACE",
+      title: "Encore", // CHANGEME
       components: {
         Pagination: "./src/components/Pagination.astro",
         PageFrame: "./src/components/PageFrame.astro",
       },
       editLink: {
-        // REPLACE
-        baseUrl: "https://github.com/glennhenry/Stagecore/edit/main/",
+        // CHANGEME
+        baseUrl: "https://github.com/glennhenry/Encore/edit/main/",
       },
       social: [
         {
           icon: "github",
           label: "GitHub",
-          // REPLACE
-          href: "https://github.com/glennhenry/Stagecore",
+          // CHANGEME
+          href: "https://github.com/glennhenry/Encore",
         },
       ],
       sidebar: [

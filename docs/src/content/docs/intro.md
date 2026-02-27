@@ -6,6 +6,6 @@ description: Intro
 
 Documentation about X.
 
-![Gameplay](../../assets/Stagecore.png)
+![Gameplay](../../assets/Encore.png)
 
 See [flow](./flow).
