@@ -1,4 +1,4 @@
-rootProject.name = "changeme"
+rootProject.name = "Encore"
 
 dependencyResolutionManagement {
     repositories {

@@ -7,8 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
-group = "dev.changeme"
-version = "0.0.1"
+group = "dev.encore"
+version = "1.0.0"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
@@ -16,12 +16,12 @@ application {
 
 ktor {
     fatJar {
-        archiveFileName.set("changeme.jar")
+        archiveFileName.set("encore.jar")
     }
 }
 
 tasks.withType<ShadowJar> {
-    archiveFileName.set("changeme.jar")
+    archiveFileName.set("encore.jar")
     destinationDirectory.set(file("deploy"))
     manifest {
         attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
@@ -45,23 +45,28 @@ tasks.named<JavaExec>("run") {
 }
 
 dependencies {
+    // Ktor core
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.host.common)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.cors)
-    implementation(libs.logback.classic)
     implementation(libs.ktor.server.config.yaml)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
     // implementation(libs.ktor.serialization.kotlinx.protobuf)
-    implementation(libs.ktor.server.websockets)
+    implementation(libs.logback.classic)
 
-    implementation(libs.mongodb.driver.kotlin.coroutine)
-    implementation(libs.mongodb.bson.kotlinx)
+    // Security
     implementation(libs.library.bcrypt)
 
-    testImplementation(libs.ktor.server.test.host)
+    // Database
+    implementation(libs.mongodb.driver.kotlin.coroutine)
+    implementation(libs.mongodb.bson.kotlinx)
+
+    // Tests
     testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.ktor.server.test.host)
 }
