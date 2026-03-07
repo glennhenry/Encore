@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "dev.encore"
-version = "1.0.0"
+version = "0.0.1"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
@@ -28,13 +28,19 @@ tasks.withType<ShadowJar> {
     }
 }
 
-val copyGameFiles by tasks.registering(Copy::class) {
-    from("static")
-    into("deploy/static")
+val copyStaticGame by tasks.registering(Copy::class) {
+    from("static-game")
+    into("deploy/static-game")
+}
+
+val copyStaticBackstage by tasks.registering(Copy::class) {
+    from("static-backstage")
+    into("deploy/static-backstage")
 }
 
 tasks.shadowJar {
-    finalizedBy(copyGameFiles)
+    finalizedBy(copyStaticBackstage)
+    finalizedBy(copyStaticGame)
 }
 
 tasks.named<JavaExec>("run") {
