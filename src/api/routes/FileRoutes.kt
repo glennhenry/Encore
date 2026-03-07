@@ -10,9 +10,9 @@ import java.io.File
 
 fun Route.fileRoutes() {
     get("/") {
-        call.respondFile(File("static/index.html"))
+        call.respondFile(File("assets/index.html"))
     }
-    staticFiles("site", File("static/site"))
+    staticFiles("site", File("assets/site"))
 
     get("/docs") {
         val docsIndex = File("docs/index.html")

@@ -1,3 +1,4 @@
+
 import api.routes.devtoolsRoutes
 import api.routes.fileRoutes
 import api.routes.timeUnderMinutes
@@ -13,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -54,7 +56,9 @@ import java.io.File
 import java.text.SimpleDateFormat
 import kotlin.time.Duration.Companion.seconds
 
-fun main(args: Array<String>) = EngineMain.main(args)
+fun main(args: Array<String>) {
+    EngineMain.main(args)
+}
 
 const val CHANGE_ME_PROD_DB_NAME = "CHANGE_ME-prod-DB"
 const val SERVER_ADDRESS = "127.0.0.1"
@@ -130,8 +134,7 @@ suspend fun Application.module() {
     /* 5. Install status pages */
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            Logger.error { "Server error at ${call.request.httpMethod} ${call.request.uri}." }
-            cause.printStackTrace()
+            Logger.error { "Server error at ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
             call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
         unhandled { call ->

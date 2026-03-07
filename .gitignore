@@ -3,7 +3,7 @@
 .logs/
 .telemetry/
 deploy/
-static-game/
+assets/
 
 .gradle
 build/

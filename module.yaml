@@ -1,0 +1,39 @@
+product: jvm/app
+
+settings:
+  kotlin:
+    version: 2.3.10
+    languageVersion: 2.3
+    serialization: enabled
+  ktor:
+    enabled: true
+  jvm:
+    mainClass: ApplicationKt
+    jdk:
+      version: 25
+
+dependencies:
+  # Ktor core
+  - $libs.ktor.server.core
+  - $libs.ktor.server.netty
+  - $libs.ktor.server.host.common
+  - $libs.ktor.server.websockets
+  - $libs.ktor.server.call.logging
+  - $libs.ktor.server.status.pages
+  - $libs.ktor.server.cors
+  - $libs.ktor.server.config.yaml
+  - $libs.ktor.server.content.negotiation
+  - $libs.ktor.serialization.kotlinx.json
+  # - $libs.ktor.serialization.kotlinx.protobuf
+  - $libs.logback.classic
+
+  # Security
+  - $libs.library.bcrypt
+
+  # Database
+  - $libs.mongodb.driver.kotlin.coroutine
+  - $libs.mongodb.bson.kotlinx
+
+test-dependencies:
+  - $libs.kotlin.test.junit
+  - $libs.ktor.server.test.host

@@ -52,10 +52,13 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
         try {
             val count = accountCollection.estimatedDocumentCount()
             Logger.info { "MongoDB: User collection ready, contains $count users." }
-
+            Logger.info { "1" }
             if (adminEnabled) {
+                Logger.info { "2" }
                 val adminDoc = accountCollection.find(Filters.eq("playerId", AdminData.PLAYER_ID)).firstOrNull()
+                Logger.info { "3" }
                 if (adminDoc == null) {
+                    Logger.info { "4" }
                     val start = getTimeMillis()
                     val doc = PlayerAccount.admin()
                     val obj = PlayerData.admin()
@@ -65,10 +68,14 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
 
                     Logger.info { "MongoDB: Admin enabled, account inserted in ${getTimeMillis() - start}ms" }
                 } else {
+                    Logger.info { "5" }
                     Logger.info { "MongoDB: Admin enabled, account already exists." }
                 }
+                Logger.info { "6" }
             }
+            Logger.info { "7" }
             setupIndexes()
+            Logger.info { "8" }
         } catch (e: Exception) {
             Logger.error { "MongoDB: Failed during setupCollections: $e" }
         }

@@ -1,10 +1,29 @@
 #!/bin/bash
 set -e
 
-echo " Building server JAR..."
-./gradlew shadowJar
+APP_NAME="encore"
+JAR_SOURCE="build/tasks/_${APP_NAME}_executableJarJvm/${APP_NAME}-jvm-executable.jar"
+JAR_TARGET="deploy/${APP_NAME}.jar"
+
+echo "Building server JAR..."
+./amper package --format=executable-jar
+
+mkdir -p deploy
+
+if command -v rsync >/dev/null 2>&1; then
+    rsync -a "$JAR_SOURCE" "$JAR_TARGET"
+    rsync -a assets deploy/
+    rsync -a backstage deploy/
+else
+    cp "$JAR_SOURCE" "$JAR_TARGET"
+    cp -r assets deploy/
+    cp -r backstage deploy/
+fi
 
 echo
+echo "Build success."
+
+# shellcheck disable=SC2162
 read -p "Build documentation? (y/n): " BUILDDOCS
 
 if [[ "$BUILDDOCS" == "y" || "$BUILDDOCS" == "Y" ]]; then
@@ -26,7 +45,6 @@ if [[ "$BUILDDOCS" == "y" || "$BUILDDOCS" == "Y" ]]; then
   echo
   echo " Moving built docs to deploy/docs/..."
 
-  mkdir -p deploy
   rm -rf deploy/docs
   mkdir -p deploy/docs
 
@@ -43,4 +61,5 @@ fi
 
 echo
 echo " Build finished successfully!"
+# shellcheck disable=SC2162
 read -p "Press Enter to exit..."

@@ -53,8 +53,8 @@ import kotlin.time.Duration.Companion.minutes
  */
 fun Route.devtoolsRoutes(serverContext: ServerContext, tokenStorage: MutableMap<String, Long>) {
     get("/devtools") {
-        val wallHtml = File("static/devtools/wall.html")
-        val devtoolsHtml = File("static/devtools/devtools.html")
+        val wallHtml = File("backstage/wall.html")
+        val devtoolsHtml = File("backstage/devtools.html")
 
         // skip on developmentMode
         if (application.developmentMode) {

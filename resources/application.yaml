@@ -2,7 +2,7 @@ ktor:
   application:
     modules:
       - ApplicationKt.module
-  development: "$DEV_MODE:true"
+  development: "$DEV_MODE:false"
   deployment:
     port: 8080
 game:
