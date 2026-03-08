@@ -1,0 +1,3 @@
+package encoreTest
+
+const val CHANGE_ME_TEST_DB_NAME = "CHANGE_ME-test-DB"
