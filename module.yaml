@@ -24,7 +24,7 @@ dependencies:
   - $libs.ktor.server.config.yaml
   - $libs.ktor.server.content.negotiation
   - $libs.ktor.serialization.kotlinx.json
-  # - $libs.ktor.serialization.kotlinx.protobuf
+  - $libs.ktor.serialization.kotlinx.protobuf
   - $libs.logback.classic
 
   # Security
