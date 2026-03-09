@@ -16,16 +16,15 @@ dependencies:
   # Ktor core
   - $libs.ktor.server.core
   - $libs.ktor.server.netty
-  - $libs.ktor.server.host.common
-  - $libs.ktor.server.websockets
-  - $libs.ktor.server.call.logging
-  - $libs.ktor.server.status.pages
   - $libs.ktor.server.cors
-  - $libs.ktor.server.config.yaml
+  - $libs.ktor.server.status.pages
+  - $libs.logger.noop
+
+  # Ktor serialization
+  - $libs.ktor.server.websockets
   - $libs.ktor.server.content.negotiation
   - $libs.ktor.serialization.kotlinx.json
   - $libs.ktor.serialization.kotlinx.protobuf
-  - $libs.logback.classic
 
   # Security
   - $libs.library.bcrypt

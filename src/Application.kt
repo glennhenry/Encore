@@ -1,7 +1,7 @@
+import com.mongodb.kotlin.client.coroutine.MongoClient
 import encore.api.routes.devtoolsRoutes
 import encore.api.routes.fileRoutes
 import encore.api.routes.timeUnderMinutes
-import com.mongodb.kotlin.client.coroutine.MongoClient
 import encore.context.DefaultContextTracker
 import encore.context.ServerContext
 import encore.context.ServerServices
@@ -9,28 +9,6 @@ import encore.core.data.GameDefinition
 import encore.data.MongoImpl
 import encore.devtools.command.core.CommandDispatcher
 import encore.devtools.command.impl.ExampleCommand
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.config.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.calllogging.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
-import io.ktor.util.date.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import org.bson.Document
 import encore.server.GameServer
 import encore.server.GameServerConfig
 import encore.server.ServerContainer
@@ -50,12 +28,41 @@ import encore.utils.logging.LoggerSettings
 import encore.utils.logging.toInt
 import encore.utils.logging.toLogLevel
 import encore.ws.WebSocketManager
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.util.date.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import org.bson.Document
 import java.io.File
 import java.text.SimpleDateFormat
 import kotlin.time.Duration.Companion.seconds
 
-fun main(args: Array<String>) {
-    EngineMain.main(args)
+fun main() {
+    embeddedServer(
+        factory = Netty,
+        host = "127.0.0.1",
+        port = 8080,
+        watchPaths = listOf("classes")
+    ) {
+        module()
+    }.start(wait = true)
 }
 
 const val CHANGE_ME_PROD_DB_NAME = "CHANGE_ME-prod-DB"
@@ -125,9 +132,6 @@ suspend fun Application.module() {
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Options)
     }
-
-    /* 4. Install call logging */
-    install(CallLogging)
 
     /* 5. Install status pages */
     install(StatusPages) {
@@ -291,10 +295,6 @@ fun startMongo(databaseName: String, mongoUrl: String, adminEnabled: Boolean): M
 }
 
 // REPLACE add
-data class ServerConfig(
-    val adminEnabled: Boolean,
-    val mongoUrl: String,
-)
 
 fun ApplicationConfig.getString(path: String, default: String): String {
     return this.propertyOrNull(path)?.getString() ?: default
