@@ -4,6 +4,7 @@
 .telemetry/
 deploy/
 assets/
+venue.secret.xml
 
 .gradle
 build/

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<venue>
+    <!-- Encore config -->
+    <encore>
+        <devMode>false</devMode>
+        <server>
+            <host>127.0.0.1</host>
+            <port>8080</port>
+            <socketPort>7777</socketPort>
+        </server>
+        <admin enabled="true" />
+        <database>
+            <mongo>
+                <prod>
+                    <dbname>CHANGE_ME-prod-DB</dbname>
+                    <dburl>mongodb://localhost:27017</dburl>
+                </prod>
+                <test>
+                    <dbname>CHANGE_ME-test-DB</dbname>
+                    <dburl>mongodb://localhost:27017</dburl>
+                </test>
+            </mongo>
+        </database>
+        <logger>
+            <level>TRACE</level>
+            <color enabled="true">
+                <colorEntireMessage>true</colorEntireMessage>
+                <useBackgroundColor>true</useBackgroundColor>
+            </color>
+            <formatting>
+                <fileNamePadding>25</fileNamePadding>
+                <maximumLineLength>500</maximumLineLength>
+                <maxFileSize>5</maxFileSize>
+                <maxFileRotation>5</maxFileRotation>
+                <timestampFormat>HH:mm:ss.SSS</timestampFormat>
+            </formatting>
+        </logger>
+    </encore>
+
+    <!-- Custom config, follow your definition in code -->
+    <custom>
+
+    </custom>
+</venue>
