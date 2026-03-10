@@ -76,6 +76,11 @@ class VenuePreparer(venueFiles: List<File>, private val rootPrefix: String) {
     /**
      * Bind a flat key-value [map] with specific [prefix] (usually based on XML tag)
      * into the respective data class definition by [clazz].
+     *
+     * @throws IllegalStateException When:
+     *                               1. [clazz] does not have primary constructor.
+     *                               2. [clazz] does not annotate all value with [VenueKey].
+     *                               3. Config key is missing from [map] and data class does not have default.
      */
     private fun <T : Any> bind(map: Map<String, String>, prefix: String, clazz: KClass<T>, usedKeys: MutableSet<String>): T {
         val constructor = clazz.primaryConstructor
@@ -112,6 +117,9 @@ class VenuePreparer(venueFiles: List<File>, private val rootPrefix: String) {
         return constructor.callBy(args)
     }
 
+    /**
+     * @throws IllegalStateException When getting unsupported [value] type.
+     */
     private fun convert(value: String, type: KClass<*>): Any {
         return when (type) {
             String::class -> value

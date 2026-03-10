@@ -37,6 +37,11 @@ object Venue {
     lateinit var custom: CustomConfig
     lateinit var secret: SecretConfig
 
+    /**
+     * Prepare venue.
+     *
+     * @throws IllegalStateException when `venue.xml` file is missing.
+     */
     fun prepare() {
         if (done) {
             Logger.warn { "Venue.prepare() called after initialization. Ignoring." }

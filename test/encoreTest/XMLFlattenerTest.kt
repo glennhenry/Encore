@@ -1,0 +1,72 @@
+package encoreTest
+
+import encore.utils.XMLFlattener
+import org.junit.jupiter.api.assertThrows
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class XMLFlattenerTest {
+    @Test
+    fun `normal XML success`() {
+        val input = """
+            <root>
+                <parent1>
+                    <child1 />
+                </parent1>
+                <parent2>
+                    <child2>
+                        <child3>value</child3>
+                    </child2>
+                </parent2>
+            </root>
+        """.trimIndent()
+
+        val flattener = XMLFlattener(enableLogging = false)
+        val map = flattener.flatten(input, "root")
+
+        assertEquals("value", map["root.parent2.child2.child3"])
+        assertTrue(map.containsKey("root.parent2.child2.child3"))
+        assertEquals(1, map.size)
+    }
+
+    @Test
+    fun `XML with attribute has _ key success`() {
+        val input = """
+            <root>
+                <parent>
+                    <child enabled="true" />
+                </parent>
+            </root>
+        """.trimIndent()
+
+        val flattener = XMLFlattener(enableLogging = false)
+
+        val map = flattener.flatten(input, "root")
+
+        assertEquals("true", map["root.parent.child._enabled"])
+        assertEquals(1, map.size)
+    }
+
+    @Test
+    fun `XML with duplicate key should throw`() {
+        val input = """
+            <root>
+                <parent>
+                    <child>
+                        <value>1</value>
+                    </child>
+                    <child>
+                        <value>2</value>
+                    </child>
+                </parent>
+            </root>
+        """.trimIndent()
+
+        val flattener = XMLFlattener(enableLogging = false)
+
+        assertThrows<IllegalStateException> {
+            flattener.flatten(input, "root")
+        }
+    }
+}

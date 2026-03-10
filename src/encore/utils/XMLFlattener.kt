@@ -27,6 +27,8 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
      * parsed to:
      * - `parent._enabled` = `true`
      * - `parent.child` = `123`
+     *
+     * @throws IllegalArgumentException When XML does not contain root element.
      */
     fun flatten(xml: String, rootName: String): Map<String, String> {
         if (enableLogging) {
@@ -67,6 +69,8 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
      *
      * parsed to:
      * - `parent._enabled` = `true`
+     *
+     * @throws IllegalStateException When XML contains duplicate key.
      */
     private fun parseNode(
         path: String,
