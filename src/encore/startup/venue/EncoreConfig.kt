@@ -6,6 +6,8 @@ import encore.annotation.VenueKey
  * Definition of config required by the framework.
  * Define them in `venue.xml` or here directly (for default value).
  *
+ * This data class is not intended to be extended by user.
+ *
  * @property devMode
  * @property server
  * @property adminEnabled
