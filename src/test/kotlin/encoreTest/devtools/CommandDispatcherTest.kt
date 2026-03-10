@@ -12,12 +12,12 @@ import encore.devtools.command.core.CommandVariant
 import encore.devtools.command.core.variantsAsString
 import encoreTest.utils.randomString
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.assertThrows
 import encore.utils.JSON
 import encore.utils.logging.TestLogger
 import kotlin.random.Random
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 
 /**
  * Command dispatcher test and example of command implementation [encoreTest.devtools.ExampleGiveCommand].
@@ -101,7 +101,7 @@ class CommandDispatcherTest {
             ),
         )
 
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             dispatcher.register(createCommand("cmd1", variants))
         }
     }
@@ -114,7 +114,7 @@ class CommandDispatcherTest {
 
         val variants = listOf(generateVariant(2), generateVariant(2))
 
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             dispatcher.register(createCommand("cmd1", variants))
         }
     }
@@ -127,7 +127,7 @@ class CommandDispatcherTest {
 
         val variants = listOf(generateVariant(2))
 
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             dispatcher.register(createCommand("", variants))
         }
     }
@@ -140,7 +140,7 @@ class CommandDispatcherTest {
 
         val variants = listOf(generateVariant(2))
 
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             dispatcher.register(createCommand("   ", variants))
         }
     }
@@ -153,7 +153,7 @@ class CommandDispatcherTest {
 
         val variants = listOf(generateVariant(2))
 
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             dispatcher.register(createCommand("@@@", variants))
         }
     }
@@ -166,7 +166,7 @@ class CommandDispatcherTest {
 
         val variants = listOf(generateVariant(2))
 
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             dispatcher.register(createCommand("  @@@ ", variants))
         }
     }

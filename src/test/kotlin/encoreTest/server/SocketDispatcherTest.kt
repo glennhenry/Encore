@@ -1,13 +1,15 @@
 package encoreTest.server
 
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 import encore.server.handler.HandlerContext
 import encore.server.handler.SocketMessageHandler
 import encore.server.messaging.socket.SocketMessage
 import encore.server.messaging.socket.SocketMessageDispatcher
+import encoreTest.utils.assertDoesNotFail
 import kotlin.reflect.KClass
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class SocketDispatcherTest {
     @Test
@@ -37,7 +39,7 @@ class SocketDispatcherTest {
         val handler1 = Handler1()
         val handler3 = Handler3()
         dispatcher.register(handler1)
-        assertDoesNotThrow {
+        assertDoesNotFail {
             dispatcher.register(handler3)
         }
         val dispatchResult = dispatcher.findHandlerFor(ExMsg1("asdf"))
@@ -49,14 +51,14 @@ class SocketDispatcherTest {
     fun `fail register of one message type, multiple handler, different expected message class`() {
         val dispatcher = SocketMessageDispatcher()
         dispatcher.register(Handler1())
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             dispatcher.register(Handler2())
         }
     }
 
 }
 
-class Handler1: SocketMessageHandler<ExMsg1> {
+class Handler1 : SocketMessageHandler<ExMsg1> {
     override val name: String = "Handler1"
     override val messageType: String = "type1"
     override val expectedMessageClass: KClass<ExMsg1> = ExMsg1::class
@@ -65,7 +67,7 @@ class Handler1: SocketMessageHandler<ExMsg1> {
     }
 }
 
-class Handler2: SocketMessageHandler<ExMsg2> {
+class Handler2 : SocketMessageHandler<ExMsg2> {
     override val name: String = "Handler2"
     override val messageType: String = "type1"
     override val expectedMessageClass: KClass<ExMsg2> = ExMsg2::class
@@ -74,7 +76,7 @@ class Handler2: SocketMessageHandler<ExMsg2> {
     }
 }
 
-class Handler3: SocketMessageHandler<ExMsg1> {
+class Handler3 : SocketMessageHandler<ExMsg1> {
     override val name: String = "Handler3"
     override val messageType: String = "type1"
     override val expectedMessageClass: KClass<ExMsg1> = ExMsg1::class
@@ -83,7 +85,7 @@ class Handler3: SocketMessageHandler<ExMsg1> {
     }
 }
 
-class Handler4: SocketMessageHandler<ExMsg1> {
+class Handler4 : SocketMessageHandler<ExMsg1> {
     override val name: String = "Handler4"
     override val messageType: String = "type2"
     override val expectedMessageClass: KClass<ExMsg1> = ExMsg1::class
@@ -92,12 +94,12 @@ class Handler4: SocketMessageHandler<ExMsg1> {
     }
 }
 
-class ExMsg1(val payload: String): SocketMessage {
+class ExMsg1(val payload: String) : SocketMessage {
     override fun type(): String = "type1"
     override fun toString(): String = "ExMsg1($payload)"
 }
 
-class ExMsg2(val payload: String): SocketMessage {
+class ExMsg2(val payload: String) : SocketMessage {
     override fun type(): String = "type1"
     override fun toString(): String = "ExMsg2($payload)"
 }

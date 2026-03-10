@@ -3,9 +3,9 @@ package encoreTest.devtools
 import encore.devtools.command.core.ArgumentCollection
 import encore.devtools.command.core.CommandParser
 import encore.devtools.command.core.CommandRequest
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class CommandParserTest {
     private val parser = CommandParser()
@@ -123,14 +123,14 @@ class CommandParserTest {
 
     @Test
     fun `testParser input contains nothing fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("")
         }
     }
 
     @Test
     fun `testParser input contains white space only fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse(" ")
         }
     }
@@ -146,49 +146,49 @@ class CommandParserTest {
 
     @Test
     fun `testParser input contains invalid character 1 input fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("give x y .")
         }
     }
 
     @Test
     fun `testParser input contains invalid character 2 input fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("give x y ()")
         }
     }
 
     @Test
     fun `testParser input contains invalid character 3 input fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("give x y {%")
         }
     }
 
     @Test
     fun `testParser input contains invalid unicode character 1 fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("give playerㅧ y")
         }
     }
 
     @Test
     fun `testParser input contains invalid unicode character 2 fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("ＰＬＡＹＥＲ ＰＬＡＹＥＲ")
         }
     }
 
     @Test
     fun `testParser input contains invalid unicode character 3 fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("\uD83D\uDC80\uD83D\uDC80\uD83D\uDC80 \uD83D\uDC80\uD83D\uDC80\uD83D\uDC80")
         }
     }
 
     @Test
     fun `testParser input contains invalid unicode character 4 fails`() {
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.parse("pl​ayer")
         }
     }

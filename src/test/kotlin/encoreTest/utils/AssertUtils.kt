@@ -1,0 +1,30 @@
+package encoreTest.utils
+
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+
+fun <T> assertDoesNotFail(block: () -> T): T {
+    try {
+        return block()
+    } catch (t: Throwable) {
+        throw AssertionError("Expected block to not throw, but got: ${t::class.simpleName}: ${t.message}", t)
+    }
+}
+
+class AssertUtilsTest {
+    @Test
+    fun doesNotFail() {
+        assertDoesNotFail {
+            println("Not fail")
+        }
+    }
+
+    @Test
+    fun actuallyFailed() {
+        assertFailsWith<AssertionError> {
+            assertDoesNotFail {
+                throw Exception("Failed")
+            }
+        }
+    }
+}

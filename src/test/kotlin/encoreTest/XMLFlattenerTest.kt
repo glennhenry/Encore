@@ -1,9 +1,9 @@
 package encoreTest
 
 import encore.utils.XMLFlattener
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class XMLFlattenerTest {
@@ -65,7 +65,7 @@ class XMLFlattenerTest {
 
         val flattener = XMLFlattener(enableLogging = false)
 
-        assertThrows<IllegalStateException> {
+        assertFailsWith<IllegalStateException> {
             flattener.flatten(input, "root")
         }
     }

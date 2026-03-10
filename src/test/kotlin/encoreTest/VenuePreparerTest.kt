@@ -4,10 +4,10 @@ import encore.annotation.RevisitLater
 import encore.annotation.VenueKey
 import encore.startup.venue.VenuePreparer
 import encoreTest.utils.toFile
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import encoreTest.utils.assertDoesNotFail
 
 class VenuePreparerTest {
     @Test
@@ -119,7 +119,8 @@ class VenuePreparerTest {
 
         val preparer = VenuePreparer(listOf(xml), "root")
 
-        assertThrows<NumberFormatException> {
+
+        assertFailsWith(NumberFormatException::class) {
             preparer.get(TestConfig::class, "server")
         }
     }
@@ -140,7 +141,7 @@ class VenuePreparerTest {
         val preparer = VenuePreparer(listOf(xml), "root")
         preparer.get(TestConfig::class, "server")
 
-        assertDoesNotThrow {
+        assertDoesNotFail {
             preparer.validate()
         }
     }
@@ -157,7 +158,7 @@ class VenuePreparerTest {
 
         val preparer = VenuePreparer(listOf(xml), "root")
 
-        assertThrows<IllegalStateException> {
+        assertFailsWith<IllegalStateException> {
             preparer.get(MissingAnnotationConfig::class, "server")
         }
     }
@@ -173,7 +174,7 @@ class VenuePreparerTest {
         """.trimIndent().toFile("root.xml")
 
         val preparer = VenuePreparer(listOf(xml), "root")
-        assertThrows<IllegalStateException> {
+        assertFailsWith<IllegalStateException> {
             preparer.get(TestConfig::class, "server")
         }
     }

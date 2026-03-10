@@ -1,1 +1,0 @@
---jvm-args="--enable-native-access=ALL-UNNAMED"
