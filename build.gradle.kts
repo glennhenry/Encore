@@ -50,6 +50,12 @@ tasks.named<JavaExec>("run") {
     )
 }
 
+tasks.test {
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
 dependencies {
     // Ktor core
     implementation(libs.ktor.server.core)
