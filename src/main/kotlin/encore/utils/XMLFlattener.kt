@@ -7,7 +7,8 @@ import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 
 /**
- * XML utility to flatten XML file into a flat key-value map.
+ * XML utility to flatten an XML file into a flat key-value map whose key
+ * is a dot-separated string between each XML tag's name.
  *
  * See [flatten].
  *
@@ -28,11 +29,12 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
      * - `parent._enabled` = `true`
      * - `parent.child` = `123`
      *
-     * @throws IllegalArgumentException When XML does not contain root element.
+     * @throws IllegalArgumentException When XML does not contain root element
+     *                                  or when it has duplicate key.
      */
     fun flatten(xml: String, rootName: String): Map<String, String> {
         if (enableLogging) {
-            Logger.verbose { "XMLFlattener: parsing XML root='$rootName'" }
+            Logger.verbose { "XMLFlattener parsing XML root='$rootName'" }
         }
 
         val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
@@ -58,7 +60,7 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
     }
 
     /**
-     * Parse individual node, returning map of each XML path to the value.
+     * Parse individual node, recursively, returning map of each XML path to the value.
      *
      * For instance:
      * ```xml

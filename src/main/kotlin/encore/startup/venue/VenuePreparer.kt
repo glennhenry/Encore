@@ -2,6 +2,7 @@ package encore.startup.venue
 
 import encore.annotation.VenueKey
 import encore.utils.XMLFlattener
+import encore.utils.logging.ILogger
 import encore.utils.logging.Logger
 import java.io.File
 import kotlin.reflect.KClass
@@ -10,17 +11,23 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 
 /**
- * Prepares [Venue] by:
- * 1. Process XML files with [XMLFlattener].
- * 2. Bind XML output to data classes definition with reflection.
+ * Internal helper responsible for loading and binding configuration.
  *
- * Initialize class with list of [venueFiles] and use [get] providing
- * the config data class to be initialized.
+ * Responsibilities:
+ * 1. Parse XML configuration files using [XMLFlattener]
+ * 2. Bind flattened keys to configuration data classes via reflection
+ * 3. Override values using environment variables when present
  *
- * @param venueFiles Venue of files to process (only `venue.xml` and `venue.secret.xml`)
- * @param rootPrefix The root XML tag, usually 'venue'.
+ * @param venueFiles configuration files to process
+ * @param rootPrefix root XML tag (usually `venue`)
+ * @param envProvider component that provides environment variables, intended for unit testing.
  */
-class VenuePreparer(venueFiles: List<File>, private val rootPrefix: String) {
+class VenuePreparer(
+    venueFiles: List<File>,
+    private val rootPrefix: String,
+    private val envProvider: EnvProvider = SystemEnvProvider(),
+    private val logger: ILogger = Logger
+) {
     private val flattener = XMLFlattener()
     private val finalKeys = mutableMapOf<String, String>()
     private val usedKeys = mutableSetOf<String>()
@@ -29,12 +36,12 @@ class VenuePreparer(venueFiles: List<File>, private val rootPrefix: String) {
         for (file in venueFiles) {
             processXml(file).forEach { (k, v) ->
                 if (k in finalKeys) {
-                    Logger.warn { "Venue.prepare: duplicate key '$k' found." }
+                    logger.warn { "Duplicate configuration key detected: '$k'. Last value wins $v." }
                 }
                 finalKeys[k] = v
             }
         }
-        Logger.verbose { "Venue.prepare: configuration loaded successfully (${finalKeys.size} total entries)." }
+        logger.verbose { "Venue configuration loaded successfully (${finalKeys.size} total entries)." }
     }
 
     /**
@@ -42,22 +49,23 @@ class VenuePreparer(venueFiles: List<File>, private val rootPrefix: String) {
      *
      * @param clazz The data class by `ClassName::class`.
      * @param prefix The XML tag prefix before the fields.
+     * @throws IllegalStateException May throw exception, see [bind].
      */
     fun <T : Any> get(clazz: KClass<T>, prefix: String): T {
         return bind(finalKeys, "$rootPrefix.$prefix", clazz, usedKeys)
     }
 
     /**
-     * To validates that all listed values on XML is used.
+     * To validates that all listed values on XML are used.
      */
     fun validate() {
         val unused = finalKeys.keys - usedKeys
         if (unused.isEmpty()) return
 
-        Logger.warn {
+        logger.warn {
             buildString {
                 appendLine("Unused configuration keys detected:")
-                unused.sorted().forEach {
+                unused.sortedBy { it.length }.forEach {
                     appendLine(" - $it")
                 }
             }
@@ -69,20 +77,28 @@ class VenuePreparer(venueFiles: List<File>, private val rootPrefix: String) {
             .flatten(file.readText(), rootPrefix)
             .toMutableMap()
 
-        Logger.verbose { "Venue.prepare: loaded ${resultVenue.size} entries from ${file.name}." }
+        logger.verbose { "Loaded ${resultVenue.size} entries from ${file.name}." }
         return resultVenue
     }
 
     /**
-     * Bind a flat key-value [map] with specific [prefix] (usually based on XML tag)
-     * into the respective data class definition by [clazz].
+     * Bind a flat key-value [map] into the respective data class definition by [clazz].
+     *
+     * During the binding process, it will also try checking if an environment variable
+     * is defined for the same key. If it is, the environment value will take precedence.
      *
      * @throws IllegalStateException When:
-     *                               1. [clazz] does not have primary constructor.
-     *                               2. [clazz] does not annotate all value with [VenueKey].
-     *                               3. Config key is missing from [map] and data class does not have default.
+     *  1. [clazz] does not have primary constructor.
+     *  2. [clazz] does not annotate all non-data value with [VenueKey].
+     *  3. Config key is missing from [map], data class does not have a default value, and
+     *     environment variable wasn't present.
      */
-    private fun <T : Any> bind(map: Map<String, String>, prefix: String, clazz: KClass<T>, usedKeys: MutableSet<String>): T {
+    private fun <T : Any> bind(
+        map: Map<String, String>,
+        prefix: String,
+        clazz: KClass<T>,
+        usedKeys: MutableSet<String>
+    ): T {
         val constructor = clazz.primaryConstructor
             ?: error("Class ${clazz.simpleName} must have a primary constructor")
 
@@ -101,24 +117,40 @@ class VenuePreparer(venueFiles: List<File>, private val rootPrefix: String) {
                 ?: error("Field is value but missing @VenueKey on ${clazz.simpleName}.${param.name}")
 
             val key = "$prefix.${keyAnn.path}"
-            val raw = map[key]
+            val value = checkEnv(key) ?: map[key]
 
-            if (raw == null) {
+            if (value == null) {
                 if (!param.isOptional) {
-                    throw IllegalStateException("Missing config value: $key")
+                    throw IllegalStateException(
+                        "Config value: $key is missing from XML and ENV."
+                    )
                 }
                 continue
             }
 
             usedKeys += key
-            args[param] = convert(raw, type)
+            args[param] = convert(value, type)
         }
 
         return constructor.callBy(args)
     }
 
     /**
-     * @throws IllegalStateException When getting unsupported [value] type.
+     * Check whether environment variable is defined for the [key].
+     *
+     * @return The defined value. `null` if it's not defined.
+     */
+    private fun checkEnv(key: String): String? {
+        return envProvider.get(pathkeyToEnv(key))
+    }
+
+    private fun pathkeyToEnv(path: String): String {
+        val trimmed = path.removePrefix("$rootPrefix.")
+        return "ENCORE_" + trimmed.replace(".", "_").uppercase()
+    }
+
+    /**
+     * @throws IllegalStateException if the target type is not supported.
      */
     private fun convert(value: String, type: KClass<*>): Any {
         return when (type) {

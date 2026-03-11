@@ -1,13 +1,16 @@
 package encoreTest
 
-import encore.annotation.RevisitLater
 import encore.annotation.VenueKey
+import encore.startup.venue.EncoreConfig
+import encore.startup.venue.FakeEnvProvider
 import encore.startup.venue.VenuePreparer
+import encore.utils.logging.TestLogger
 import encoreTest.utils.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import encoreTest.utils.assertDoesNotFail
+import kotlin.test.assertTrue
 
 class VenuePreparerTest {
     @Test
@@ -27,6 +30,61 @@ class VenuePreparerTest {
 
         assertEquals("localhost", config.host)
         assertEquals(8080, config.port)
+    }
+
+    @Test
+    fun `XML normal behavior real data success`() {
+        val xml = """
+            <venue>
+                <encore>
+                    <devMode>true</devMode>
+                    <server>
+                        <host>localhost</host>
+                        <port>8080</port>
+                        <socketPort>7777</socketPort>
+                    </server>
+                    <admin enabled="true" />
+                    <database>
+                        <mongo>
+                            <prod>
+                                <dbname>CHANGE_ME-prod-DB</dbname>
+                                <dburl>mongodb://localhost:27017</dburl>
+                            </prod>
+                            <test>
+                                <dbname>heheDB</dbname>
+                                <dburl>mongodb://localhost:27017</dburl>
+                            </test>
+                        </mongo>
+                    </database>
+                    <logger>
+                        <level>TRACE</level>
+                        <color enabled="true">
+                            <colorEntireMessage>true</colorEntireMessage>
+                            <useBackgroundColor>true</useBackgroundColor>
+                        </color>
+                        <formatting>
+                            <fileNamePadding>21</fileNamePadding>
+                            <maximumLineLength>500</maximumLineLength>
+                            <maxFileSize>5</maxFileSize>
+                            <maxFileRotation>5</maxFileRotation>
+                            <timestampFormat>ABCDEF</timestampFormat>
+                        </formatting>
+                    </logger>
+                </encore>
+            </venue>
+        """.trimIndent().toFile("venue.xml")
+
+        val preparer = VenuePreparer(listOf(xml), "venue")
+        val config = preparer.get(EncoreConfig::class, "encore")
+        preparer.validate()
+
+        println(config)
+
+        assertEquals(true, config.devMode)
+        assertEquals("localhost", config.server.host)
+        assertEquals(21, config.logger.fileNamePadding)
+        assertEquals("heheDB", config.database.dbNameTest)
+        assertEquals("ABCDEF", config.logger.timestampFormat)
     }
 
     @Test
@@ -57,8 +115,7 @@ class VenuePreparerTest {
         assertEquals(123, config2.anything)
     }
 
-    // will throw if happen in one file
-    @RevisitLater("Use test logger and assert warning")
+    // must between 2 files, it will throw if happen in one file
     @Test
     fun `XML duplicate keys between 2 files success but warned`() {
         val xml1 = """
@@ -78,14 +135,28 @@ class VenuePreparerTest {
             </root>
         """.trimIndent().toFile("root2.xml")
 
-        val preparer = VenuePreparer(listOf(xml1, xml2), "root")
-        val config1 = preparer.get(TestConfig::class, "server")
-        val config2 = preparer.get(TestConfig::class, "server")
+        val logger = TestLogger()
+        val preparer = VenuePreparer(listOf(xml1, xml2), "root", logger = logger)
+        val config = preparer.get(TestConfig::class, "server")
+
+        assertEquals("localhost", config.host)
+        assertEquals(7777, config.port)
+
         preparer.validate()
 
-        assertEquals("localhost", config1.host)
-        assertEquals("localhost", config2.host)
-        assertEquals(7777, config2.port)
+        val warns = logger.getLastWarnCalls(2)
+
+        assertTrue {
+            warns.first().contains(
+                "Duplicate configuration key detected: 'root.server.host'. Last value wins localhost."
+            )
+        }
+
+        assertTrue {
+            warns.last().contains(
+                "Duplicate configuration key detected: 'root.server.port'. Last value wins 7777."
+            )
+        }
     }
 
     @Test
@@ -119,15 +190,13 @@ class VenuePreparerTest {
 
         val preparer = VenuePreparer(listOf(xml), "root")
 
-
         assertFailsWith(NumberFormatException::class) {
             preparer.get(TestConfig::class, "server")
         }
     }
 
-    @RevisitLater("Should not throw, but should warn internally")
     @Test
-    fun unusedKeysDetected() {
+    fun `XML has unused keys success but get warned`() {
         val xml = """
             <root>
                 <server>
@@ -138,16 +207,18 @@ class VenuePreparerTest {
             </root>
         """.trimIndent().toFile("root.xml")
 
-        val preparer = VenuePreparer(listOf(xml), "root")
+        val logger = TestLogger()
+        val preparer = VenuePreparer(listOf(xml), "root", logger = logger)
         preparer.get(TestConfig::class, "server")
 
         assertDoesNotFail {
             preparer.validate()
         }
+        logger.getLastWarnCalls(1).contains("Unused configuration keys detected")
     }
 
     @Test
-    fun missingAnnotationThrows() {
+    fun `config data class missing annotation`() {
         val xml = """
             <root>
                 <server>
@@ -164,7 +235,7 @@ class VenuePreparerTest {
     }
 
     @Test
-    fun missingConfigValueThrows() {
+    fun `XML missing a configuration value from data class definition`() {
         val xml = """
             <root>
                 <server>
@@ -175,6 +246,62 @@ class VenuePreparerTest {
 
         val preparer = VenuePreparer(listOf(xml), "root")
         assertFailsWith<IllegalStateException> {
+            preparer.get(TestConfig::class, "server")
+        }
+    }
+
+    @Test
+    fun `XML have value but overrided by ENV`() {
+        val xml = """
+            <root>
+                <server>
+                    <host>localhost</host>
+                    <port>8080</port>
+                </server>
+            </root>
+        """.trimIndent().toFile("root.xml")
+
+        val envProvider = FakeEnvProvider(
+            mapOf("ENCORE_SERVER_HOST" to "127.0.0.1")
+        )
+        val preparer = VenuePreparer(listOf(xml), "root", envProvider)
+        val config = preparer.get(TestConfig::class, "server")
+        assertEquals("127.0.0.1", config.host)
+    }
+
+    @Test
+    fun `XML does not have value but defined in ENV`() {
+        val xml = """
+            <root>
+                <server>
+                    <port>7777</port>
+                </server>
+            </root>
+        """.trimIndent().toFile("root.xml")
+
+        val envProvider = FakeEnvProvider(
+            mapOf("ENCORE_SERVER_HOST" to "localhost")
+        )
+        val preparer = VenuePreparer(listOf(xml), "root", envProvider)
+        val config = preparer.get(TestConfig::class, "server")
+        assertEquals("localhost", config.host)
+    }
+
+    @Test
+    fun `XML does not have value but defined in ENV with different type fail`() {
+        val xml = """
+            <root>
+                <server>
+                    <host>localhost</host>
+                </server>
+            </root>
+        """.trimIndent().toFile("root.xml")
+
+        val envProvider = FakeEnvProvider(
+            mapOf("ENCORE_SERVER_PORT" to "notnumber")
+        )
+        val preparer = VenuePreparer(listOf(xml), "root", envProvider)
+        assertFailsWith<NumberFormatException> {
             preparer.get(TestConfig::class, "server")
         }
     }
@@ -200,7 +327,6 @@ data class TestConfigWithDefault(
     @VenueKey("port")
     val port: Int = 7777
 )
-
 
 data class MissingAnnotationConfig(
     val host: String

@@ -12,24 +12,36 @@ import java.io.File
 /**
  * Venue provides access to application configuration and environment variables.
  *
- * Configuration values are defined in `venue.xml` and optionally
- * `venue.secret.xml` for sensitive values. Both files are loaded during
- * application startup.
+ * Configuration values are primarily defined in `venue.xml`. Sensitive values
+ * can be placed in `venue.secret.xml`. Environment variables may override
+ * any value defined in the XML configuration.
  *
- * During initialization, the configuration is parsed and mapped to the
- * expected data classes (e.g., [EncoreConfig], [CustomConfig], and
- * [SecretConfig]). The loader validates the structure and will fail fast
- * if any required value is missing (and data classes don't specify default)
- * or does not match the expected type.
+ * The configuration is loaded during [prepare]. XML values are flattened and
+ * bound to strongly typed configuration classes such as:
  *
- * Fields should use the [VenueKey] annotation to explicitly define the
- * corresponding XML path. This allows configuration classes to use a
- * structure that differs from the XML layout while still being mapped
- * correctly during parsing.
+ * - [EncoreConfig] — framework configuration
+ * - [CustomConfig] — user-defined application configuration
+ * - [SecretConfig] — sensitive values
+ *
+ * Environment variables follow the same key path as [VenueKey] definitions.
+ * For example:
+ *
+ * - `database.prod.name` → `ENCORE_DATABASE_PROD_NAME`
+ * - `color._enabled` → `ENCORE_COLOR__ENABLED`
+ *
+ * Values can also be accessed directly from environment variables using [get].
+ *
+ * The loader validates configuration during startup and fails fast when:
+ * - required values are missing
+ * - types cannot be converted
+ * - configuration structure is invalid
+ *
+ * Configuration properties must use the [VenueKey] annotation to define the
+ * corresponding XML path.
  *
  * @property encore Framework configuration used internally by Encore.
  * @property custom Application-specific configuration defined by the game.
- * @property secret Sensitive configuration values loaded from `venue.secret.xml`.
+ * @property secret Sensitive configuration loaded from `venue.secret.xml`.
  */
 object Venue {
     private var done: Boolean = false
@@ -38,30 +50,34 @@ object Venue {
     lateinit var secret: SecretConfig
 
     /**
-     * Prepare venue.
+     * Loads and validates configuration from `venue.xml` and `venue.secret.xml`.
      *
-     * @throws IllegalStateException when `venue.xml` file is missing.
+     * This method must be called before accessing any configuration values.
+     *
+     * @throws IllegalStateException if:
+     *  - `venue.xml` is missing
+     *  - configuration binding fails
+     *  - required configuration values are missing
      */
     fun prepare() {
         if (done) {
             Logger.warn { "Venue.prepare() called after initialization. Ignoring." }
             return
         }
-        Logger.verbose { "Venue.prepare: loading venue configuration." }
+        Logger.verbose { "Loading venue configuration." }
 
         val venueFile = File("venue.xml")
         val venueSecretFile = File("venue.secret.xml")
 
         if (!venueFile.exists()) {
             throw IllegalStateException(
-                "Venue.prepare: expected 'venue.xml' in the root directory, but the file is missing."
+                "Expected 'venue.xml' in the root directory, but the file is missing."
             )
         }
 
-        val preparer = VenuePreparer(mutableListOf(venueFile).also {
-            if (venueSecretFile.exists()) {
-                it.add(venueSecretFile)
-            }
+        val preparer = VenuePreparer(buildList {
+            add(venueFile)
+            if (venueSecretFile.exists()) add(venueSecretFile)
         }, "venue")
 
         encore = preparer.get(EncoreConfig::class, "encore")
@@ -69,7 +85,20 @@ object Venue {
         secret = preparer.get(SecretConfig::class, "secret")
         preparer.validate()
 
-        Logger.verbose { "Venue.prepare: venue preparation finished." }
+        Logger.verbose { "Venue preparation finished." }
         done = true
+    }
+
+    /**
+     * Returns the raw value of an environment variable.
+     *
+     * This method does not read values from `venue.xml`. It only accesses
+     * variables defined in the system environment.
+     *
+     * @param name Environment variable name.
+     * @return the value, or `null` if the variable is not defined.
+     */
+    fun get(name: String): String? {
+        return System.getenv(name)
     }
 }
