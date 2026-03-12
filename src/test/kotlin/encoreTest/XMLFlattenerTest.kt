@@ -69,4 +69,26 @@ class XMLFlattenerTest {
             flattener.flatten(input, "root")
         }
     }
+
+    @Test
+    fun `XML mismatch between given root name than what is written`() {
+        val input = """
+            <root>
+                <parent>
+                    <child>
+                        <value>1</value>
+                    </child>
+                    <child>
+                        <value>2</value>
+                    </child>
+                </parent>
+            </root>
+        """.trimIndent()
+
+        val flattener = XMLFlattener(enableLogging = false)
+
+        assertFailsWith<IllegalArgumentException> {
+            flattener.flatten(input, "venue")
+        }
+    }
 }
