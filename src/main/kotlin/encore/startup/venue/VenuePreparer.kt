@@ -18,13 +18,11 @@ import kotlin.reflect.full.primaryConstructor
  * 2. Bind flattened keys to configuration data classes via reflection
  * 3. Override values using environment variables when present
  *
- * @param venueFiles configuration files to process
- * @param rootPrefix root XML tag (usually `venue`)
- * @param envProvider component that provides environment variables, intended for unit testing.
+ * @param venueFiles List of configuration files to process.
+ * @param envProvider Component that provides environment variables, intended for unit testing.
  */
 class VenuePreparer(
     venueFiles: List<File>,
-    private val rootPrefix: String,
     private val envProvider: EnvProvider = SystemEnvProvider(),
     private val logger: ILogger = Logger
 ) {
@@ -48,15 +46,24 @@ class VenuePreparer(
      * Get the instantiated data class via [bind].
      *
      * @param clazz The data class by `ClassName::class`.
-     * @param prefix The XML tag prefix before the fields.
+     * @param category The top-level config category derived from XML tag which
+     *                 is either `encore`, `custom`, and `secret` ([VenueCategory]).
+     * @param envPrefix The prefix to define an environment variable, to avoid conflict.
      * @throws IllegalStateException May throw exception, see [bind].
      */
-    fun <T : Any> get(clazz: KClass<T>, prefix: String): T {
-        return bind(finalKeys, "$rootPrefix.$prefix", clazz, usedKeys)
+    fun <T : Any> get(clazz: KClass<T>, category: String, envPrefix: String = ENCORE_ENV_PREFIX): T {
+        if (finalKeys.none { it.key.startsWith("$VENUE_ROOT_TAG.$category.") }) {
+            throw IllegalStateException(
+                "Got '$category' but nothing is defined in <$category> section under <$VENUE_ROOT_TAG> in configuration.\n" +
+                "Note: for one edge case, the system is not smart enough to infer if there is only one field and it has default, but there is nothing in the XML."
+            )
+        }
+        return bind(finalKeys, "$VENUE_ROOT_TAG.$category", envPrefix, clazz, usedKeys)
     }
 
     /**
-     * To validates that all listed values on XML are used.
+     * Check whether all listed config on XML are used for data class binding.
+     * This will print a warning of all unused configuration keys.
      */
     fun validate() {
         val unused = finalKeys.keys - usedKeys
@@ -74,7 +81,7 @@ class VenuePreparer(
 
     private fun processXml(file: File): Map<String, String> {
         val resultVenue = flattener
-            .flatten(file.readText(), rootPrefix)
+            .flatten(file.readText(), VENUE_ROOT_TAG)
             .toMutableMap()
 
         logger.verbose { "Loaded ${resultVenue.size} entries from ${file.name}." }
@@ -84,9 +91,13 @@ class VenuePreparer(
     /**
      * Bind a flat key-value [map] into the respective data class definition by [clazz].
      *
+     * Binding relies on the path key in [VenueKey] annotation to find the
+     * corresponding value in the [map].
+     *
      * During the binding process, it will also try checking if an environment variable
      * is defined for the same key. If it is, the environment value will take precedence.
      *
+     * @param category The name of config category, which is one of [VenueCategory].
      * @throws IllegalStateException When:
      *  1. [clazz] does not have primary constructor.
      *  2. [clazz] does not annotate all non-data value with [VenueKey].
@@ -95,7 +106,8 @@ class VenuePreparer(
      */
     private fun <T : Any> bind(
         map: Map<String, String>,
-        prefix: String,
+        xmlFieldPrefix: String,
+        envPrefix: String,
         clazz: KClass<T>,
         usedKeys: MutableSet<String>
     ): T {
@@ -109,15 +121,15 @@ class VenuePreparer(
 
             // nested config
             if (type.isData) {
-                args[param] = bind(map, prefix, type, usedKeys)
+                args[param] = bind(map, xmlFieldPrefix, envPrefix, type, usedKeys)
                 continue
             }
 
             val keyAnn = param.findAnnotation<VenueKey>()
                 ?: error("Field is value but missing @VenueKey on ${clazz.simpleName}.${param.name}")
 
-            val key = "$prefix.${keyAnn.path}"
-            val value = checkEnv(key) ?: map[key]
+            val key = "$xmlFieldPrefix.${keyAnn.path}"
+            val value = checkEnv(key, xmlFieldPrefix, envPrefix) ?: map[key]
 
             if (value == null) {
                 if (!param.isOptional) {
@@ -140,13 +152,20 @@ class VenuePreparer(
      *
      * @return The defined value. `null` if it's not defined.
      */
-    private fun checkEnv(key: String): String? {
-        return envProvider.get(pathkeyToEnv(key))
+    private fun checkEnv(key: String, xmlFieldPrefix: String, envPrefix: String): String? {
+        val envKey = pathkeyToEnv(key, xmlFieldPrefix, envPrefix)
+        val env = envProvider.get(envKey)
+        if (env != null) {
+            logger.verbose { "Overriden by ENV: $envKey" }
+        } else {
+            logger.verbose { "Expected ENV $key -> $envKey" }
+        }
+        return env
     }
 
-    private fun pathkeyToEnv(path: String): String {
-        val trimmed = path.removePrefix("$rootPrefix.")
-        return "ENCORE_" + trimmed.replace(".", "_").uppercase()
+    private fun pathkeyToEnv(path: String, xmlFieldPrefix: String, envPrefix: String): String {
+        val trimmed = path.removePrefix("$xmlFieldPrefix.")
+        return (envPrefix + "_" + trimmed.replace(".", "_")).uppercase()
     }
 
     /**

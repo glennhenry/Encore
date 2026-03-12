@@ -18,18 +18,18 @@ import java.io.File
  *
  * The configuration is loaded during [prepare]. XML values are flattened and
  * bound to strongly typed configuration classes such as:
- *
  * - [EncoreConfig] — framework configuration
  * - [CustomConfig] — user-defined application configuration
  * - [SecretConfig] — sensitive values
  *
  * Environment variables follow the same key path as [VenueKey] definitions.
  * For example:
- *
  * - `database.prod.name` → `ENCORE_DATABASE_PROD_NAME`
  * - `color._enabled` → `ENCORE_COLOR__ENABLED`
  *
- * Values can also be accessed directly from environment variables using [get].
+ * Where `ENCORE_` correspond to set prefix [ENCORE_ENV_PREFIX].
+ *
+ * Values set from ENV can also be accessed directly using [get].
  *
  * The loader validates configuration during startup and fails fast when:
  * - required values are missing
@@ -78,11 +78,11 @@ object Venue {
         val preparer = VenuePreparer(buildList {
             add(venueFile)
             if (venueSecretFile.exists()) add(venueSecretFile)
-        }, "venue")
+        })
 
-        encore = preparer.get(EncoreConfig::class, "encore")
-        custom = preparer.get(CustomConfig::class, "custom")
-        secret = preparer.get(SecretConfig::class, "secret")
+        encore = preparer.get(EncoreConfig::class, VenueCategory.ENCORE, ENCORE_ENV_PREFIX)
+        custom = preparer.get(CustomConfig::class, VenueCategory.CUSTOM, ENCORE_ENV_PREFIX)
+        secret = preparer.get(SecretConfig::class, VenueCategory.SECRET, ENCORE_ENV_PREFIX)
         preparer.validate()
 
         Logger.verbose { "Venue preparation finished." }
@@ -102,3 +102,29 @@ object Venue {
         return System.getenv(name)
     }
 }
+
+/**
+ * Venue category that groups the domain of config.
+ * - `encore` for [EncoreConfig]
+ * - `custom` for [CustomConfig]
+ * - `secret` for [SecretConfig]
+ */
+object VenueCategory {
+    const val ENCORE = "encore"
+    const val CUSTOM = "custom"
+    const val SECRET = "secret"
+}
+
+/**
+ * Prefix used to define ENV variable to avoid conflict.
+ *
+ * This prefix is added before the config variable name, for instance:
+ * - `ENCORE_SERVER_HOST`
+ * - `ENCORE_DATABASE_NAME`
+ */
+const val ENCORE_ENV_PREFIX = "ENCORE"
+
+/**
+ * The XML root tag in `venue.xml`.
+ */
+const val VENUE_ROOT_TAG = "venue"

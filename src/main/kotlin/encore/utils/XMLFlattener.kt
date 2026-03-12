@@ -32,9 +32,9 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
      * @throws IllegalArgumentException When XML does not contain root element
      *                                  or when it has duplicate key.
      */
-    fun flatten(xml: String, rootName: String): Map<String, String> {
+    fun flatten(xml: String, xmlRoot: String): Map<String, String> {
         if (enableLogging) {
-            Logger.verbose { "XMLFlattener parsing XML root='$rootName'" }
+            Logger.verbose { "XMLFlattener parsing XML root='$xmlRoot'" }
         }
 
         val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
@@ -42,17 +42,20 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
 
         val root = doc.documentElement
             ?: throw IllegalArgumentException("XML does not contain a root element")
+        if (root.nodeName != xmlRoot) {
+            throw IllegalArgumentException("It's expected that the root XML tag is $xmlRoot")
+        }
 
-        val result = parseNode(rootName, root)
+        val result = parseNode(xmlRoot, root)
 
         if (enableLogging) {
             Logger.verbose {
-                "XMLFlattener: parsed ${result.size} entries from root='$rootName'"
+                "XMLFlattener: parsed ${result.size} entries from root='$xmlRoot'"
             }
             Logger.verbose {
                 result.entries
                     .sortedBy { it.key.length }
-                    .joinToString("\n") { "${it.key} = ${it.value}" }
+                    .joinToString("\n", prefix = "\n") { "${it.key} = ${it.value}" }
             }
         }
 
