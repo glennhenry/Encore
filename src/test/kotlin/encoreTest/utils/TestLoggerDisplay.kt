@@ -16,7 +16,7 @@ import kotlin.test.Test
  * Only test the logger display, not actual code unit tests.
  *
  * use this to show color
- * ./gradlew test --tests "encore.TestLoggerDisplay" --console=rich
+ * ./gradlew test --tests "encoreTest.utils.TestLoggerDisplay.testLogger" --console=plain
  */
 class TestLoggerDisplay {
     @Test

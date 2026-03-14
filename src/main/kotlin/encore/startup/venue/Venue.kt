@@ -64,7 +64,7 @@ object Venue {
             Logger.warn { "Venue.prepare() called after initialization. Ignoring." }
             return
         }
-        Logger.verbose { "Loading venue configuration." }
+        Logger.info { "Loading venue configuration" }
 
         val venueFile = File("venue.xml")
         val venueSecretFile = File("venue.secret.xml")
@@ -85,7 +85,7 @@ object Venue {
         secret = preparer.get(SecretConfig::class, VenueCategory.SECRET, ENCORE_ENV_PREFIX)
         preparer.validate()
 
-        Logger.verbose { "Venue preparation finished." }
+        Logger.info { "Venue preparation finished." }
         done = true
     }
 

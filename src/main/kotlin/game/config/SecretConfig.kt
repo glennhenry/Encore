@@ -9,5 +9,5 @@ package game.config
  * All field should be immutable for discipline.
  */
 data class SecretConfig(
-    val dummy: Int
+    val dummy: Int = 0
 )

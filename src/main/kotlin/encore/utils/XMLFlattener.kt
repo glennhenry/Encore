@@ -3,6 +3,7 @@ package encore.utils
 import encore.utils.logging.Logger
 import org.w3c.dom.Element
 import org.xml.sax.InputSource
+import java.io.File
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -11,10 +12,8 @@ import javax.xml.parsers.DocumentBuilderFactory
  * is a dot-separated string between each XML tag's name.
  *
  * See [flatten].
- *
- * @param enableLogging Whether to enable verbose logging on parsing.
  */
-class XMLFlattener(private val enableLogging: Boolean = true) {
+class XMLFlattener {
     /**
      * Flatten an XML structure into a flat key-value map.
      *
@@ -32,13 +31,11 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
      * @throws IllegalArgumentException When XML does not contain root element
      *                                  or when it has duplicate key.
      */
-    fun flatten(xml: String, xmlRoot: String): Map<String, String> {
-        if (enableLogging) {
-            Logger.verbose { "XMLFlattener parsing XML root='$xmlRoot'" }
-        }
+    fun flatten(xmlFile: File, xmlRoot: String): Map<String, String> {
+        Logger.verbose { "Parsing ${xmlFile.name}; root='$xmlRoot'" }
 
         val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-        val doc = builder.parse(InputSource(StringReader(xml)))
+        val doc = builder.parse(InputSource(StringReader(xmlFile.readText())))
 
         val root = doc.documentElement
             ?: throw IllegalArgumentException("XML does not contain a root element")
@@ -46,20 +43,9 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
             throw IllegalArgumentException("It's expected that the root XML tag is $xmlRoot")
         }
 
-        val result = parseNode(xmlRoot, root)
-
-        if (enableLogging) {
-            Logger.verbose {
-                "XMLFlattener: parsed ${result.size} entries from root='$xmlRoot'"
-            }
-            Logger.verbose {
-                result.entries
-                    .sortedBy { it.key.length }
-                    .joinToString("\n", prefix = "\n") { "${it.key} = ${it.value}" }
-            }
+        return parseNode(xmlRoot, root).also {
+            Logger.verbose { "Parsed ${it.size} entries from ${xmlFile.name}" }
         }
-
-        return result
     }
 
     /**
@@ -82,11 +68,6 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
         element: Element
     ): MutableMap<String, String> {
         val result = mutableMapOf<String, String>()
-
-        if (enableLogging) {
-            Logger.verbose { "XMLFlattener: entering <$path>" }
-        }
-
         val children = element.childNodes
 
         // attributes
@@ -96,9 +77,7 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
             val key = "$path._${attr.nodeName}"
             val value = attr.nodeValue
 
-            if (enableLogging) {
-                Logger.verbose { "XMLFlattener: attribute $key='$value'" }
-            }
+            Logger.verbose { "Attribute $key='$value'" }
 
             result[key] = value
         }
@@ -110,9 +89,7 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
         if (elementChildren.isEmpty()) {
             val value = element.textContent.trim()
             if (value.isNotEmpty()) {
-                if (enableLogging) {
-                    Logger.verbose { "XMLFlattener: value $path='$value'" }
-                }
+                Logger.verbose { "Value $path='$value'" }
                 result[path] = value
             }
         }
@@ -120,10 +97,6 @@ class XMLFlattener(private val enableLogging: Boolean = true) {
         // recurse children
         for (child in elementChildren) {
             val childPath = "$path.${child.nodeName}"
-
-            if (enableLogging) {
-                Logger.verbose { "XMLFlattener: descending -> $childPath" }
-            }
 
             val childMap = parseNode(childPath, child)
 

@@ -39,7 +39,7 @@ class VenuePreparer(
                 finalKeys[k] = v
             }
         }
-        logger.verbose { "Venue configuration loaded successfully (${finalKeys.size} total entries)." }
+        logger.info { "Venue configuration loaded successfully (${finalKeys.size} total entries)." }
     }
 
     /**
@@ -51,14 +51,29 @@ class VenuePreparer(
      * @param envPrefix The prefix to define an environment variable, to avoid conflict.
      * @throws IllegalStateException May throw exception, see [bind].
      */
-    fun <T : Any> get(clazz: KClass<T>, category: String, envPrefix: String = ENCORE_ENV_PREFIX): T {
-        if (finalKeys.none { it.key.startsWith("$VENUE_ROOT_TAG.$category.") }) {
-            throw IllegalStateException(
-                "Got '$category' but nothing is defined in <$category> section under <$VENUE_ROOT_TAG> in configuration.\n" +
-                "Note: for one edge case, the system is not smart enough to infer if there is only one field and it has default, but there is nothing in the XML."
-            )
+    fun <T : Any> get(
+        clazz: KClass<T>,
+        category: String,
+        envPrefix: String = ENCORE_ENV_PREFIX
+    ): T {
+        val categoryPrefix = "$VENUE_ROOT_TAG.$category"
+        val hasSomethingDefined = finalKeys.any { it.key.startsWith("$categoryPrefix.") }
+
+        if (!hasSomethingDefined) {
+            val constructor = clazz.primaryConstructor
+                ?: error("${clazz.simpleName} must have a primary constructor")
+
+            val hasRequiredField = constructor.parameters.any { !it.isOptional }
+            if (hasRequiredField) {
+                throw IllegalStateException(
+                    "Got '$category' but nothing is defined in <$category> under <$VENUE_ROOT_TAG>."
+                )
+            }
+
+            return constructor.callBy(emptyMap())
         }
-        return bind(finalKeys, "$VENUE_ROOT_TAG.$category", envPrefix, clazz, usedKeys)
+
+        return bind(finalKeys, categoryPrefix, envPrefix, clazz, usedKeys)
     }
 
     /**
@@ -81,10 +96,9 @@ class VenuePreparer(
 
     private fun processXml(file: File): Map<String, String> {
         val resultVenue = flattener
-            .flatten(file.readText(), VENUE_ROOT_TAG)
+            .flatten(file, VENUE_ROOT_TAG)
             .toMutableMap()
 
-        logger.verbose { "Loaded ${resultVenue.size} entries from ${file.name}." }
         return resultVenue
     }
 
@@ -111,9 +125,7 @@ class VenuePreparer(
         clazz: KClass<T>,
         usedKeys: MutableSet<String>
     ): T {
-        val constructor = clazz.primaryConstructor
-            ?: error("Class ${clazz.simpleName} must have a primary constructor")
-
+        val constructor = clazz.primaryConstructor!!
         val args = mutableMapOf<KParameter, Any?>()
 
         for (param in constructor.parameters) {
@@ -156,9 +168,7 @@ class VenuePreparer(
         val envKey = pathkeyToEnv(key, xmlFieldPrefix, envPrefix)
         val env = envProvider.get(envKey)
         if (env != null) {
-            logger.verbose { "Overriden by ENV: $envKey" }
-        } else {
-            logger.verbose { "Expected ENV $key -> $envKey" }
+            logger.info { "Overriden by ENV: $envKey" }
         }
         return env
     }

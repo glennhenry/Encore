@@ -35,6 +35,26 @@ class VenuePreparerTest {
     }
 
     @Test
+    fun `XML contains some tag but the data class definition is all defaulted, and XML does not contain the tag should pass`() {
+        val xml = """
+            <venue>
+                <encore>
+                    <server>
+                        <host>localhost</host>
+                        <port>8080</port>
+                    </server>
+                </encore>
+            </venue>
+        """.trimIndent().toFile("venue.xml")
+
+        val preparer = VenuePreparer(listOf(xml))
+
+        assertDoesNotFail {
+            preparer.get(TestCustomConfigAllDefault::class, "custom")
+        }
+    }
+
+    @Test
     fun `XML normal behavior real data success`() {
         val xml = """
             <venue>
@@ -587,6 +607,17 @@ data class MissingAnnotationConfig(
 data class TestCustomConfig(
     @VenueKey("parent.child")
     val child: Int
+)
+
+data class TestCustomConfigAllDefault(
+    @VenueKey("field1")
+    val field1: Int = 1,
+
+    @VenueKey("field2")
+    val field2: Int = 2,
+
+    @VenueKey("field3")
+    val field3: Int = 3
 )
 
 data class TestCustomConfigWithDefault(
