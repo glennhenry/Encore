@@ -1,7 +1,5 @@
 package encore.server
 
-import SERVER_ADDRESS
-import SERVER_SOCKET_PORT
 import encore.context.ServerContext
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
@@ -21,8 +19,8 @@ import encore.utils.logging.Logger.LOG_INDENT_PREFIX
 import kotlin.system.measureTimeMillis
 
 data class GameServerConfig(
-    val host: String = SERVER_ADDRESS,
-    val port: Int = SERVER_SOCKET_PORT,
+    val host: String,
+    val port: Int,
 )
 
 /**

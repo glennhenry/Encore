@@ -1,6 +1,7 @@
 package encoreTest
 
 import encore.utils.XMLFlattener
+import encoreTest.utils.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -20,9 +21,9 @@ class XMLFlattenerTest {
                     </child2>
                 </parent2>
             </root>
-        """.trimIndent()
+        """.trimIndent().toFile("venue.xml")
 
-        val flattener = XMLFlattener(enableLogging = false)
+        val flattener = XMLFlattener()
         val map = flattener.flatten(input, "root")
 
         assertEquals("value", map["root.parent2.child2.child3"])
@@ -38,9 +39,9 @@ class XMLFlattenerTest {
                     <child enabled="true" />
                 </parent>
             </root>
-        """.trimIndent()
+        """.trimIndent().toFile("venue.xml")
 
-        val flattener = XMLFlattener(enableLogging = false)
+        val flattener = XMLFlattener()
 
         val map = flattener.flatten(input, "root")
 
@@ -61,9 +62,9 @@ class XMLFlattenerTest {
                     </child>
                 </parent>
             </root>
-        """.trimIndent()
+        """.trimIndent().toFile("venue.xml")
 
-        val flattener = XMLFlattener(enableLogging = false)
+        val flattener = XMLFlattener()
 
         assertFailsWith<IllegalStateException> {
             flattener.flatten(input, "root")
@@ -83,9 +84,9 @@ class XMLFlattenerTest {
                     </child>
                 </parent>
             </root>
-        """.trimIndent()
+        """.trimIndent().toFile("venue.xml")
 
-        val flattener = XMLFlattener(enableLogging = false)
+        val flattener = XMLFlattener()
 
         assertFailsWith<IllegalArgumentException> {
             flattener.flatten(input, "venue")

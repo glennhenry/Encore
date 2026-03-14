@@ -9,6 +9,7 @@ import java.io.PrintStream
 import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import kotlin.concurrent.Volatile
 
 /**
  * The default logger implementation of [ILogger].
@@ -88,6 +89,7 @@ object Logger : ILogger {
         LogFile.DatabaseError to File(".logs/database_error-1.log"),
     ).also { File(".logs").mkdirs() }
 
+    @Volatile
     private var settings = LoggerSettings()
 
     // blocking queue of log calls processed by a separate thread
@@ -349,14 +351,14 @@ data class LoggerSettings(
 
 enum class LogLevel { Verbose, Debug, Info, Warn, Error, Nothing }
 
-fun Int.toLogLevel(): LogLevel {
-    return when (this) {
-        0 -> LogLevel.Verbose
-        1 -> LogLevel.Debug
-        2 -> LogLevel.Info
-        3 -> LogLevel.Warn
-        4 -> LogLevel.Error
-        5 -> LogLevel.Nothing
+fun String.toLogLevel(): LogLevel {
+    return when (this.lowercase()) {
+        "verbose" -> LogLevel.Verbose
+        "debug" -> LogLevel.Debug
+        "info" -> LogLevel.Info
+        "warn" -> LogLevel.Warn
+        "error" -> LogLevel.Error
+        "nothing" -> LogLevel.Nothing
         else -> LogLevel.Verbose
     }
 }

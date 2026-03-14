@@ -18,6 +18,7 @@ import encore.server.messaging.format.MessageFormat
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskName
+import encore.startup.venue.Venue
 import encore.user.PlayerAccountRepositoryMongo
 import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager
@@ -25,13 +26,11 @@ import encore.utils.JSON
 import encore.utils.functions.UUID
 import encore.utils.logging.Logger
 import encore.utils.logging.LoggerSettings
-import encore.utils.logging.toInt
 import encore.utils.logging.toLogLevel
 import encore.ws.WebSocketManager
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -55,53 +54,36 @@ import java.text.SimpleDateFormat
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
+    Venue.prepare()
+
+    // override Ktor dev mode with framework custom config
+    System.setProperty("io.ktor.development", Venue.encore.devMode.toString())
+
     embeddedServer(
         factory = Netty,
-        host = "127.0.0.1",
-        port = 8080,
+        host = Venue.encore.server.host,
+        port = Venue.encore.server.port,
         watchPaths = listOf("classes")
     ) {
         module()
     }.start(wait = true)
 }
 
-const val CHANGE_ME_PROD_DB_NAME = "CHANGE_ME-prod-DB"
-const val SERVER_ADDRESS = "127.0.0.1"
-const val SERVER_API_FILE_PORT = 8080
-const val SERVER_SOCKET_PORT = 7777
-
-@Suppress("unused")
 suspend fun Application.module() {
     /* 1. Setup logger */
-    Logger.updateSettings { original ->
+    Logger.updateSettings {
         LoggerSettings(
-            minimumLevel = config().getInt("logger.level", original.minimumLevel.toInt()).toLogLevel(),
-            colorfulLog = config().getBoolean("logger.colorfulLog", original.colorfulLog),
-            colorizeLevelLabelOnly = config().getBoolean(
-                "logger.colorizeLevelLabelOnly",
-                original.colorizeLevelLabelOnly
-            ),
-            useForegroundColor = config().getBoolean("logger.useForegroundColor", original.useForegroundColor),
-            fileNamePadding = config().getInt("logger.maximumFileNameLength", original.fileNamePadding),
-            tagPadding = config().getInt("logger.tagPadding", original.tagPadding),
-            maximumLogMessageLineLength = config().getInt(
-                "logger.maximumLogMessageLength",
-                original.maximumLogMessageLineLength
-            ),
-            maximumLogFileSize = config().getInt("logger.maximumLogFileSize", original.maximumLogFileSize),
-            maximumLogFileRotation = config().getInt("logger.maximumLogFileRotation", original.maximumLogFileRotation),
-            logDateFormatter = SimpleDateFormat(
-                config().getString(
-                    "logger.logDateFormatter",
-                    original.logDateFormatter.toPattern()
-                )
-            ),
-            fileDateFormatter = SimpleDateFormat(
-                config().getString(
-                    "logger.fileDateFormatter",
-                    original.fileDateFormatter.toPattern()
-                )
-            )
+            minimumLevel = Venue.encore.logger.level.toLogLevel(),
+            colorfulLog = Venue.encore.logger.colorEnabled,
+            colorizeLevelLabelOnly = Venue.encore.logger.colorEntireMessage,
+            useForegroundColor = !Venue.encore.logger.useBackgroundColor,
+            fileNamePadding = Venue.encore.logger.fileNamePadding,
+            tagPadding = 20,
+            maximumLogMessageLineLength = Venue.encore.logger.maximumLineLength,
+            maximumLogFileSize = Venue.encore.logger.maxFileSize,
+            maximumLogFileRotation = Venue.encore.logger.maxFileRotation,
+            logDateFormatter = SimpleDateFormat(Venue.encore.logger.timestampFormat),
+            fileDateFormatter = SimpleDateFormat(Venue.encore.logger.timestampFormat)
         )
     }
 
@@ -146,9 +128,9 @@ suspend fun Application.module() {
 
     /* 6. Configure Database */
     val database = startMongo(
-        databaseName = CHANGE_ME_PROD_DB_NAME,
-        mongoUrl = config().getString("mongo.url", "mongodb://localhost:27017"),
-        adminEnabled = config().getBoolean("game.enableAdmin", true)
+        databaseName = Venue.encore.database.dbNameProd,
+        mongoUrl = Venue.encore.database.dbUrlProd,
+        adminEnabled = Venue.encore.adminEnabled
     )
 
     /* 7. Install websockets */
@@ -204,11 +186,11 @@ suspend fun Application.module() {
     /* 11. Initialize servers */
     // build server configs
     val gameServerConfig = GameServerConfig(
-        host = config().getString("game.host", SERVER_ADDRESS),
-        port = config().getInt("game.host", SERVER_SOCKET_PORT)
+        host = Venue.encore.server.host,
+        port = Venue.encore.server.socketPort
     )
 
-    val apiPort = config().getString("ktor.deployment.port", SERVER_API_FILE_PORT.toString())
+    val apiPort = Venue.encore.server.port
     Logger.info { "Server successfully started." }
     Logger.info { "File/API server available at ${gameServerConfig.host}:$apiPort." }
     Logger.info { "Devtools available at ${gameServerConfig.host}:$apiPort/devtools." }
@@ -293,22 +275,3 @@ fun startMongo(databaseName: String, mongoUrl: String, adminEnabled: Boolean): M
         }
     }
 }
-
-// REPLACE add
-
-fun ApplicationConfig.getString(path: String, default: String): String {
-    return this.propertyOrNull(path)?.getString() ?: default
-}
-
-fun ApplicationConfig.getInt(path: String, default: Int): Int {
-    return this.propertyOrNull(path)?.getString()?.toIntOrNull() ?: default
-}
-
-fun ApplicationConfig.getBoolean(path: String, default: Boolean): Boolean {
-    return this.propertyOrNull(path)?.getString()?.toBooleanStrict() ?: default
-}
-
-/**
- * Use the application.yaml config
- */
-fun Application.config(): ApplicationConfig = this.environment.config
