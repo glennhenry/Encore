@@ -1,6 +1,7 @@
 package encore.startup.venue
 
 import encore.annotation.VenueKey
+import encore.utils.logging.Level
 
 /**
  * Definition of config required by the framework.
@@ -12,7 +13,7 @@ import encore.annotation.VenueKey
  * @property server
  * @property adminEnabled
  * @property database
- * @property logger
+ * @property fancam
  */
 data class EncoreConfig(
     /**
@@ -36,7 +37,7 @@ data class EncoreConfig(
     val adminEnabled: Boolean = true,
 
     val database: EncoreDatabaseConfig,
-    val logger: EncoreLoggerConfig
+    val fancam: EncoreFancamConfig
 )
 
 /**
@@ -93,7 +94,10 @@ data class EncoreDatabaseConfig(
     val dbUrlTest: String,
 )
 
-data class EncoreLoggerConfig(
+/**
+ * Fancam (logger) configuration.
+ */
+data class EncoreFancamConfig(
     /**
      * Filter the minimum level of log messages.
      *
@@ -103,21 +107,13 @@ data class EncoreLoggerConfig(
      * e.g., level INFO means only seeing log message with INFO, WARN, ERROR
      */
     @VenueKey("logger.level")
-    val level: String = "TRACE",
+    val level: String = Level.Trace.name,
 
     /**
      * Whether to color log messages or output as plain text.
      */
     @VenueKey("logger.color._enabled")
     val colorEnabled: Boolean = true,
-
-    /**
-     * Whether to color the entire message or just the log level label.
-     *
-     * Recommend set to `false` to reduce light
-     */
-    @VenueKey("logger.color.colorEntireMessage")
-    val colorEntireMessage: Boolean = false,
 
     /**
      * Whether to color the background instead of the fonts
@@ -151,10 +147,4 @@ data class EncoreLoggerConfig(
      */
     @VenueKey("logger.formatting.maxFileRotation")
     val maxFileRotation: Int = 5,
-
-    /**
-     * Timestamp format in Java SimpleDateFormat
-     */
-    @VenueKey("logger.formatting.timestampFormat")
-    val timestampFormat: String = "HH:mm:ss.SSS",
 )

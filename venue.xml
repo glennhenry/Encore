@@ -24,7 +24,6 @@
         <logger>
             <level>TRACE</level>
             <color enabled="true">
-                <colorEntireMessage>true</colorEntireMessage>
                 <useBackgroundColor>true</useBackgroundColor>
             </color>
             <formatting>
@@ -32,7 +31,6 @@
                 <maximumLineLength>500</maximumLineLength>
                 <maxFileSize>5</maxFileSize>
                 <maxFileRotation>5</maxFileRotation>
-                <timestampFormat>HH:mm:ss.SSS</timestampFormat>
             </formatting>
         </logger>
     </encore>
