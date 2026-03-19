@@ -4,7 +4,7 @@ import encore.core.data.AdminData
 import encore.data.Database
 import encore.user.PlayerAccountRepository
 import encore.user.model.UserSession
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 
 /**
  * Default auth provider where authentication is handled typically.
@@ -24,7 +24,7 @@ class DefaultAuthProvider(
     override suspend fun login(username: String, password: String): Result<UserSession> {
         val result = playerAccountRepository.verifyCredentials(username, password)
         result.onFailure {
-            Logger.error { "Failure on verifyCredentials for username=$username: ${it.message}" }
+            Fancam.error { "Failure on verifyCredentials for username=$username: ${it.message}" }
             return Result.failure(it)
         }
         return Result.success(sessionManager.create(result.getOrThrow()))
@@ -37,7 +37,7 @@ class DefaultAuthProvider(
     override suspend fun doesUsernameExist(username: String): Boolean {
         val result = playerAccountRepository.doesUsernameExist(username)
         return result.getOrElse {
-            Logger.error { "Failure on doesUsernameExist for username=$username: ${it.message}" }
+            Fancam.error { "Failure on doesUsernameExist for username=$username: ${it.message}" }
             true // check error -> assume username exists
         }
     }
@@ -45,7 +45,7 @@ class DefaultAuthProvider(
     override suspend fun isUsernameAvailable(username: String): Boolean {
         val result = playerAccountRepository.isUsernameAvailable(username)
         return result.getOrElse {
-            Logger.error { "Failure on isUsernameAvailable for username=$username: ${it.message}" }
+            Fancam.error { "Failure on isUsernameAvailable for username=$username: ${it.message}" }
             false // check error -> assume username not available
         }
     }
@@ -53,7 +53,7 @@ class DefaultAuthProvider(
     override suspend fun doesEmailExist(email: String): Boolean {
         val result = playerAccountRepository.doesEmailExist(email)
         return result.getOrElse {
-            Logger.error { "Failure on doesEmailExist for email=$email: ${it.message}" }
+            Fancam.error { "Failure on doesEmailExist for email=$email: ${it.message}" }
             true // check error -> assume email exists
         }
     }
@@ -61,7 +61,7 @@ class DefaultAuthProvider(
     override suspend fun isEmailAvailable(email: String): Boolean {
         val result = playerAccountRepository.isEmailAvailable(email)
         return result.getOrElse {
-            Logger.error { "Failure on isEmailAvailable for email=$email: ${it.message}" }
+            Fancam.error { "Failure on isEmailAvailable for email=$email: ${it.message}" }
             false // check error -> assume email not available
         }
     }

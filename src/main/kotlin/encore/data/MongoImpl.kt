@@ -17,8 +17,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import encore.user.model.ServerMetadata
 import encore.user.model.UserProfile
-import encore.utils.logging.Logger
 import encore.utils.functions.UUID
+import encore.utils.logging.Fancam
 import kotlin.io.encoding.Base64
 
 /**
@@ -42,7 +42,7 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
     }
 
     init {
-        Logger.info { "Initializing MongoDB..." }
+        Fancam.info { "Initializing MongoDB..." }
         CoroutineScope(Dispatchers.IO).launch {
             setupCollections()
         }
@@ -51,7 +51,7 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
     private suspend fun setupCollections() {
         try {
             val count = accountCollection.estimatedDocumentCount()
-            Logger.info { "MongoDB: User collection ready, contains $count users." }
+            Fancam.info { "MongoDB: User collection ready, contains $count users." }
             if (adminEnabled) {
                 val adminDoc = accountCollection.find(Filters.eq("playerId", AdminData.PLAYER_ID)).firstOrNull()
                 if (adminDoc == null) {
@@ -62,14 +62,14 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
                     accountCollection.insertOne(doc)
                     dataCollection.insertOne(obj)
 
-                    Logger.info { "MongoDB: Admin enabled, account inserted in ${getTimeMillis() - start}ms" }
+                    Fancam.info { "MongoDB: Admin enabled, account inserted in ${getTimeMillis() - start}ms" }
                 } else {
-                    Logger.info { "MongoDB: Admin enabled, account already exists." }
+                    Fancam.info { "MongoDB: Admin enabled, account already exists." }
                 }
             }
             setupIndexes()
         } catch (e: Exception) {
-            Logger.error { "MongoDB: Failed during setupCollections: $e" }
+            Fancam.error { "MongoDB: Failed during setupCollections: $e" }
         }
     }
 

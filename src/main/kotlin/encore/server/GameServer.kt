@@ -14,8 +14,8 @@ import encore.server.messaging.socket.SocketMessage
 import encore.server.messaging.socket.SocketMessageDispatcher
 import encore.utils.functions.hexString
 import encore.utils.functions.safeAsciiString
-import encore.utils.logging.Logger
-import encore.utils.logging.Logger.LOG_INDENT_PREFIX
+import encore.utils.logging.Fancam
+import encore.utils.logging.LOG_INDENT_PREFIX
 import kotlin.system.measureTimeMillis
 
 data class GameServerConfig(
@@ -51,12 +51,12 @@ class GameServer(
 
     override suspend fun start() {
         if (running) {
-            Logger.warn { "Game server is already running" }
+            Fancam.warn { "Game server is already running" }
             return
         }
         running = true
 
-        Logger.info { "Socket server listening on ${config.host}:${config.port}" }
+        Fancam.info { "Socket server listening on ${config.host}:${config.port}" }
 
         val selectorManager = SelectorManager(Dispatchers.IO)
         gameServerScope.launch {
@@ -71,14 +71,14 @@ class GameServer(
                         remoteAddress = socket.remoteAddress.toString(),
                         connectionScope = CoroutineScope(gameServerScope.coroutineContext + SupervisorJob() + Dispatchers.Default),
                     )
-                    Logger.info { "New client: ${connection.remoteAddress}" }
+                    Fancam.info { "New client: ${connection.remoteAddress}" }
                     handleClient(connection)
                 }
             } catch (e: CancellationException) {
-                Logger.debug { "Game server coroutine cancelled (shutdown)" }
+                Fancam.debug { "Game server coroutine cancelled (shutdown)" }
                 throw e
             } catch (e: Exception) {
-                Logger.error { "ERROR on server: $e" }
+                Fancam.error { "ERROR on server: $e" }
                 shutdown()
             }
         }
@@ -103,7 +103,7 @@ class GameServer(
                     }
 
                     // end handle
-                    Logger.debug {
+                    Fancam.debug {
                         buildString {
                             appendLine("<===== [SOCKET END]")
                             appendLine("$LOG_INDENT_PREFIX type      : $msgType")
@@ -117,9 +117,9 @@ class GameServer(
                     }
                 }
             } catch (e: Exception) {
-                Logger.error { "Exception in client socket $connection: $e" }
+                Fancam.error { "Exception in client socket $connection: $e" }
             } finally {
-                Logger.info { "Cleaning up for $connection" }
+                Fancam.info { "Cleaning up for $connection" }
 
                 // Only perform cleanup if playerId is set (client was authenticated)
                 if (connection.playerId != "[Undetermined]") {
@@ -165,11 +165,11 @@ class GameServer(
     private suspend fun handleMessage(connection: Connection, data: ByteArray): String {
         // Empty data
         if (data.isEmpty()) {
-            Logger.debug { "[SOCKET] Ignored empty byte array from connection=$connection" }
+            Fancam.debug { "[SOCKET] Ignored empty byte array from connection=$connection" }
             return "[Empty data]"
         }
 
-        Logger.debug {
+        Fancam.debug {
             buildString {
                 appendLine("=====> [SOCKET RECEIVE]")
                 appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
@@ -195,7 +195,7 @@ class GameServer(
                     // Success decoding, convert to SocketMessage
                     val message = format.materializeAny(result.value)
 
-                    Logger.debug {
+                    Fancam.debug {
                         buildString {
                             appendLine("[SOCKET DECODE]")
                             appendLine("$LOG_INDENT_PREFIX type   : ${message.type()}")
@@ -206,7 +206,7 @@ class GameServer(
                     matched += format.name to message
                 }
             } catch (e: Exception) {
-                Logger.error { "Decode error in format ${format.name}; e=$e" }
+                Fancam.error { "Decode error in format ${format.name}; e=$e" }
             }
         }
 
@@ -214,7 +214,7 @@ class GameServer(
         val (chosenFormat, message) = matched.first()
 
         if (matched.size > 1) {
-            Logger.warn {
+            Fancam.warn {
                 buildString {
                     appendLine(
                         "Multiple formats decoded the same packet: " +

@@ -3,7 +3,6 @@ package encore.server.handler.impl
 import encore.server.handler.HandlerContext
 import encore.server.handler.SocketMessageHandler
 import encore.server.messaging.socket.SocketMessage
-import encore.utils.logging.Logger
 import kotlin.reflect.KClass
 
 /**
@@ -17,6 +16,6 @@ class DefaultHandler : SocketMessageHandler<SocketMessage> {
     override fun shouldHandle(message: SocketMessage): Boolean = true
 
     override suspend fun handle(ctx: HandlerContext<SocketMessage>) = with(ctx) {
-        Logger.warn { "No handler registered/implemented for type=${message.type()}" }
+        Fancam.warn { "No handler registered/implemented for type=${message.type()}" }
     }
 }

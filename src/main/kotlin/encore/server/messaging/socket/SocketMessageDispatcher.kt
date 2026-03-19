@@ -2,7 +2,8 @@ package encore.server.messaging.socket
 
 import encore.server.handler.SocketMessageHandler
 import encore.server.handler.impl.DefaultHandler
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
+import encore.utils.logging.LOG_INDENT_PREFIX
 
 /**
  * Central registry and dispatcher for socket message handlers.
@@ -72,11 +73,11 @@ class SocketMessageDispatcher {
     }
 
     private fun logDispatchment(msg: SocketMessage, selected: List<SocketMessageHandler<*>>) {
-        Logger.debug {
+        Fancam.debug {
             buildString {
                 appendLine("[SOCKET DISPATCH]")
-                appendLine("${Logger.LOG_INDENT_PREFIX} msg (str) : $msg")
-                append("${Logger.LOG_INDENT_PREFIX} handlers  : ${selected.joinToString { it.name }}")
+                appendLine("$LOG_INDENT_PREFIX msg (str) : $msg")
+                append("$LOG_INDENT_PREFIX handlers  : ${selected.joinToString { it.name }}")
             }
         }
     }

@@ -11,11 +11,11 @@ import java.text.SimpleDateFormat
  * - On each call to [trace], [debug], [info], [warn], [error], the log events
  *   are recorded. Likewise for [event] (whenever `log` is called) and
  *   [track] (whenever `log` or `record`is called).
- * - Provides access to them for assertion such as [getLastLogTrace],
- *   [getLastTrackTrace], [assertLogHas], [assertTrackHas]
+ * - Provides access to them for assertion such as [takeLastLogTrace],
+ *   [takeLastTrackTrace], [assertLogHas], [assertTrackHas]
  * - Minimal formatting: no color, never truncate.
  * - Does not take account [EncoreFancamConfig].
- * - Does not implement file and client target.
+ * - Does not implement file and client tartake.
  *
  * Example:
  * ```
@@ -140,30 +140,36 @@ class RehearsalFancam : FancamTemplate {
         )
     }
 
-    fun getLastLogTrace(n: Int): List<LogEvent> = tracelog.takeLast(n)
-    fun getLastLogDebug(n: Int): List<LogEvent> = debuglog.takeLast(n)
-    fun getLastLogInfo(n: Int): List<LogEvent> = infolog.takeLast(n)
-    fun getLastLogWarn(n: Int): List<LogEvent> = warnlog.takeLast(n)
-    fun getLastLogError(n: Int): List<LogEvent> = errorlog.takeLast(n)
+    fun takeLastLogTrace(n: Int): List<LogEvent> = tracelog.takeLast(n)
+    fun takeLastLogDebug(n: Int): List<LogEvent> = debuglog.takeLast(n)
+    fun takeLastLogInfo(n: Int): List<LogEvent> = infolog.takeLast(n)
+    fun takeLastLogWarn(n: Int): List<LogEvent> = warnlog.takeLast(n)
+    fun takeLastLogError(n: Int): List<LogEvent> = errorlog.takeLast(n)
 
-    fun getLastTrackTrace(n: Int): List<TrackEvent> = tracetrack.takeLast(n)
-    fun getLastTrackDebug(n: Int): List<TrackEvent> = debugtrack.takeLast(n)
-    fun getLastTrackInfo(n: Int): List<TrackEvent> = infotrack.takeLast(n)
-    fun getLastTrackWarn(n: Int): List<TrackEvent> = warntrack.takeLast(n)
-    fun getLastTrackError(n: Int): List<TrackEvent> = errortrack.takeLast(n)
+    fun takeLastTrackTrace(n: Int): List<TrackEvent> = tracetrack.takeLast(n)
+    fun takeLastTrackDebug(n: Int): List<TrackEvent> = debugtrack.takeLast(n)
+    fun takeLastTrackInfo(n: Int): List<TrackEvent> = infotrack.takeLast(n)
+    fun takeLastTrackWarn(n: Int): List<TrackEvent> = warntrack.takeLast(n)
+    fun takeLastTrackError(n: Int): List<TrackEvent> = errortrack.takeLast(n)
 
     /**
      * To assert whether any of the [lastN] message has log event of [level]
      * and match some predicate (e.g., string contains something).
      */
-    fun assertLogHas(level: Level, lastN: Int, predicate: (String) -> Boolean) {
-        when (level) {
-            Level.Trace -> getLastLogTrace(lastN).any { predicate(it.message()) }
-            Level.Debug -> getLastLogDebug(lastN).any { predicate(it.message()) }
-            Level.Info -> getLastLogInfo(lastN).any { predicate(it.message()) }
-            Level.Warn -> getLastLogWarn(lastN).any { predicate(it.message()) }
-            Level.Error -> getLastLogError(lastN).any { predicate(it.message()) }
-            Level.Off -> {}
+    fun assertLogHas(level: Level, lastN: Int, predicate: (String) -> Boolean): Boolean {
+        val assert = when (level) {
+            Level.Trace -> takeLastLogTrace(lastN).any { predicate(it.message()) }
+            Level.Debug -> takeLastLogDebug(lastN).any { predicate(it.message()) }
+            Level.Info -> takeLastLogInfo(lastN).any { predicate(it.message()) }
+            Level.Warn -> takeLastLogWarn(lastN).any { predicate(it.message()) }
+            Level.Error -> takeLastLogError(lastN).any { predicate(it.message()) }
+            Level.Off -> { true }
+        }
+
+        if (!assert) {
+            throw AssertionError("Failed to match predicate of $level in the last $lastN calls")
+        } else {
+            return true
         }
     }
 
@@ -171,14 +177,20 @@ class RehearsalFancam : FancamTemplate {
      * To assert whether the [lastN] message has track event of [level]
      * and match some predicate (e.g., data map contains something).
      */
-    fun assertTrackHas(level: Level, lastN: Int, predicate: (Map<String, Any>) -> Boolean) {
-        when (level) {
-            Level.Trace -> getLastTrackTrace(lastN).any { predicate(it.data) }
-            Level.Debug -> getLastTrackDebug(lastN).any { predicate(it.data) }
-            Level.Info -> getLastTrackInfo(lastN).any { predicate(it.data) }
-            Level.Warn -> getLastTrackWarn(lastN).any { predicate(it.data) }
-            Level.Error -> getLastTrackError(lastN).any { predicate(it.data) }
-            Level.Off -> {}
+    fun assertTrackHas(level: Level, lastN: Int, predicate: (Map<String, Any>) -> Boolean): Boolean {
+        val assert = when (level) {
+            Level.Trace -> takeLastTrackTrace(lastN).any { predicate(it.data) }
+            Level.Debug -> takeLastTrackDebug(lastN).any { predicate(it.data) }
+            Level.Info -> takeLastTrackInfo(lastN).any { predicate(it.data) }
+            Level.Warn -> takeLastTrackWarn(lastN).any { predicate(it.data) }
+            Level.Error -> takeLastTrackError(lastN).any { predicate(it.data) }
+            Level.Off -> { true }
+        }
+
+        if (!assert) {
+            throw AssertionError("Failed to match predicate of $level in the last $lastN calls")
+        } else {
+            return true
         }
     }
 }

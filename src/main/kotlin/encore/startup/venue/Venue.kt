@@ -4,7 +4,7 @@ import encore.annotation.VenueKey
 import encore.startup.venue.Venue.custom
 import encore.startup.venue.Venue.encore
 import encore.startup.venue.Venue.secret
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 import game.config.CustomConfig
 import game.config.SecretConfig
 import java.io.File
@@ -61,10 +61,10 @@ object Venue {
      */
     fun prepare() {
         if (done) {
-            Logger.warn { "Venue.prepare() called after initialization. Ignoring." }
+            Fancam.warn { "Venue.prepare() called after initialization. Ignoring." }
             return
         }
-        Logger.info { "Loading venue configuration" }
+        Fancam.info { "Loading venue configuration" }
 
         val venueFile = File("venue.xml")
         val venueSecretFile = File("venue.secret.xml")
@@ -85,7 +85,7 @@ object Venue {
         secret = preparer.get(SecretConfig::class, VenueCategory.SECRET, ENCORE_ENV_PREFIX)
         preparer.validate()
 
-        Logger.info { "Venue preparation finished." }
+        Fancam.info { "Venue preparation finished." }
         done = true
     }
 

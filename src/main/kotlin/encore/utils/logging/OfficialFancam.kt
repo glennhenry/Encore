@@ -26,8 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue
  * const val ServiceTag = "Service"
  * const val MultipleTag = "Game,Player,Inventory"
  *
- * Logger.warn(ServiceTag) { "Service x under problem." }
- * Logger.warn(MultipleTag) { "Service x under problem." }
+ * Fancam.warn(ServiceTag) { "Service x under problem." }
+ * Fancam.warn(MultipleTag) { "Service x under problem." }
  * ```
  *
  * ### 2. Advanced logging with builder DSL

@@ -1,6 +1,6 @@
 package encore.security.validation
 
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 
 /**
  * Defines a validation scheme composed of one or more validation stages.
@@ -115,7 +115,7 @@ class ValidationScheme<T>(private val schemeName: String, private val factory: (
             val passed = try {
                 stage.predicate.check(instance)
             } catch (e: Exception) {
-                Logger.error { "Error during validation check of '$schemeName' ($name) for target=$target: ${e.message}" }
+                Fancam.error { "Error during validation check of '$schemeName' ($name) for target=$target: ${e.message}" }
                 return ValidationResult.Error(strategy, reason, name, e)
             }
 
@@ -146,7 +146,7 @@ class ValidationScheme<T>(private val schemeName: String, private val factory: (
             val passed = try {
                 stage.predicate.checkSuspend(instance)
             } catch (e: Exception) {
-                Logger.error { "Error during validation check of '$schemeName' ($name) for target=$target" }
+                Fancam.error { "Error during validation check of '$schemeName' ($name) for target=$target" }
                 return ValidationResult.Error(strategy, reason, name, e)
             }
 

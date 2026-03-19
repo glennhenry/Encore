@@ -2,8 +2,8 @@ package encore.core.data
 
 import encore.core.data.resources.GameResource
 import encore.core.data.resources.GameResourcesParser
+import encore.utils.logging.Fancam
 import io.ktor.util.date.*
-import encore.utils.logging.Logger
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -34,17 +34,17 @@ object GameDefinition {
             val start = getTimeMillis()
             val parser = parsers[res::class]
             if (parser == null) {
-                Logger.warn { "No parser registered for resource type: ${res::class.simpleName}" }
+                Fancam.warn { "No parser registered for resource type: ${res::class.simpleName}" }
                 continue
             }
 
             @Suppress("UNCHECKED_CAST")
             (parser as GameResourcesParser<GameResource>).parse(res, this)
 
-            Logger.info { "Finished parsing ${res.name} in ${(getTimeMillis() - start).milliseconds}" }
+            Fancam.info { "Finished parsing ${res.name} in ${(getTimeMillis() - start).milliseconds}" }
         }
 
-        Logger.info { "All game resources loaded in ${(getTimeMillis() - startA).milliseconds}" }
+        Fancam.info { "All game resources loaded in ${(getTimeMillis() - startA).milliseconds}" }
     }
 
     /**

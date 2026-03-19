@@ -1,6 +1,6 @@
 package encore.server.messaging.format
 
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 
 /**
  * Registry of all [MessageFormat]s supported by the server.
@@ -46,7 +46,7 @@ class MessageFormatRegistry {
                     matched.add(format)
                 }
             } catch (e: Exception) {
-                Logger.verbose {
+                Fancam.trace {
                     val peek = data.copyOfRange(0, minOf(20, data.size))
                     "${format.name} verify failed; peek=$peek; error=$e"
                 }

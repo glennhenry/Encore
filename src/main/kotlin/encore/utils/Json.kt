@@ -2,6 +2,7 @@
 
 package encore.utils
 
+import encore.utils.logging.Fancam
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -26,7 +27,6 @@ import kotlinx.serialization.json.long
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.serializer
 import kotlinx.serialization.serializerOrNull
-import encore.utils.logging.Logger
 import kotlin.collections.map
 import kotlin.collections.mapValues
 import kotlin.reflect.KClass
@@ -126,7 +126,7 @@ fun Any?.toJsonValue(prioritizeToString: Boolean = false): JsonElement = when (t
                     JSON.json.encodeToJsonElement(serializer as SerializationStrategy<Any>, this)
                 }
                 else -> {
-                    Logger.warn { "Serializer missing for $kClass, used 'toString()' fallback." }
+                    Fancam.warn { "Serializer missing for $kClass, used 'toString()' fallback." }
                     JsonPrimitive(this.toString())
                 }
             }

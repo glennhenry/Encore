@@ -8,8 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import encore.utils.functions.hexString
 import encore.utils.functions.safeAsciiString
-import encore.utils.logging.Logger
-import encore.utils.logging.Logger.LOG_INDENT_PREFIX
+import encore.utils.logging.Fancam
+import encore.utils.logging.LOG_INDENT_PREFIX
+import encore.utils.logging.Level
 
 /**
  * Default implementation of [Connection] which is based on a real socket.
@@ -49,17 +50,19 @@ class DefaultConnection(
     override suspend fun write(input: ByteArray, logOutput: Boolean, logFull: Boolean) {
         try {
             if (logOutput) {
-                Logger.debug(logFull = logFull) {
-                    buildString {
-                        appendLine("[SOCKET SEND]")
-                        appendLine("$LOG_INDENT_PREFIX raw       : ${input.safeAsciiString()}")
-                        append("$LOG_INDENT_PREFIX raw (hex) : ${input.hexString()}")
+                Fancam.event(Level.Debug)
+                    .message {
+                        buildString {
+                            appendLine("[SOCKET SEND]")
+                            appendLine("$LOG_INDENT_PREFIX raw       : ${input.safeAsciiString()}")
+                            append("$LOG_INDENT_PREFIX raw (hex) : ${input.hexString()}")
+                        }
                     }
-                }
+                    .log(full = logFull)
             }
             outputChannel.writeFully(input)
         } catch (e: Exception) {
-            Logger.error { "Failed to send raw message to $remoteAddress: ${e.message}" }
+            Fancam.error { "Failed to send raw message to $remoteAddress: ${e.message}" }
             throw e
         }
     }
@@ -75,7 +78,7 @@ class DefaultConnection(
         try {
             connectionScope.cancel()
         } catch (e: Exception) {
-            Logger.warn { "Exception during connection shutdown: ${e.message}" }
+            Fancam.warn { "Exception during connection shutdown: ${e.message}" }
         }
     }
 

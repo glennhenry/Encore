@@ -5,6 +5,12 @@ const val TRACK_FILE_EXTENSION = "jsonl"
 const val LOG_FILE_DIRECTORY = ".logs"
 
 /**
+ * Blank spaces to include in the log message when logging with
+ * multiple lines and wants the next line to align with the upper log call.
+ */
+const val LOG_INDENT_PREFIX = "                                             "
+
+/**
  * A globally accessible facade for [Fancam].
  *
  * Must be initialized before usage through [initialize] passing

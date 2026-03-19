@@ -24,9 +24,8 @@ import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager
 import encore.utils.JSON
 import encore.utils.functions.UUID
-import encore.utils.logging.Logger
-import encore.utils.logging.LoggerSettings
-import encore.utils.logging.toLogLevel
+import encore.utils.logging.Fancam
+import encore.utils.logging.OfficialFancam
 import encore.ws.WebSocketManager
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -70,24 +69,7 @@ fun main() {
 }
 
 suspend fun Application.module() {
-    /* 1. Setup logger */
-    Logger.updateSettings {
-        LoggerSettings(
-            minimumLevel = Venue.encore.logger.level.toLogLevel(),
-            colorfulLog = Venue.encore.logger.colorEnabled,
-            colorizeLevelLabelOnly = Venue.encore.logger.colorEntireMessage,
-            useForegroundColor = !Venue.encore.logger.useBackgroundColor,
-            fileNamePadding = Venue.encore.logger.fileNamePadding,
-            tagPadding = 20,
-            maximumLogMessageLineLength = Venue.encore.logger.maximumLineLength,
-            maximumLogFileSize = Venue.encore.logger.maxFileSize,
-            maximumLogFileRotation = Venue.encore.logger.maxFileRotation,
-            logDateFormatter = SimpleDateFormat(Venue.encore.logger.timestampFormat),
-            fileDateFormatter = SimpleDateFormat(Venue.encore.logger.timestampFormat)
-        )
-    }
-
-    /* 2. Setup serialization */
+    /* 1. Setup serialization */
     val module = SerializersModule {}
     val json = Json {
         serializersModule = module
@@ -102,6 +84,9 @@ suspend fun Application.module() {
         json(json)
     }
     JSON.initialize(json)
+
+    /* 2. Setup logger */
+    Fancam.initialize(OfficialFancam(Venue.encore.fancam))
 
     /* 3. Install CORS */
     install(CORS) {
@@ -118,11 +103,11 @@ suspend fun Application.module() {
     /* 5. Install status pages */
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            Logger.error { "Server error at ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
+            Fancam.error { "Server error at ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
             call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
         unhandled { call ->
-            Logger.error { "Unhandled API route: ${call.request.httpMethod} ${call.request.uri}." }
+            Fancam.error { "Unhandled API route: ${call.request.httpMethod} ${call.request.uri}." }
         }
     }
 
@@ -148,7 +133,7 @@ suspend fun Application.module() {
     val contextTracker = DefaultContextTracker()
     val codecDispatcher = MessageFormatRegistry()
     val taskDispatcher = ServerTaskDispatcher()
-    val commandDispatcher = CommandDispatcher(Logger)
+    val commandDispatcher = CommandDispatcher()
     val wsManager = WebSocketManager()
     val services = ServerServices()
     val serverContext = ServerContext(
@@ -191,14 +176,14 @@ suspend fun Application.module() {
     )
 
     val apiPort = Venue.encore.server.port
-    Logger.info { "Server successfully started." }
-    Logger.info { "File/API server available at ${gameServerConfig.host}:$apiPort." }
-    Logger.info { "Devtools available at ${gameServerConfig.host}:$apiPort/devtools." }
+    Fancam.info { "Server successfully started." }
+    Fancam.info { "File/API server available at ${gameServerConfig.host}:$apiPort." }
+    Fancam.info { "Devtools available at ${gameServerConfig.host}:$apiPort/devtools." }
 
     if (File("docs/index.html").exists()) {
-        Logger.info { "Docs website available on ${gameServerConfig.host}:$apiPort." }
+        Fancam.info { "Docs website available on ${gameServerConfig.host}:$apiPort." }
     } else {
-        Logger.verbose { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
+        Fancam.trace { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
     }
 
     val gameServer = GameServer(gameServerConfig) { socketDispatcher, serverContext ->
@@ -257,7 +242,7 @@ suspend fun Application.module() {
         runBlocking {
             container.shutdownAll()
         }
-        Logger.info { "Server shutdown complete." }
+        Fancam.info { "Server shutdown complete." }
     })
 }
 
@@ -267,10 +252,10 @@ fun startMongo(databaseName: String, mongoUrl: String, adminEnabled: Boolean): M
             val mongoc = MongoClient.create(mongoUrl)
             val db = mongoc.getDatabase("admin")
             val commandResult = db.runCommand(Document("ping", 1))
-            Logger.info { "MongoDB connection successful: $commandResult" }
+            Fancam.info { "MongoDB connection successful: $commandResult" }
             MongoImpl(mongoc.getDatabase(databaseName), adminEnabled)
         } catch (e: Exception) {
-            Logger.error { "MongoDB connection failed inside timeout: ${e.message}" }
+            Fancam.error { "MongoDB connection failed inside timeout: ${e.message}" }
             throw e
         }
     }

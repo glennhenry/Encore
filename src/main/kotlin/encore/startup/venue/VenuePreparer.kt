@@ -2,8 +2,8 @@ package encore.startup.venue
 
 import encore.annotation.VenueKey
 import encore.utils.XMLFlattener
-import encore.utils.logging.ILogger
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
+import encore.utils.logging.FancamTemplate
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -23,8 +23,7 @@ import kotlin.reflect.full.primaryConstructor
  */
 class VenuePreparer(
     venueFiles: List<File>,
-    private val envProvider: EnvProvider = SystemEnvProvider(),
-    private val logger: ILogger = Logger
+    private val envProvider: EnvProvider = SystemEnvProvider()
 ) {
     private val flattener = XMLFlattener()
     private val finalKeys = mutableMapOf<String, String>()
@@ -34,12 +33,12 @@ class VenuePreparer(
         for (file in venueFiles) {
             processXml(file).forEach { (k, v) ->
                 if (k in finalKeys) {
-                    logger.warn { "Duplicate configuration key detected: '$k'. Last value wins $v." }
+                    Fancam.warn { "Duplicate configuration key detected: '$k'. Last value wins $v." }
                 }
                 finalKeys[k] = v
             }
         }
-        logger.info { "Venue configuration loaded successfully (${finalKeys.size} total entries)." }
+        Fancam.info { "Venue configuration loaded successfully (${finalKeys.size} total entries)." }
     }
 
     /**
@@ -84,7 +83,7 @@ class VenuePreparer(
         val unused = finalKeys.keys - usedKeys
         if (unused.isEmpty()) return
 
-        logger.warn {
+        Fancam.warn {
             buildString {
                 appendLine("Unused configuration keys detected:")
                 unused.sortedBy { it.length }.forEach {
@@ -168,7 +167,7 @@ class VenuePreparer(
         val envKey = pathkeyToEnv(key, xmlFieldPrefix, envPrefix)
         val env = envProvider.get(envKey)
         if (env != null) {
-            logger.info { "Overriden by ENV: $envKey" }
+            Fancam.info { "Overriden by ENV: $envKey" }
         }
         return env
     }

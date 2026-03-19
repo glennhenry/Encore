@@ -1,6 +1,6 @@
 package encore.utils
 
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 import org.w3c.dom.Element
 import org.xml.sax.InputSource
 import java.io.File
@@ -32,7 +32,7 @@ class XMLFlattener {
      *                                  or when it has duplicate key.
      */
     fun flatten(xmlFile: File, xmlRoot: String): Map<String, String> {
-        Logger.verbose { "Parsing ${xmlFile.name}; root='$xmlRoot'" }
+         Fancam.trace { "Parsing ${xmlFile.name}; root='$xmlRoot'" }
 
         val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         val doc = builder.parse(InputSource(StringReader(xmlFile.readText())))
@@ -44,7 +44,7 @@ class XMLFlattener {
         }
 
         return parseNode(xmlRoot, root).also {
-            Logger.verbose { "Parsed ${it.size} entries from ${xmlFile.name}" }
+            Fancam.trace { "Parsed ${it.size} entries from ${xmlFile.name}" }
         }
     }
 
@@ -77,7 +77,7 @@ class XMLFlattener {
             val key = "$path._${attr.nodeName}"
             val value = attr.nodeValue
 
-            Logger.verbose { "Attribute $key='$value'" }
+            Fancam.trace { "Attribute $key='$value'" }
 
             result[key] = value
         }
@@ -89,7 +89,7 @@ class XMLFlattener {
         if (elementChildren.isEmpty()) {
             val value = element.textContent.trim()
             if (value.isNotEmpty()) {
-                Logger.verbose { "Value $path='$value'" }
+                Fancam.trace { "Value $path='$value'" }
                 result[path] = value
             }
         }

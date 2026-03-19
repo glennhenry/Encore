@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import encore.server.core.network.Connection
 import encore.utils.functions.SystemTime
 import encore.utils.functions.TimeProvider
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -87,27 +87,27 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
 
         val job = connection.connectionScope.launch {
             try {
-                Logger.info("runTask Hello") { "Task ${taskToRun.name.code} has been scheduled to run (waiting for startDelay) for playerId=${connection.playerId}, taskId=$taskId" }
+                Fancam.info("runTask Hello") { "Task ${taskToRun.name.code} has been scheduled to run (waiting for startDelay) for playerId=${connection.playerId}, taskId=$taskId" }
                 val scheduler = taskToRun.scheduler ?: this@ServerTaskDispatcher
                 scheduler.schedule(connection, taskId, taskToRun)
             } catch (e: CancellationException) {
                 when (e) {
                     is ForceCompleteException -> {
-                        Logger.info("ForceCompleteException") { "Task '${taskToRun.name.code}' was forced to complete for playerId=${connection.playerId}, taskId=$taskId" }
+                        Fancam.info("ForceCompleteException") { "Task '${taskToRun.name.code}' was forced to complete for playerId=${connection.playerId}, taskId=$taskId" }
                     }
 
                     is ManualCancellationException -> {
-                        Logger.info("ManualCancellationException") { "Task '${taskToRun.name.code}' was manually cancelled for playerId=${connection.playerId}, taskId=$taskId" }
+                        Fancam.info("ManualCancellationException") { "Task '${taskToRun.name.code}' was manually cancelled for playerId=${connection.playerId}, taskId=$taskId" }
                     }
 
                     else -> {
-                        Logger.warn("CancellationException") { "Task '${taskToRun.name.code}' was cancelled for playerId=${connection.playerId}, taskId=$taskId" }
+                        Fancam.warn("CancellationException") { "Task '${taskToRun.name.code}' was cancelled for playerId=${connection.playerId}, taskId=$taskId" }
                     }
                 }
             } catch (e: Exception) {
-                Logger.error("runTask Exception") { "Error on task '${taskToRun.name.code}': $e for playerId=${connection.playerId}, taskId=$taskId" }
+                Fancam.error("runTask Exception") { "Error on task '${taskToRun.name.code}': $e for playerId=${connection.playerId}, taskId=$taskId" }
             } finally {
-                Logger.info("runTask Goodbye") { "Task '${taskToRun.name.code}' no longer run for playerId=${connection.playerId}, taskId=$taskId" }
+                Fancam.info("runTask Goodbye") { "Task '${taskToRun.name.code}' no longer run for playerId=${connection.playerId}, taskId=$taskId" }
                 runningInstances.remove(taskId)
             }
         }
@@ -140,7 +140,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
             task.onStart(connection)
             delay(config.startDelay)
 
-            Logger.info("[runTask Working]") { "Task '${task.name.code}' currently running for playerId=${connection.playerId}, taskId=$taskId" }
+            Fancam.info("[runTask Working]") { "Task '${task.name.code}' currently running for playerId=${connection.playerId}, taskId=$taskId" }
 
             if (shouldRepeat) {
                 while (currentCoroutineContext().isActive) {
@@ -230,7 +230,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
             val instance = runningInstances.remove(taskId)
 
             if (instance == null) {
-                Logger.warn("stopTaskFor") { "Instance for taskId=$taskId is null." }
+                Fancam.warn("stopTaskFor") { "Instance for taskId=$taskId is null." }
                 return
             }
 

@@ -8,7 +8,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.put
 import encore.utils.JSON
-import encore.utils.logging.Logger
 import java.util.concurrent.ConcurrentHashMap
 
 typealias ClientSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>

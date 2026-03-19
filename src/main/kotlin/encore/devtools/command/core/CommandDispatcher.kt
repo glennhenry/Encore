@@ -2,8 +2,7 @@ package encore.devtools.command.core
 
 import encore.annotation.RevisitLater
 import encore.context.ServerContext
-import encore.utils.logging.ILogger
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 
 /**
  * Dispatch and execute server registered commands.
@@ -21,7 +20,7 @@ import encore.utils.logging.Logger
  *
  * See example in `test.devtools.CommandDispatcherTest`.
  */
-class CommandDispatcher(private val logger: ILogger) {
+class CommandDispatcher {
     private lateinit var serverContext: ServerContext
     private val commands = mutableMapOf<String, Command>()
     private val parser = CommandParser()
@@ -51,7 +50,7 @@ class CommandDispatcher(private val logger: ILogger) {
         val cleanId = sanitizeCommandId(command.commandId)
 
         if (cleanId in commands) {
-            logger.warn { "The commandId '${cleanId}' has been registered before, the old one will be overwritten." }
+            Fancam.warn { "The commandId '${cleanId}' has been registered before, the old one will be overwritten." }
         }
 
         val seenVariant = mutableMapOf<Int, CommandVariant>()
@@ -102,7 +101,7 @@ class CommandDispatcher(private val logger: ILogger) {
             // just parse error which is not severe
             return CommandResult.Error("Parsing error: ${e.message}")
         } catch (e: Exception) {
-            Logger.error { "Unexpected parsing error on handleRawCommand: ${e.message}" }
+            Fancam.error { "Unexpected parsing error on handleRawCommand: ${e.message}" }
             return CommandResult.Error("Parsing error: ${e.message}")
         }
 
@@ -120,15 +119,15 @@ class CommandDispatcher(private val logger: ILogger) {
     fun handleCommand(request: CommandRequest): CommandResult {
         val command = commands[request.commandId] ?: return CommandResult.CommandNotFound(request.commandId)
 
-        logger.info { "Received command '${request.commandId} ${request.arguments}'" }
+        Fancam.info { "Received command '${request.commandId} ${request.arguments}'" }
 
         try {
             val result = command.execute(serverContext, request.arguments)
-            Logger.info { "Done executing command '${request.commandId}' with result=$result" }
+            Fancam.info { "Done executing command '${request.commandId}' with result=$result" }
             return result
         } catch (e: Exception) {
             val msg = "Unexpected error while executing the command '${request.commandId}'; error: ${e.message ?: e}"
-            Logger.error { msg }
+            Fancam.error { msg }
             return CommandResult.Error(msg)
         }
     }

@@ -13,7 +13,6 @@ import encore.user.PlayerAccountRepository
 import encore.user.auth.AuthProvider
 import encore.user.auth.EmptyAuthProvider
 import encore.user.auth.SessionManager
-import encore.utils.logging.Logger
 import encore.ws.WebSocketManager
 
 /**
@@ -71,7 +70,7 @@ data class ServerContext(
                 contextTracker = contextTracker,
                 formatRegistry = MessageFormatRegistry(),
                 taskDispatcher = ServerTaskDispatcher(),
-                commandDispatcher = CommandDispatcher(Logger),
+                commandDispatcher = CommandDispatcher(),
                 wsManager = WebSocketManager(),
                 services = ServerServices()
             )

@@ -15,7 +15,7 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.serialization.json.Json
 import encore.utils.functions.UUID
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 import encore.ws.WsMessage
 import java.io.File
 import kotlin.time.Duration.Companion.hours
@@ -58,7 +58,7 @@ fun Route.devtoolsRoutes(serverContext: ServerContext, tokenStorage: MutableMap<
 
         // skip on developmentMode
         if (application.developmentMode) {
-            Logger.debug { "Request to /devtools auth skipped (development mode)" }
+            Fancam.debug { "Request to /devtools auth skipped (development mode)" }
             call.respondFile(devtoolsHtml)
             return@get
         }
@@ -69,26 +69,26 @@ fun Route.devtoolsRoutes(serverContext: ServerContext, tokenStorage: MutableMap<
 
         // user already authenticated before, does not need token from query parameter
         if (cookieValid) {
-            Logger.debug { "Request to /devtools succeed: user has client cookie" }
+            Fancam.debug { "Request to /devtools succeed: user has client cookie" }
             call.respondFile(devtoolsHtml)
             return@get
         }
 
         // user authenticating but fails
         if (token == null) {
-            Logger.debug { "Request to /devtools (no token), responded with wall" }
+            Fancam.debug { "Request to /devtools (no token), responded with wall" }
             call.respondFile(wallHtml)
             return@get
         }
 
         if (!tokenStorage.contains(token)) {
-            Logger.debug { "Request to /devtools: got unknown token" }
+            Fancam.debug { "Request to /devtools: got unknown token" }
             call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Unknown token"), ContentType.Text.Html)
             return@get
         }
 
         if (tokenStorage.contains(token) && !timeUnderMinutes(tokenStorage[token]!!, 1)) {
-            Logger.debug { "Request to /devtools: token already expired" }
+            Fancam.debug { "Request to /devtools: token already expired" }
             call.respondText(
                 insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token already expired"),
                 ContentType.Text.Html
@@ -101,7 +101,7 @@ fun Route.devtoolsRoutes(serverContext: ServerContext, tokenStorage: MutableMap<
             userId = UUID.new(), validFor = 6.hours, lifetime = 6.hours
         )
         call.response.cookies.append("devtools-clientId", session.token, maxAge = 21600, path = "/devtools")
-        Logger.debug { "Request to /devtools: token correct, user logged in" }
+        Fancam.debug { "Request to /devtools: token correct, user logged in" }
         call.respondFile(devtoolsHtml)
     }
 
@@ -167,15 +167,15 @@ fun Route.devtoolsRoutes(serverContext: ServerContext, tokenStorage: MutableMap<
                         }
                         serverContext.wsManager.handleMessage(this, wsMessage)
                     } catch (e: Exception) {
-                        Logger.error { "Failed to parse WS message: $msg\n$e" }
+                        Fancam.error { "Failed to parse WS message: $msg\n$e" }
                     }
                 }
             }
         } catch (e: Exception) {
-            Logger.error { "Error in websocket for client $this: $e" }
+            Fancam.error { "Error in websocket for client $this: $e" }
         } finally {
             serverContext.wsManager.removeClient(token)
-            Logger.info { "Client $this disconnected from websocket" }
+            Fancam.info { "Client $this disconnected from websocket" }
         }
     }
 }
