@@ -4,16 +4,32 @@ import encore.annotation.VenueKey
 import encore.startup.venue.EncoreConfig
 import encore.startup.venue.FakeEnvProvider
 import encore.startup.venue.VenuePreparer
-import encore.utils.logging.Logger
-import encore.utils.logging.TestLogger
+import encore.utils.JSON
+import encore.utils.logging.Fancam
+import encore.utils.logging.Level
+import encore.utils.logging.RehearsalFancam
 import encoreTest.utils.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import encoreTest.utils.assertDoesNotFail
+import kotlinx.serialization.json.Json
+import kotlin.test.BeforeTest
 import kotlin.test.assertTrue
 
 class VenuePreparerTest {
+    private var fancam = RehearsalFancam()
+
+    @BeforeTest
+    fun setupJson() {
+        JSON.initialize(Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        })
+        fancam = RehearsalFancam()
+        Fancam.initialize(fancam)
+    }
+
     @Test
     fun `XML normal behavior success`() {
         val xml = """
@@ -78,7 +94,7 @@ class VenuePreparerTest {
                             </test>
                         </mongo>
                     </database>
-                    <logger>
+                    <Fancam>
                         <level>TRACE</level>
                         <color enabled="true">
                             <colorEntireMessage>true</colorEntireMessage>
@@ -89,9 +105,8 @@ class VenuePreparerTest {
                             <maximumLineLength>500</maximumLineLength>
                             <maxFileSize>5</maxFileSize>
                             <maxFileRotation>5</maxFileRotation>
-                            <timestampFormat>ABCDEF</timestampFormat>
                         </formatting>
-                    </logger>
+                    </Fancam>
                 </encore>
                 <custom>
                     <parent>
@@ -105,14 +120,14 @@ class VenuePreparerTest {
         val config = preparer.get(EncoreConfig::class, "encore")
         val custom = preparer.get(TestCustomConfig::class, "custom")
 
-        Logger.info { config.toString() }
-        Logger.info { custom.toString() }
+        Fancam.info { config.toString() }
+        Fancam.info { custom.toString() }
 
         assertEquals(true, config.devMode)
         assertEquals("localhost", config.server.host)
-        assertEquals(21, config.logger.fileNamePadding)
+        assertEquals(21, config.fancam.fileNamePadding)
         assertEquals("heheDB", config.database.dbNameTest)
-        assertEquals("ABCDEF", config.logger.timestampFormat)
+        assertEquals(5, config.fancam.maxFileRotation)
         assertEquals(123, custom.child)
     }
 
@@ -140,7 +155,7 @@ class VenuePreparerTest {
                             </test>
                         </mongo>
                     </database>
-                    <logger>
+                    <Fancam>
                         <level>TRACE</level>
                         <color enabled="true">
                             <colorEntireMessage>true</colorEntireMessage>
@@ -153,7 +168,7 @@ class VenuePreparerTest {
                             <maxFileRotation>5</maxFileRotation>
                             <timestampFormat>ABCDEF</timestampFormat>
                         </formatting>
-                    </logger>
+                    </Fancam>
                 </encore>
                 <random>
                     <parent>
@@ -173,7 +188,7 @@ class VenuePreparerTest {
         val preparer = VenuePreparer(listOf(xml, xml2))
         val secret = preparer.get(TestSecretConfig::class, "secret")
 
-        Logger.info { secret.toString() }
+        Fancam.info { secret.toString() }
 
         assertEquals(123, secret.anything)
     }
@@ -202,7 +217,7 @@ class VenuePreparerTest {
                             </test>
                         </mongo>
                     </database>
-                    <logger>
+                    <Fancam>
                         <level>TRACE</level>
                         <color enabled="true">
                             <colorEntireMessage>true</colorEntireMessage>
@@ -215,21 +230,21 @@ class VenuePreparerTest {
                             <maxFileRotation>5</maxFileRotation>
                             <timestampFormat>ABCDEF</timestampFormat>
                         </formatting>
-                    </logger>
+                    </Fancam>
                 </encore>
             </venue>
         """.trimIndent().toFile("venue.xml")
 
         val envProvider = FakeEnvProvider(
             mapOf(
-                "ENCORE_LOGGER_COLOR__ENABLED" to "false",
+                "ENCORE_Fancam_COLOR__ENABLED" to "false",
                 "ENCORE_DATABASE_MONGO_PROD_DBNAME" to "testdbname",
             )
         )
         val preparer = VenuePreparer(listOf(xml), envProvider)
         val encore = preparer.get(EncoreConfig::class, "encore")
 
-        assertEquals(false, encore.logger.colorEnabled)
+        assertEquals(false, encore.fancam.colorEnabled)
         assertEquals("testdbname", encore.database.dbNameProd)
     }
 
@@ -286,8 +301,7 @@ class VenuePreparerTest {
             </venue>
         """.trimIndent().toFile("venue2.xml")
 
-        val logger = TestLogger()
-        val preparer = VenuePreparer(listOf(xml1, xml2), logger = logger)
+        val preparer = VenuePreparer(listOf(xml1, xml2))
         val config = preparer.get(TestConfig::class, "encore")
 
         assertEquals("localhost", config.server.host)
@@ -295,18 +309,22 @@ class VenuePreparerTest {
 
         preparer.validate()
 
-        val warns = logger.getLastWarnCalls(2)
-
         assertTrue {
-            warns.first().contains(
-                "Duplicate configuration key detected: 'venue.encore.server.host'. Last value wins localhost."
-            )
+            fancam.assertLogHas(Level.Warn, 2) {
+                it.contains(
+                    "Duplicate configuration key detected: 'venue.encore.server.host'. " +
+                            "Last value wins localhost."
+                )
+            }
         }
 
         assertTrue {
-            warns.last().contains(
-                "Duplicate configuration key detected: 'venue.encore.server.port'. Last value wins 7777."
-            )
+            fancam.assertLogHas(Level.Warn, 1) {
+                it.contains(
+                    "Duplicate configuration key detected: 'venue.encore.server.port'. " +
+                            "Last value wins 7777."
+                )
+            }
         }
     }
 
@@ -379,14 +397,18 @@ class VenuePreparerTest {
             </venue>
         """.trimIndent().toFile("venue.xml")
 
-        val logger = TestLogger()
-        val preparer = VenuePreparer(listOf(xml), logger = logger)
+        val preparer = VenuePreparer(listOf(xml))
         preparer.get(TestConfig::class, "encore")
 
         assertDoesNotFail {
             preparer.validate()
         }
-        logger.getLastWarnCalls(1).contains("Unused configuration keys detected")
+
+        assertTrue {
+            fancam.assertLogHas(Level.Warn, 1) {
+                it.contains("Unused configuration keys detected")
+            }
+        }
     }
 
     @Test

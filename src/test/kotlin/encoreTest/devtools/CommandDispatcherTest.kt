@@ -13,11 +13,14 @@ import encore.devtools.command.core.variantsAsString
 import encoreTest.utils.randomString
 import kotlinx.serialization.json.Json
 import encore.utils.JSON
-import encore.utils.logging.TestLogger
+import encore.utils.logging.Fancam
+import encore.utils.logging.Level
+import encore.utils.logging.RehearsalFancam
 import kotlin.random.Random
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /**
  * Command dispatcher test and example of command implementation [encoreTest.devtools.ExampleGiveCommand].
@@ -26,6 +29,7 @@ import kotlin.test.assertFailsWith
  */
 class CommandDispatcherTest {
     private val context = ServerContext.fake()
+    private var fancam = RehearsalFancam()
 
     @BeforeTest
     fun setupJson() {
@@ -33,11 +37,13 @@ class CommandDispatcherTest {
             ignoreUnknownKeys = true
             isLenient = true
         })
+        fancam = RehearsalFancam()
+        Fancam.initialize(fancam)
     }
 
     @Test
     fun `testCommandDispatcher register normal success`() {
-        val dispatcher = CommandDispatcher(TestLogger())
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(createCommand("cmd1"))
@@ -48,7 +54,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register normal with variant success`() {
-        val dispatcher = CommandDispatcher(TestLogger())
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(createCommand("cmd1", generateVariants()))
@@ -59,8 +65,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register duplicate commandId success but warned`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val cmd2a = generateVariant(2)
@@ -70,18 +75,17 @@ class CommandDispatcherTest {
         dispatcher.register(createCommand("cmd2", listOf(cmd2a)))
         dispatcher.register(createCommand("cmd2", listOf(cmd2b)))
 
-        val call = logger.getLastWarnCalls(1)
-
         // ensure warned
-        assertTrue(call.first().contains("has been registered before"))
+        assertTrue {
+            fancam.assertLogHas(Level.Warn, 1) { it.contains("has been registered before") }
+        }
         // ensure the first registered command get overwritten
         assertTrue(dispatcher.getAllVariantsOf("cmd2").contains(cmd2b))
     }
 
     @Test
     fun `testCommandDispatcher register duplicate variant failed 1 and throws`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val first = CommandVariant(
@@ -108,8 +112,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register duplicate variant failed 2 and throws`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2), generateVariant(2))
@@ -121,8 +124,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register commandId blank 1 throws`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2))
@@ -134,8 +136,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register commandId blank 2 throws`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2))
@@ -147,8 +148,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register commandId has invalid character 1 throws`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2))
@@ -160,8 +160,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register commandId has invalid character 2 throws`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2))
@@ -173,8 +172,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register commandId has acceptable character does not throws`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2))
@@ -184,8 +182,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register commandId has whitespace character success`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2))
@@ -196,8 +193,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher register commandId duplicate name but different cases success`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         val variants = listOf(generateVariant(2))
@@ -211,8 +207,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand unregistered command returns command not found`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         assertTrue(
@@ -226,8 +221,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand normally 1 returns executed`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(ExampleGiveCommand())
@@ -245,8 +239,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand normally 2 returns executed`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(ExampleGiveCommand())
@@ -265,8 +258,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand insufficient arguments returns not enough argument`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(ExampleGiveCommand())
@@ -283,8 +275,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand argument type mismatch returns invalid argument type`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(ExampleGiveCommand())
@@ -303,8 +294,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand simulates uncaught exception returns command error`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(ExampleGiveCommand())
@@ -323,8 +313,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand simulates failure returns execution failure`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
 
         dispatcher.register(ExampleGiveCommand())
@@ -343,8 +332,7 @@ class CommandDispatcherTest {
 
     @Test
     fun `testCommandDispatcher handleCommand too many arguments still success returns executed`() {
-        val logger = TestLogger()
-        val dispatcher = CommandDispatcher(logger)
+        val dispatcher = CommandDispatcher()
         dispatcher.init(context)
         dispatcher.init(context)
 

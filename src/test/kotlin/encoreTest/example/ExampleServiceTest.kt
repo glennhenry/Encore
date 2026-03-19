@@ -9,11 +9,11 @@ import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.core.PlayerService
 import encore.data.runMongoCatching
 import encore.data.throwIfNotModified
+import encore.utils.logging.Fancam
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
 import org.bson.Document
-import encore.utils.logging.Logger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -269,7 +269,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateStrData(s: String): Result<Unit> {
         val result = exampleRepository.updateStrData(playerId, s)
         result.onFailure {
-            Logger.error { "Error on ExampleService-updateStrData: ${it.message}" }
+            Fancam.error { "Error on ExampleService-updateStrData: ${it.message}" }
         }
         result.onSuccess {
             strData = s
@@ -280,7 +280,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateIntData(i: Int): Result<Unit> {
         val result = exampleRepository.updateIntData(playerId, i)
         result.onFailure {
-            Logger.error { "Error on ExampleService-updateIntData: ${it.message}" }
+            Fancam.error { "Error on ExampleService-updateIntData: ${it.message}" }
         }
         result.onSuccess {
             intData = i
@@ -291,7 +291,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateOneManyStrData(old: String, new: String): Result<Unit> {
         val result = exampleRepository.updateOneFromManyStrData(playerId, old, new)
         result.onFailure {
-            Logger.error { "Error on ExampleService-updateOneManyStrData: ${it.message}" }
+            Fancam.error { "Error on ExampleService-updateOneManyStrData: ${it.message}" }
         }
         result.onSuccess {
             manyStrData.removeIf { it == old }
@@ -303,7 +303,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateAllManyStrData(m: List<String>): Result<Unit> {
         val result = exampleRepository.updateAllStrData(playerId, m)
         result.onFailure {
-            Logger.error { "Error on ExampleService-updateAllManyStrData: ${it.message}" }
+            Fancam.error { "Error on ExampleService-updateAllManyStrData: ${it.message}" }
         }
         result.onSuccess {
             manyStrData.clear()

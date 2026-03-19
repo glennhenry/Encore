@@ -7,7 +7,7 @@ import encore.server.tasks.ServerTask
 import encore.server.tasks.TaskConfig
 import encore.server.tasks.TaskName
 import encore.server.tasks.TaskScheduler
-import encore.utils.logging.Logger
+import encore.utils.logging.Fancam
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -37,43 +37,43 @@ class ExampleTask(
 
     @InternalTaskAPI
     override suspend fun execute(connection: Connection) {
-        Logger.debug("ExampleTask") { "execute() called; state=$state" }
+        Fancam.debug("ExampleTask") { "execute() called; state=$state" }
         state = state.copy(executeCount = state.executeCount + 1)
     }
 
     @InternalTaskAPI
     override suspend fun onStart(connection: Connection) {
-        Logger.debug("ExampleTask") { "onStart() called; input=$taskInput, state=$state" }
+        Fancam.debug("ExampleTask") { "onStart() called; input=$taskInput, state=$state" }
         state = state.copy(onStartCount = state.onStartCount + 1)
     }
 
     @InternalTaskAPI
     override suspend fun onIterationStart(connection: Connection) {
-        Logger.debug("ExampleTask") { "onIterationStart() called; state=$state" }
+        Fancam.debug("ExampleTask") { "onIterationStart() called; state=$state" }
         state = state.copy(onIterationStartCount = state.onIterationStartCount + 1)
     }
 
     @InternalTaskAPI
     override suspend fun onIterationComplete(connection: Connection) {
-        Logger.debug("ExampleTask") { "onIterationComplete() called; state=$state" }
+        Fancam.debug("ExampleTask") { "onIterationComplete() called; state=$state" }
         state = state.copy(onIterationCompleteCount = state.onIterationCompleteCount + 1)
     }
 
     @InternalTaskAPI
     override suspend fun onCancelled(connection: Connection, reason: CancellationReason) {
-        Logger.debug("ExampleTask") { "onCancelled() called with reason=$reason; state=$state" }
+        Fancam.debug("ExampleTask") { "onCancelled() called with reason=$reason; state=$state" }
         state = state.copy(onCancelledCount = state.onCancelledCount + 1, cancellationReason = reason)
     }
 
     @InternalTaskAPI
     override suspend fun onForceComplete(connection: Connection) {
-        Logger.debug("ExampleTask") { "onForceComplete() called; state=$state" }
+        Fancam.debug("ExampleTask") { "onForceComplete() called; state=$state" }
         state = state.copy(onForceCompleteCount = state.onForceCompleteCount + 1)
     }
 
     @InternalTaskAPI
     override suspend fun onTaskComplete(connection: Connection) {
-        Logger.debug("ExampleTask") { "onTaskComplete() called; state=$state" }
+        Fancam.debug("ExampleTask") { "onTaskComplete() called; state=$state" }
         state = state.copy(onTaskCompleteCount = state.onTaskCompleteCount + 1)
     }
 }

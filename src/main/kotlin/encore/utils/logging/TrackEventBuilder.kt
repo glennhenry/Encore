@@ -95,7 +95,7 @@ class TrackEventBuilder(
      *
      * @param level Log level representing this track event severity.
      */
-    fun log(level: Level, full: Boolean) = onLogCalled(create(), level, full)
+    fun log(level: Level, full: Boolean = false) = onLogCalled(create(), level, full)
 
     private fun create(): TrackEvent = TrackEvent(
         name = name,
