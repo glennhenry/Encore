@@ -28,7 +28,7 @@
             </color>
             <formatting>
                 <fileNamePadding>25</fileNamePadding>
-                <maximumLineLength>500</maximumLineLength>
+                <maxLineLength>500</maxLineLength>
                 <maxFileSize>5</maxFileSize>
                 <maxFileRotation>5</maxFileRotation>
             </formatting>

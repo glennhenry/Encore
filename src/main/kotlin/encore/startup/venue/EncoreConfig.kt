@@ -133,8 +133,8 @@ data class EncoreFancamConfig(
      * Maximum message length for a single line (by `\n`)
      * if `logFull=false` in the log event.
      */
-    @VenueKey("logger.formatting.maximumLineLength")
-    val maximumLineLength: Int = 500,
+    @VenueKey("logger.formatting.maxLineLength")
+    val maxLineLength: Int = 500,
 
     /**
      * Maximum file size in MB (for all files)
