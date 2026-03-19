@@ -1,15 +1,13 @@
-package encore.utils.logging
+package encore.utils
 
+import encore.utils.logging.TraceElement
+import encore.utils.logging.toTraceElement
 import kotlin.jvm.optionals.getOrNull
 
-interface FancamSourceResolver {
-    fun resolve(): TraceElement?
-}
-
-class OfficialFancamSourceResolver : FancamSourceResolver {
+class StackTraceResolver {
     private val walker = StackWalker.getInstance()
 
-    override fun resolve(): TraceElement? {
+    fun resolve(): TraceElement? {
         return walker.walk { frames ->
             frames
                 .dropWhile { isInternal(it.className) }
@@ -23,8 +21,4 @@ class OfficialFancamSourceResolver : FancamSourceResolver {
                 className.startsWith("java.lang.Thread") ||
                 className.startsWith("java.util.concurrent")
     }
-}
-
-class DisabledFancamSourceResolver : FancamSourceResolver {
-    override fun resolve(): TraceElement? = null
 }

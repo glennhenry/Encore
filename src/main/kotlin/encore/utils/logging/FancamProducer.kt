@@ -7,12 +7,31 @@ import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.PrintStream
 
+/**
+ * Represent a producer for log or track event.
+ *
+ * Implementation defines how a log or track event should be outputted
+ * into a particular target.
+ *
+ * Examples:
+ * - [ConsoleFancamProducer]
+ * - [FileFancamProducer]
+ *
+ * @param T Generic type which should be limited to [LogEvent] or [TrackEvent].
+ */
 interface FancamProducer<T> {
-    val formatter: FancamFormatter<T>
     fun produce(event: T)
 }
 
-class ConsoleFancamProducer<T>(override val formatter: FancamFormatter<T>) : FancamProducer<T> {
+/**
+ * Producer implementation tailored for console output.
+ *
+ * A formatter is expected for this implementation, which may be
+ * - [LogEventFancamFormatter]
+ *
+ * Produce is implemented with `println` call through [PrintStream].
+ */
+class ConsoleFancamProducer<T>(private val formatter: FancamFormatter<T>) : FancamProducer<T> {
     private val rawOut = PrintStream(FileOutputStream(FileDescriptor.out), true, Charsets.UTF_8)
     private fun println(msg: String) = rawOut.println(msg)
 
@@ -21,9 +40,19 @@ class ConsoleFancamProducer<T>(override val formatter: FancamFormatter<T>) : Fan
     }
 }
 
+/**
+ * Producer implementation tailored for file output.
+ *
+ * A formatter is expected for this implementation, which may be
+ * - [LogEventFancamFormatter]
+ * - [TrackEventFancamFormatter]
+ *
+ * Produce is implemented by appending the result string of the formatter
+ * into the event's target file with rotation enabled.
+ */
 class FileFancamProducer<T>(
     private val config: EncoreFancamConfig,
-    override val formatter: FancamFormatter<T>
+    private val formatter: FancamFormatter<T>
 ) : FancamProducer<T> where T : FileRoutableEvent {
     override fun produce(event: T) {
         val filename = event.filename ?: return
@@ -31,7 +60,7 @@ class FileFancamProducer<T>(
         val file = getRotatedFile(
             directory = LOG_FILE_DIRECTORY,
             filename = filename,
-            extension = LOG_FILE_EXTENSION,
+            extension = event.extension,
             maxRotation = config.maxFileRotation
         ) { file ->
             file.length() > (config.maxFileSize.toMB())
@@ -40,11 +69,4 @@ class FileFancamProducer<T>(
         val text = formatter.format(event)
         file.appendText("$text\n")
     }
-}
-
-class DisabledFancamProducer<T> : FancamProducer<T> {
-    override val formatter: FancamFormatter<T>
-        get() = error("This is not intended for usage.")
-
-    override fun produce(event: T) = Unit
 }

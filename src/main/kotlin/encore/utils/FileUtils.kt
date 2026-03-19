@@ -5,6 +5,11 @@ import java.io.File
 /**
  * Get a file with rotation capability enabled.
  *
+ * Rotation would produce file with patterns like:
+ * - `filename-1.ext`
+ * - `filename-2.ext`
+ * - `filename-3.ext`
+ *
  * @param directory The directory of where the files are located.
  * @param filename The filename without extension or rotation number.
  * @param extension File extension without dot.
