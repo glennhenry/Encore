@@ -18,6 +18,7 @@ import encore.server.messaging.format.MessageFormat
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskName
+import encore.startup.venue.EncoreFancamConfig
 import encore.startup.venue.Venue
 import encore.user.PlayerAccountRepositoryMongo
 import encore.user.auth.DefaultAuthProvider
@@ -49,10 +50,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import org.bson.Document
 import java.io.File
-import java.text.SimpleDateFormat
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
+    Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
     Venue.prepare()
 
     // override Ktor dev mode with framework custom config
