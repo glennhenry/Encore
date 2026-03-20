@@ -4,9 +4,10 @@ import com.mongodb.assertions.Assertions.assertTrue
 import encore.context.ServerContext
 import encore.devtools.command.core.*
 import encore.fancam.events.Level
-import encore.fancam.impl.RehearsalFancam
+import encoreTest.utils.TestFancam
 import encoreTest.utils.randomString
 import kotlin.random.Random
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -18,7 +19,11 @@ import kotlin.test.assertTrue
  */
 class CommandDispatcherTest {
     private val context = ServerContext.fake()
-    private var fancam = RehearsalFancam()
+
+    @BeforeTest
+    fun setup() {
+        TestFancam.create()
+    }
 
     @Test
     fun `testCommandDispatcher register normal success`() {
@@ -56,7 +61,7 @@ class CommandDispatcherTest {
 
         // ensure warned
         assertTrue {
-            fancam.assertLogHas(Level.Warn, 1) { it.contains("has been registered before") }
+            TestFancam.get().assertLogHas(Level.Warn, 1) { it.contains("has been registered before") }
         }
         // ensure the first registered command get overwritten
         assertTrue(dispatcher.getAllVariantsOf("cmd2").contains(cmd2b))

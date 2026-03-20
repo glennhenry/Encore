@@ -7,15 +7,20 @@ import encore.fancam.impl.RehearsalFancam
 import encore.startup.venue.EncoreConfig
 import encore.startup.venue.FakeEnvProvider
 import encore.startup.venue.VenuePreparer
+import encoreTest.utils.TestFancam
 import encoreTest.utils.assertDoesNotFail
 import encoreTest.utils.toFile
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class VenuePreparerTest {
-    private var fancam = RehearsalFancam()
+    @BeforeTest
+    fun setup() {
+        TestFancam.create()
+    }
 
     @Test
     fun `XML normal behavior success`() {
@@ -224,7 +229,7 @@ class VenuePreparerTest {
 
         val envProvider = FakeEnvProvider(
             mapOf(
-                "ENCORE_Fancam_COLOR__ENABLED" to "false",
+                "ENCORE_FANCAM_COLOR__ENABLED" to "false",
                 "ENCORE_DATABASE_MONGO_PROD_DBNAME" to "testdbname",
             )
         )
@@ -297,7 +302,7 @@ class VenuePreparerTest {
         preparer.validate()
 
         assertTrue {
-            fancam.assertLogHas(Level.Warn, 2) {
+            TestFancam.get().assertLogHas(Level.Warn, 2) {
                 it.contains(
                     "Duplicate configuration key detected: 'venue.encore.server.host'. " +
                             "Last value wins localhost."
@@ -306,7 +311,7 @@ class VenuePreparerTest {
         }
 
         assertTrue {
-            fancam.assertLogHas(Level.Warn, 1) {
+            TestFancam.get().assertLogHas(Level.Warn, 1) {
                 it.contains(
                     "Duplicate configuration key detected: 'venue.encore.server.port'. " +
                             "Last value wins 7777."
@@ -392,7 +397,7 @@ class VenuePreparerTest {
         }
 
         assertTrue {
-            fancam.assertLogHas(Level.Warn, 1) {
+            TestFancam.get().assertLogHas(Level.Warn, 1) {
                 it.contains("Unused configuration keys detected")
             }
         }

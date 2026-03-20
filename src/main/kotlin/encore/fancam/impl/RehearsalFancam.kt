@@ -1,5 +1,6 @@
 package encore.fancam.impl
 
+import encore.fancam.Fancam
 import encore.fancam.events.*
 import io.ktor.util.date.*
 import kotlinx.serialization.json.Json
@@ -19,6 +20,11 @@ import java.text.SimpleDateFormat
  *   [takeLastTrackTrace], [assertLogHas], [assertTrackHas].
  * - Minimal formatting: no color, never truncate.
  * - Does not implement file and client target.
+ *
+ * **Important**: if you are using `RehearsalFancam` to assert log calls,
+ * you must still call the fancam initialization with the same object of `RehearsalFancam`.
+ * This ensures the default `RehearsalFancam` on [Fancam], uses the same object.
+ * Helper for this is available in `encoreTest.utils.TestFancam`.
  *
  * Example:
  * ```
