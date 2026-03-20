@@ -2,10 +2,10 @@
 
 package encore.utils
 
-import encore.utils.logging.Fancam
-import encore.utils.logging.LOG_INDENT_PREFIX
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 
 /**
  * Preset JSON serialization and deserialization.
@@ -63,52 +63,107 @@ fun parseJsonElement(el: JsonElement): Any = when (el) {
 
 fun Map<String, *>?.toJsonElement(): JsonObject = buildJsonObject {
     this@toJsonElement?.forEach { (key, value) ->
-        put(key, value.toJsonValue())
+        put(key, value.toJsonElement())
     }
 }
 
+/**
+ * Convert `Any?` type to [JsonElement].
+ *
+ * @param useReflection Whether to use reflection to convert the object into
+ *                      a full JSON graph. Without this, any unserializable object
+ *                      (i.e., without `@Serializable` annotation) will fallback
+ *                      to `toString()`.
+ */
 @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
-fun Any?.toJsonValue(): JsonElement = when (this) {
-    null -> JsonNull
-    is String -> JsonPrimitive(this)
-    is Number -> JsonPrimitive(this)
-    is Boolean -> JsonPrimitive(this)
-    is Map<*, *> -> (this as? Map<String, *>)?.toJsonElement()
-        ?: error("Map keys must be strings: $this")
-
-    is Iterable<*> -> buildJsonArray { this@toJsonValue.forEach { add(it.toJsonValue()) } }
-    is Pair<*, *> -> buildJsonObject {
-        put("first", first.toJsonValue())
-        put("second", second.toJsonValue())
+fun Any?.toJsonElement(useReflection: Boolean = false, visited: MutableSet<Int> = mutableSetOf()): JsonElement {
+    val id = System.identityHashCode(this)
+    if (this != null && !visited.add(id)) {
+        return JsonPrimitive("<cycle>")
     }
 
-    is Triple<*, *, *> -> buildJsonObject {
-        put("first", first.toJsonValue())
-        put("second", second.toJsonValue())
-        put("triple", third.toJsonValue())
-    }
-
-    else -> {
-        val kClass = this::class
-        val serializer = runCatching {
-            JSON.json.serializersModule.getContextual(kClass) ?: kClass.serializer()
-        }.getOrNull()
-
-        when {
-            serializer != null -> {
-                JSON.json.encodeToJsonElement(serializer as SerializationStrategy<Any>, this)
+    return when (this) {
+        null -> JsonNull
+        is String -> JsonPrimitive(this)
+        is Number -> JsonPrimitive(this)
+        is Boolean -> JsonPrimitive(this)
+        is Map<*, *> -> buildJsonObject {
+            this@toJsonElement.forEach { (k, v) ->
+                put(k.toString(), v.toJsonElement(useReflection, visited))
             }
+        }
 
-            else -> {
-                Fancam.warn {
-                    buildString {
-                        appendLine("Serializer missing for ${kClass.simpleName} (${kClass.qualifiedName}). Falling back to 'toString()'.")
-                        appendLine("$LOG_INDENT_PREFIX This may be caused by:")
-                        appendLine("$LOG_INDENT_PREFIX     - When TrackEvent.data contains a typed object without @Serializable, resulting in kotlinx.serialization not knowing how to serialize it.")
-                        appendLine("$LOG_INDENT_PREFIX       You must annotate with @Serializable if you want this field to serialize nestedly in JSON.")
+        is Iterable<*> -> buildJsonArray {
+            this@toJsonElement.forEach {
+                add(
+                    it.toJsonElement(
+                        useReflection,
+                        visited
+                    )
+                )
+            }
+        }
+
+        is Pair<*, *> -> buildJsonObject {
+            put("first", first.toJsonElement(useReflection, visited))
+            put("second", second.toJsonElement(useReflection, visited))
+        }
+
+        is Triple<*, *, *> -> buildJsonObject {
+            put("first", first.toJsonElement(useReflection, visited))
+            put("second", second.toJsonElement(useReflection, visited))
+            put("third", third.toJsonElement(useReflection, visited))
+        }
+
+        else -> {
+            if (useReflection) {
+                reflectToJson(this, true, visited)
+            } else {
+                val kClass = this::class
+                val serializer = runCatching {
+                    JSON.json.serializersModule.getContextual(kClass) ?: kClass.serializer()
+                }.getOrNull()
+
+                when {
+                    serializer != null -> {
+                        JSON.json.encodeToJsonElement(serializer as SerializationStrategy<Any>, this)
+                    }
+
+                    else -> {
+                        JsonPrimitive(this.toString())
                     }
                 }
-                JsonPrimitive(this.toString())
+            }
+        }
+    }.also {
+        if (this != null) {
+            visited.remove(id)
+        }
+    }
+}
+
+fun reflectToJson(
+    obj: Any,
+    useReflection: Boolean,
+    visited: MutableSet<Int>
+): JsonElement {
+    val kClass = obj::class
+    val propsByName = kClass.memberProperties.associateBy { it.name }
+    val ctorParams = kClass.primaryConstructor?.parameters
+
+    return buildJsonObject {
+        if (ctorParams != null) {
+            for (param in ctorParams) {
+                val name = param.name ?: continue
+                val prop = propsByName[name] ?: continue
+
+                val value = runCatching { prop.getter.call(obj) }.getOrNull()
+                put(name, value.toJsonElement(useReflection, visited))
+            }
+        } else {
+            propsByName.forEach { (name, prop) ->
+                val value = runCatching { prop.getter.call(obj) }.getOrNull()
+                put(name, value.toJsonElement(useReflection, visited))
             }
         }
     }

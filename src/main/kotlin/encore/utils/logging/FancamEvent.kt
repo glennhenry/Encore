@@ -1,6 +1,5 @@
 package encore.utils.logging
 
-import encore.utils.AnyMapSerializer
 import kotlinx.serialization.Serializable
 
 /**
@@ -88,14 +87,12 @@ data class TrackEvent(
  * Minimalist representation of [TrackEvent] which is intended for
  * serialized representation on file output target.
  */
-@Serializable
 data class SimpleTrackEvent(
     val name: String,
     val datetime: String,
     val tags: List<String>,
     val source: TraceElement?,
     val note: String,
-    @Serializable(with = AnyMapSerializer::class)
     val data: Map<String, Any>
 )
 

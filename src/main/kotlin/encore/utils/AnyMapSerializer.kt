@@ -26,7 +26,7 @@ object AnyMapSerializer : KSerializer<Map<String, Any>> {
     override fun serialize(encoder: Encoder, value: Map<String, Any>) {
         val jsonEncoder = encoder as? JsonEncoder
             ?: error("This serializer only works with JSON")
-        val converted = value.mapValues { (_, v) -> v.toJsonValue() }
+        val converted = value.mapValues { (_, v) -> v.toJsonElement() }
         jsonEncoder.encodeJsonElement(JsonObject(converted))
     }
 

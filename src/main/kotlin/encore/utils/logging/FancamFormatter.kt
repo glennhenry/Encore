@@ -1,8 +1,11 @@
 package encore.utils.logging
 
 import encore.startup.venue.EncoreFancamConfig
+import encore.utils.AnyMapSerializer
 import encore.utils.constants.AnsiColors
+import encore.utils.toJsonElement
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat
 
 /**
@@ -128,15 +131,16 @@ class TrackEventFancamFormatter : FancamFormatter<TrackEvent> {
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
     override fun format(event: TrackEvent): String {
+        val jsonElement = SimpleTrackEvent(
+            name = event.name,
+            datetime = dateFormatter.format(event.timestamp),
+            data = event.data,
+            tags = event.tags,
+            source = event.source,
+            note = event.note()
+        ).toJsonElement(useReflection = true)
         return jsonSerializer.encodeToString(
-            SimpleTrackEvent(
-                name = event.name,
-                datetime = dateFormatter.format(event.timestamp),
-                data = event.data,
-                tags = event.tags,
-                source = event.source,
-                note = event.note()
-            )
+            JsonElement.serializer(), jsonElement
         )
     }
 }
@@ -151,6 +155,11 @@ class ConsoleTrackEventFancamFormatter : FancamFormatter<TrackEvent> {
     private val jsonSerializer = Json { prettyPrint = false }
 
     override fun format(event: TrackEvent): String {
-        return "[TrackEvent:${event.name}] ${event.note()} ${jsonSerializer.encodeToString(event.data)}"
+        return "[TrackEvent:${event.name}] ${event.note()} ${
+            jsonSerializer.encodeToString(
+                AnyMapSerializer,
+                event.data
+            )
+        }"
     }
 }
