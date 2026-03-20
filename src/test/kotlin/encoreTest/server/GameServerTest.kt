@@ -1,5 +1,6 @@
 package encoreTest.server
 
+import encore.annotation.RevisitLater
 import encore.context.ServerContext
 import encore.server.GameServer
 import encore.server.GameServerConfig
@@ -82,6 +83,7 @@ class GameServerTest {
      */
     @Test
     @Ignore("slow test, real timer 5 seconds")
+    @RevisitLater("Test failed")
     fun `failed handling with junk packet`() = runTest {
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<MessageFormat<*>>(
