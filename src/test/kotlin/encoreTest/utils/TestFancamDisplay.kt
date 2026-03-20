@@ -14,42 +14,39 @@ import kotlin.test.Test
  * use this to show color
  * ./gradlew test --tests "encoreTest.utils.TestLoggerDisplay" --console=plain
  */
-class TestLoggerDisplay {
+class TestFancamDisplay {
     @Test
-    fun `logger with color`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
-        logExample()
-    }
-
-    @Test
-    fun `logger without color`() = runTest {
+    fun `fancam without color`() = runTest {
         Fancam.initialize(OfficialFancam(EncoreFancamConfig(colorEnabled = false,)))
         logExample()
     }
 
     @Test
-    fun `logger with foreground color`() = runTest {
+    fun `fancam with foreground color`() = runTest {
         Fancam.initialize(OfficialFancam(EncoreFancamConfig(useBackgroundColor = false,)))
+        logExample()
+    }
+
+    @Test
+    fun `fancam with color`() = runTest {
+        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
         logExample()
     }
 
     @RevisitLater("Unit tests could never produce any text to file. Track event formatter always return empty text")
     @Test
-    fun `test track event logging`() = runTest {
+    fun `fancam track event`() = runTest {
         val fancam = OfficialFancam(EncoreFancamConfig())
         Fancam.initialize(fancam)
-
-        // Track event
         Fancam.track("TrackEventTest")
             .data("playerId", "pid12345")
             .data("completeAt", 12345678)
-            .data("triple", Triple("s", "s", "s"))
-            .data("liz", listOf("liz"))
-            .data("cfg", EncoreFancamConfig())
-            .note { "Test6" }
+            .data("Triple", Triple("s", "s", "s"))
+            .data("Liz", listOf("Liz"))
+            .data("Complex data", EncoreFancamConfig())
+            .note { "This is a test track" }
             .route("TrackEventTest")
-            .record()
-
+            .log(level = Level.Info)
         fancam.flush()
     }
 
@@ -64,10 +61,5 @@ class TestLoggerDisplay {
         Fancam.warn { "This is an example of 'Fancam.warn' message (1)." }
         Fancam.error("TestTag") { "This is an example of 'Fancam.error' message with custom tag with custom tag (1)." }
         Fancam.error { "This is an example of 'Fancam.error' message (1)." }
-
-        Fancam.track("TestTrack")
-            .playerId("playerId123")
-            .username("playerABC")
-            .log(Level.Info, false)
     }
 }

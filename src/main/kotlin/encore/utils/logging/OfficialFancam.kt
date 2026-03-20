@@ -64,6 +64,9 @@ import java.util.concurrent.atomic.AtomicInteger
  *       .log(Level.Info, full = false)
  * ```
  *
+ * **Important:** during tests, make sure to use [OfficialFancam.flush] to
+ * force the tests to wait the thread to finish.
+ *
  * ## Features
  *
  * ### Beautiful log
@@ -245,6 +248,8 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     /**
      * Force caller to wait for a maximum of [timeoutMs] for pending
      * log events to be processed.
+     *
+     * **This should be used during tests.**
      */
     fun flush(timeoutMs: Long = 3000) {
         val start = getTimeMillis()
