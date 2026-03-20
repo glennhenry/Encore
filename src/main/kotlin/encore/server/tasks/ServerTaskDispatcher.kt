@@ -21,7 +21,7 @@ import kotlin.time.toDuration
  *
  * @property runningInstances Map of task IDs to currently running [TaskInstance]s.
  * @property taskIdDerivers  Map of each [TaskName] string to a function capable of deriving a task ID
- *                           from a `playerId` and a generic [StopInput] type.
+ *                           from a `playerId` and a generic `StopInput` type.
  *                           Every [ServerTask] implementation **must** call [registerTask] (in GameServer.kt)
  *                           to register how the dispatcher should compute a task ID for that category when stopping tasks.
  * @property stopTaskFactories Map of each [TaskName] string to a factory function that
@@ -173,6 +173,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
                 task.onTaskComplete(connection)
             }
         } catch (e: CancellationException) {
+            e.printStackTrace()
             when (e) {
                 is ForceCompleteException -> task.onForceComplete(connection)
 
@@ -184,6 +185,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
             }
             throw e
         } catch (e: Exception) {
+            e.printStackTrace()
             task.onCancelled(connection, CancellationReason.Error)
             throw e
         }
