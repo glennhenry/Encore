@@ -2,22 +2,11 @@ package encoreTest.devtools
 
 import com.mongodb.assertions.Assertions.assertTrue
 import encore.context.ServerContext
-import encore.devtools.command.core.ArgumentCollection
-import encore.devtools.command.core.ArgumentDescriptor
-import encore.devtools.command.core.Command
-import encore.devtools.command.core.CommandDispatcher
-import encore.devtools.command.core.CommandRequest
-import encore.devtools.command.core.CommandResult
-import encore.devtools.command.core.CommandVariant
-import encore.devtools.command.core.variantsAsString
-import encoreTest.utils.randomString
-import kotlinx.serialization.json.Json
-import encore.utils.JSON
-import encore.fancam.Fancam
+import encore.devtools.command.core.*
 import encore.fancam.events.Level
 import encore.fancam.impl.RehearsalFancam
+import encoreTest.utils.randomString
 import kotlin.random.Random
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -30,16 +19,6 @@ import kotlin.test.assertTrue
 class CommandDispatcherTest {
     private val context = ServerContext.fake()
     private var fancam = RehearsalFancam()
-
-    @BeforeTest
-    fun setupJson() {
-        JSON.initialize(Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-        })
-        fancam = RehearsalFancam()
-        Fancam.initialize(fancam)
-    }
 
     @Test
     fun `testCommandDispatcher register normal success`() {

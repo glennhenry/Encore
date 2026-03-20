@@ -7,6 +7,7 @@ import encore.fancam.events.LogEventBuilder
 import encore.fancam.events.TrackEventBuilder
 import encore.fancam.impl.FancamTemplate
 import encore.fancam.impl.OfficialFancam
+import encore.fancam.impl.RehearsalFancam
 
 const val LOG_FILE_EXTENSION = "log"
 const val TRACK_FILE_EXTENSION = "jsonl"
@@ -15,15 +16,29 @@ const val LOG_FILE_DIRECTORY = ".logs"
 /**
  * A globally accessible facade for [Fancam].
  *
- * Must be initialized before usage through [initialize] passing
- * a [FancamTemplate] implementation.
+ * Provides a static entry point for logging and tracking events
+ * through a [FancamTemplate] implementation.
  *
- * Default implementation: [OfficialFancam].
+ * **Initialization:** Should be initialized before use via [initialize]
+ * by passing a concrete [FancamTemplate].
+ *
+ * **Default behavior:** By default, the implementation is [RehearsalFancam],
+ * which is a simple, no-dependency version typically used for testing
+ * or early bootstrap. This default can later be upgraded to a full-featured
+ * implementation.
+ *
+ * **Recommended implementation:** [OfficialFancam].
  */
 object Fancam {
     private var initialized = false
-    private lateinit var fancam: FancamTemplate
+    // to avoid annoying must init; also for default in tests
+    private var fancam: FancamTemplate = RehearsalFancam()
 
+    /**
+     * Initialize the global [Fancam] instance.
+     *
+     * @param fancam The [FancamTemplate] implementation to use.
+     */
     fun initialize(fancam: FancamTemplate) {
         if (initialized) {
             warn { "Fancam is already initialized." }

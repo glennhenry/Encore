@@ -1,28 +1,24 @@
 package encore.fancam.impl
 
-import encore.startup.venue.EncoreFancamConfig
-import encore.fancam.events.Level
-import encore.fancam.events.LogEvent
-import encore.fancam.events.LogEventBuilder
-import encore.fancam.events.TrackEvent
-import encore.fancam.events.TrackEventBuilder
-import encore.fancam.events.label
-import encore.fancam.events.tagsToCommaSeparated
-import io.ktor.util.date.getTimeMillis
+import encore.fancam.events.*
+import io.ktor.util.date.*
 import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 
 /**
- * A minimal fancam implementation intended for testing.
+ * A minimal fancam implementation intended for bootstrap or testing.
+ *
+ * This implementation is simple, lightweight, and dependency-less.
  *
  * - On each call to [trace], [debug], [info], [warn], [error], the log events
  *   are recorded. Likewise for [event] (whenever `log` is called) and
- *   [track] (whenever `log` or `record`is called).
+ *   [track] (whenever `log` or `record` is called).
+ * - A `log()` call to track event does not get recorded to log event,
+ *   but to track event instead.
  * - Provides access to them for assertion such as [takeLastLogTrace],
- *   [takeLastTrackTrace], [assertLogHas], [assertTrackHas]
+ *   [takeLastTrackTrace], [assertLogHas], [assertTrackHas].
  * - Minimal formatting: no color, never truncate.
- * - Does not take account [EncoreFancamConfig].
- * - Does not implement file and client tartake.
+ * - Does not implement file and client target.
  *
  * Example:
  * ```
@@ -59,35 +55,30 @@ class RehearsalFancam : FancamTemplate {
 
     override fun trace(tag: String, msg: () -> String) {
         create(msg, tag, Level.Trace).also {
-            tracelog.add(it)
             log(it)
         }
     }
 
     override fun debug(tag: String, msg: () -> String) {
         create(msg, tag, Level.Debug).also {
-            debuglog.add(it)
             log(it)
         }
     }
 
     override fun info(tag: String, msg: () -> String) {
         create(msg, tag, Level.Info).also {
-            infolog.add(it)
             log(it)
         }
     }
 
     override fun warn(tag: String, msg: () -> String) {
         create(msg, tag, Level.Warn).also {
-            warnlog.add(it)
             log(it)
         }
     }
 
     override fun error(tag: String, msg: () -> String) {
         create(msg, tag, Level.Error).also {
-            errorlog.add(it)
             log(it)
         }
     }
@@ -102,20 +93,16 @@ class RehearsalFancam : FancamTemplate {
         targetFile = null
     )
 
-    private fun log(event: LogEvent) {
+    private fun log(event: LogEvent, add: Boolean = true) {
+        if (add) {
+            addToLogEvent(event.level, event)
+        }
         println(formatLog(event))
     }
 
     override fun event(level: Level, tag: String): LogEventBuilder {
         return LogEventBuilder(level, tag, null) {
             if (level == Level.Off) return@LogEventBuilder
-            when (level) {
-                Level.Trace -> tracelog.add(it)
-                Level.Debug -> debuglog.add(it)
-                Level.Info -> infolog.add(it)
-                Level.Warn -> warnlog.add(it)
-                Level.Error -> errorlog.add(it)
-            }
             log(it)
         }
     }
@@ -125,16 +112,8 @@ class RehearsalFancam : FancamTemplate {
             name = name,
             onRecordCalled = { println("TrackEvent.onRecordCalled: NOT IMPLEMENTED") },
             onLogCalled = { trackEvent, level, logFull ->
-                when (level) {
-                    Level.Trace -> tracetrack.add(trackEvent)
-                    Level.Debug -> debugtrack.add(trackEvent)
-                    Level.Info -> infotrack.add(trackEvent)
-                    Level.Warn -> warntrack.add(trackEvent)
-                    Level.Error -> errortrack.add(trackEvent)
-                    Level.Off -> {}
-                }
-
-                LogEvent(
+                addToTrackEvent(level, trackEvent)
+                log(LogEvent(
                     message = { formatTrack(trackEvent, level) },
                     timestamp = trackEvent.timestamp,
                     level = level,
@@ -142,9 +121,31 @@ class RehearsalFancam : FancamTemplate {
                     logFull = logFull,
                     source = trackEvent.source,
                     targetFile = trackEvent.route
-                )
+                ), add = false)
             }
         )
+    }
+
+    private fun addToLogEvent(level: Level, event: LogEvent) {
+        when (level) {
+            Level.Trace -> tracelog.add(event)
+            Level.Debug -> debuglog.add(event)
+            Level.Info -> infolog.add(event)
+            Level.Warn -> warnlog.add(event)
+            Level.Error -> errorlog.add(event)
+            Level.Off -> {}
+        }
+    }
+
+    private fun addToTrackEvent(level: Level, event: TrackEvent) {
+        when (level) {
+            Level.Trace -> tracetrack.add(event)
+            Level.Debug -> debugtrack.add(event)
+            Level.Info -> infotrack.add(event)
+            Level.Warn -> warntrack.add(event)
+            Level.Error -> errortrack.add(event)
+            Level.Off -> {}
+        }
     }
 
     fun takeLastLogTrace(n: Int): List<LogEvent> = tracelog.takeLast(n)
@@ -199,5 +200,21 @@ class RehearsalFancam : FancamTemplate {
         } else {
             return true
         }
+    }
+
+    /**
+     * Clear all saved log and track entries.
+     */
+    fun clearAll() {
+        tracelog.clear()
+        debuglog.clear()
+        infolog.clear()
+        warnlog.clear()
+        errorlog.clear()
+        tracetrack.clear()
+        debugtrack.clear()
+        infotrack.clear()
+        warntrack.clear()
+        errortrack.clear()
     }
 }

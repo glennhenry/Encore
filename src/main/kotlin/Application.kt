@@ -53,7 +53,6 @@ import java.io.File
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
-    Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
     Venue.prepare()
 
     // override Ktor dev mode with framework custom config

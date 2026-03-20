@@ -1,34 +1,21 @@
 package encoreTest
 
 import encore.annotation.VenueKey
-import encore.startup.venue.EncoreConfig
-import encore.startup.venue.FakeEnvProvider
-import encore.startup.venue.VenuePreparer
-import encore.utils.JSON
 import encore.fancam.Fancam
 import encore.fancam.events.Level
 import encore.fancam.impl.RehearsalFancam
+import encore.startup.venue.EncoreConfig
+import encore.startup.venue.FakeEnvProvider
+import encore.startup.venue.VenuePreparer
+import encoreTest.utils.assertDoesNotFail
 import encoreTest.utils.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import encoreTest.utils.assertDoesNotFail
-import kotlinx.serialization.json.Json
-import kotlin.test.BeforeTest
 import kotlin.test.assertTrue
 
 class VenuePreparerTest {
     private var fancam = RehearsalFancam()
-
-    @BeforeTest
-    fun setupJson() {
-        JSON.initialize(Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-        })
-        fancam = RehearsalFancam()
-        Fancam.initialize(fancam)
-    }
 
     @Test
     fun `XML normal behavior success`() {
