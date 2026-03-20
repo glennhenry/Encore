@@ -3,33 +3,9 @@
 package encore.utils
 
 import encore.utils.logging.Fancam
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.booleanOrNull
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.double
-import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.internal.writeJson
-import kotlinx.serialization.json.long
-import kotlinx.serialization.json.longOrNull
-import kotlinx.serialization.serializer
-import kotlinx.serialization.serializerOrNull
-import kotlin.collections.map
-import kotlin.collections.mapValues
-import kotlin.reflect.KClass
+import encore.utils.logging.LOG_INDENT_PREFIX
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 /**
  * Preset JSON serialization and deserialization.
@@ -92,7 +68,7 @@ fun Map<String, *>?.toJsonElement(): JsonObject = buildJsonObject {
 }
 
 @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
-fun Any?.toJsonValue(prioritizeToString: Boolean = false): JsonElement = when (this) {
+fun Any?.toJsonValue(): JsonElement = when (this) {
     null -> JsonNull
     is String -> JsonPrimitive(this)
     is Number -> JsonPrimitive(this)
@@ -113,22 +89,26 @@ fun Any?.toJsonValue(prioritizeToString: Boolean = false): JsonElement = when (t
     }
 
     else -> {
-        if (prioritizeToString) {
-            JsonPrimitive(this.toString())
-        } else {
-            val kClass = this::class
-            val serializer = runCatching {
-                JSON.json.serializersModule.getContextual(kClass) ?: kClass.serializer()
-            }.getOrNull()
+        val kClass = this::class
+        val serializer = runCatching {
+            JSON.json.serializersModule.getContextual(kClass) ?: kClass.serializer()
+        }.getOrNull()
 
-            when {
-                serializer != null -> {
-                    JSON.json.encodeToJsonElement(serializer as SerializationStrategy<Any>, this)
+        when {
+            serializer != null -> {
+                JSON.json.encodeToJsonElement(serializer as SerializationStrategy<Any>, this)
+            }
+
+            else -> {
+                Fancam.warn {
+                    buildString {
+                        appendLine("Serializer missing for ${kClass.simpleName} (${kClass.qualifiedName}). Falling back to 'toString()'.")
+                        appendLine("$LOG_INDENT_PREFIX This may be caused by:")
+                        appendLine("$LOG_INDENT_PREFIX     - When TrackEvent.data contains a typed object without @Serializable, resulting in kotlinx.serialization not knowing how to serialize it.")
+                        appendLine("$LOG_INDENT_PREFIX       You must annotate with @Serializable if you want this field to serialize nestedly in JSON.")
+                    }
                 }
-                else -> {
-                    Fancam.warn { "Serializer missing for $kClass, used 'toString()' fallback." }
-                    JsonPrimitive(this.toString())
-                }
+                JsonPrimitive(this.toString())
             }
         }
     }

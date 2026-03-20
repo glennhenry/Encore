@@ -1,6 +1,6 @@
 package encore.utils.logging
 
-import encore.utils.AnyMapSerializerStrict
+import encore.utils.AnyMapSerializer
 import kotlinx.serialization.Serializable
 
 /**
@@ -95,7 +95,7 @@ data class SimpleTrackEvent(
     val tags: List<String>,
     val source: TraceElement?,
     val note: String,
-    @Serializable(with = AnyMapSerializerStrict::class)
+    @Serializable(with = AnyMapSerializer::class)
     val data: Map<String, Any>
 )
 
