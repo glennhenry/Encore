@@ -2,7 +2,7 @@ package encore.devtools.command.core
 
 import encore.annotation.RevisitLater
 import encore.context.ServerContext
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 
 /**
  * Dispatch and execute server registered commands.

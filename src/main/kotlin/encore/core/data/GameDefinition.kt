@@ -2,7 +2,7 @@ package encore.core.data
 
 import encore.core.data.resources.GameResource
 import encore.core.data.resources.GameResourcesParser
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 import io.ktor.util.date.*
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds

@@ -1,11 +1,15 @@
-package encore.utils.logging
+package encore.fancam.producer
 
 import encore.startup.venue.EncoreFancamConfig
+import encore.fancam.LOG_FILE_DIRECTORY
+import encore.fancam.events.FileRoutableEvent
+import encore.fancam.events.LogEvent
+import encore.fancam.events.TrackEvent
+import encore.fancam.formatter.FancamFormatter
+import encore.fancam.formatter.LogEventFancamFormatter
+import encore.fancam.formatter.TrackEventFancamFormatter
 import encore.utils.functions.toMB
 import encore.utils.getRotatedFile
-import java.io.FileDescriptor
-import java.io.FileOutputStream
-import java.io.PrintStream
 
 /**
  * Represent a producer for log or track event.
@@ -21,23 +25,6 @@ import java.io.PrintStream
  */
 interface FancamProducer<T> {
     fun produce(event: T)
-}
-
-/**
- * Producer implementation tailored for console output.
- *
- * A formatter is expected for this implementation, which may be
- * - [LogEventFancamFormatter]
- *
- * Produce is implemented with `println` call through [PrintStream].
- */
-class ConsoleFancamProducer<T>(private val formatter: FancamFormatter<T>) : FancamProducer<T> {
-    private val rawOut = PrintStream(FileOutputStream(FileDescriptor.out), true, Charsets.UTF_8)
-    private fun println(msg: String) = rawOut.println(msg)
-
-    override fun produce(event: T) {
-        println(formatter.format(event))
-    }
 }
 
 /**

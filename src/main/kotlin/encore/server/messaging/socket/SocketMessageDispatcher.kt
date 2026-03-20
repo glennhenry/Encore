@@ -2,8 +2,8 @@ package encore.server.messaging.socket
 
 import encore.server.handler.SocketMessageHandler
 import encore.server.handler.impl.DefaultHandler
-import encore.utils.logging.Fancam
-import encore.utils.logging.LOG_INDENT_PREFIX
+import encore.fancam.Fancam
+import encore.fancam.LOG_INDENT_PREFIX
 
 /**
  * Central registry and dispatcher for socket message handlers.

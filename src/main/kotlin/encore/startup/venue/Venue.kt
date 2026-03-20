@@ -4,7 +4,7 @@ import encore.annotation.VenueKey
 import encore.startup.venue.Venue.custom
 import encore.startup.venue.Venue.encore
 import encore.startup.venue.Venue.secret
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 import game.config.CustomConfig
 import game.config.SecretConfig
 import java.io.File

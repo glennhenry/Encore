@@ -1,11 +1,25 @@
-package encore.utils.logging
+package encore.fancam.impl
 
 import encore.startup.venue.EncoreFancamConfig
 import encore.utils.StackTraceResolver
+import encore.fancam.events.Level
+import encore.fancam.events.LogEvent
+import encore.fancam.producer.ConsoleFancamProducer
+import encore.fancam.formatter.ConsoleTrackEventFancamFormatter
+import encore.fancam.producer.FileFancamProducer
+import encore.fancam.events.LogEventBuilder
+import encore.fancam.events.TrackEvent
+import encore.fancam.formatter.LogEventFancamFormatter
+import encore.fancam.events.TrackEventBuilder
+import encore.fancam.events.tagsToCommaSeparated
+import encore.fancam.events.toLogLevel
+import encore.fancam.formatter.TrackEventFancamFormatter
 import io.ktor.util.date.getTimeMillis
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicInteger
+import encore.fancam.formatter.FancamFormatter
+import encore.fancam.producer.FancamProducer
 
 /**
  * Default implementation of fancam template.

@@ -1,7 +1,7 @@
 package encore.utils
 
-import encore.utils.logging.TraceElement
-import encore.utils.logging.toTraceElement
+import encore.fancam.events.TraceElement
+import encore.fancam.events.toTraceElement
 import kotlin.jvm.optionals.getOrNull
 
 class StackTraceResolver {

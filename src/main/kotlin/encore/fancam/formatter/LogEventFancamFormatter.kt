@@ -1,29 +1,14 @@
-package encore.utils.logging
+package encore.fancam.formatter
 
 import encore.startup.venue.EncoreFancamConfig
-import encore.utils.AnyMapSerializer
-import encore.utils.constants.AnsiColors
-import encore.utils.toJsonElement
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
+import encore.fancam.formatter.AnsiColors
+import encore.fancam.events.Level
+import encore.fancam.events.LogEvent
+import encore.fancam.events.TraceElement
+import encore.fancam.events.label
 import java.text.SimpleDateFormat
-
-/**
- * Represent a formatter for log or track event.
- *
- * Implementation provide [format] method that convert the [T] type of event
- * into string representation to be printed or written to a file.
- *
- * Examples:
- * - [LogEventFancamFormatter]
- * - [TrackEventFancamFormatter]
- * - [ConsoleTrackEventFancamFormatter]
- *
- * @param T Generic type of the event which should be limited to [LogEvent] or [TrackEvent].
- */
-interface FancamFormatter<T> {
-    fun format(event: T): String
-}
+import kotlin.text.padStart
+import kotlin.text.take
 
 /**
  * Formatter implementation tailored for:
@@ -117,49 +102,5 @@ class LogEventFancamFormatter(
         }
 
         return "$bg$fg$text${AnsiColors.Reset}"
-    }
-}
-
-/**
- * Formatter implementation for track event tailored for file output.
- *
- * Format is implemented by converting the track event into [SimpleTrackEvent]
- * and encoding it to JSON string.
- */
-class TrackEventFancamFormatter : FancamFormatter<TrackEvent> {
-    private val jsonSerializer = Json { prettyPrint = true }
-    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-
-    override fun format(event: TrackEvent): String {
-        val jsonElement = SimpleTrackEvent(
-            name = event.name,
-            datetime = dateFormatter.format(event.timestamp),
-            data = event.data,
-            tags = event.tags,
-            source = event.source,
-            note = event.note()
-        ).toJsonElement(useReflection = true)
-        return jsonSerializer.encodeToString(
-            JsonElement.serializer(), jsonElement
-        )
-    }
-}
-
-/**
- * Formatter implementation for track event tailored for console output.
- *
- * Format is implemented by creating a string format containing the event name,
- * event note, then followed by the JSON encoded event data.
- */
-class ConsoleTrackEventFancamFormatter : FancamFormatter<TrackEvent> {
-    private val jsonSerializer = Json { prettyPrint = false }
-
-    override fun format(event: TrackEvent): String {
-        return "[TrackEvent:${event.name}] ${event.note()} ${
-            jsonSerializer.encodeToString(
-                AnyMapSerializer,
-                event.data
-            )
-        }"
     }
 }

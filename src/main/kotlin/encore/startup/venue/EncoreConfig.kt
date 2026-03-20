@@ -1,7 +1,7 @@
 package encore.startup.venue
 
 import encore.annotation.VenueKey
-import encore.utils.logging.Level
+import encore.fancam.events.Level
 
 /**
  * Definition of config required by the framework.

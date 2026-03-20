@@ -1,6 +1,6 @@
 package encore.security.validation
 
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 
 /**
  * Defines a validation scheme composed of one or more validation stages.

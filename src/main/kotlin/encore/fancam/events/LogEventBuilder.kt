@@ -1,5 +1,6 @@
-package encore.utils.logging
+package encore.fancam.events
 
+import encore.fancam.Fancam
 import io.ktor.util.date.getTimeMillis
 
 /**

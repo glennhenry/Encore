@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import encore.server.core.network.Connection
 import encore.utils.functions.SystemTime
 import encore.utils.functions.TimeProvider
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration

@@ -5,9 +5,9 @@ import encore.startup.venue.EncoreConfig
 import encore.startup.venue.FakeEnvProvider
 import encore.startup.venue.VenuePreparer
 import encore.utils.JSON
-import encore.utils.logging.Fancam
-import encore.utils.logging.Level
-import encore.utils.logging.RehearsalFancam
+import encore.utils.fancam.Fancam
+import encore.utils.fancam.events.Level
+import encore.utils.fancam.impl.RehearsalFancam
 import encoreTest.utils.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals

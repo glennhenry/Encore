@@ -1,6 +1,6 @@
 package encore.utils
 
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 import org.w3c.dom.Element
 import org.xml.sax.InputSource
 import java.io.File
@@ -32,7 +32,7 @@ class XMLFlattener {
      *                                  or when it has duplicate key.
      */
     fun flatten(xmlFile: File, xmlRoot: String): Map<String, String> {
-         Fancam.trace { "Parsing ${xmlFile.name}; root='$xmlRoot'" }
+        Fancam.trace { "Parsing ${xmlFile.name}; root='$xmlRoot'" }
 
         val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         val doc = builder.parse(InputSource(StringReader(xmlFile.readText())))

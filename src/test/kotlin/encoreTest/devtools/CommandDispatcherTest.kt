@@ -13,9 +13,9 @@ import encore.devtools.command.core.variantsAsString
 import encoreTest.utils.randomString
 import kotlinx.serialization.json.Json
 import encore.utils.JSON
-import encore.utils.logging.Fancam
-import encore.utils.logging.Level
-import encore.utils.logging.RehearsalFancam
+import encore.utils.fancam.Fancam
+import encore.utils.fancam.events.Level
+import encore.utils.fancam.impl.RehearsalFancam
 import kotlin.random.Random
 import kotlin.test.BeforeTest
 import kotlin.test.Test

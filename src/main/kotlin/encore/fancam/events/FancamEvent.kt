@@ -1,5 +1,7 @@
-package encore.utils.logging
+package encore.fancam.events
 
+import encore.fancam.LOG_FILE_EXTENSION
+import encore.fancam.TRACK_FILE_EXTENSION
 import kotlinx.serialization.Serializable
 
 /**

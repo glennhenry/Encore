@@ -1,4 +1,4 @@
-package encore.utils.constants
+package encore.fancam.formatter
 
 /**
  * Ansi colors (256) constants to style console.

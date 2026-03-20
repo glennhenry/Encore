@@ -15,7 +15,7 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.serialization.json.Json
 import encore.utils.functions.UUID
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 import encore.ws.WsMessage
 import java.io.File
 import kotlin.time.Duration.Companion.hours

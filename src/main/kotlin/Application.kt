@@ -25,8 +25,8 @@ import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager
 import encore.utils.JSON
 import encore.utils.functions.UUID
-import encore.utils.logging.Fancam
-import encore.utils.logging.OfficialFancam
+import encore.fancam.Fancam
+import encore.fancam.impl.OfficialFancam
 import encore.ws.WebSocketManager
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*

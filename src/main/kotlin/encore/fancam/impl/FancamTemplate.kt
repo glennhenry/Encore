@@ -1,4 +1,10 @@
-package encore.utils.logging
+package encore.fancam.impl
+
+import encore.fancam.events.Level
+import encore.fancam.events.LogEvent
+import encore.fancam.events.LogEventBuilder
+import encore.fancam.events.TrackEvent
+import encore.fancam.events.TrackEventBuilder
 
 /**
  * Template of a fancam (logger).

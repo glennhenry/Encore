@@ -4,7 +4,7 @@ import encore.core.data.AdminData
 import encore.data.Database
 import encore.user.PlayerAccountRepository
 import encore.user.model.UserSession
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 
 /**
  * Default auth provider where authentication is handled typically.

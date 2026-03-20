@@ -8,9 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import encore.utils.functions.hexString
 import encore.utils.functions.safeAsciiString
-import encore.utils.logging.Fancam
-import encore.utils.logging.LOG_INDENT_PREFIX
-import encore.utils.logging.Level
+import encore.fancam.Fancam
+import encore.fancam.LOG_INDENT_PREFIX
+import encore.fancam.events.Level
 
 /**
  * Default implementation of [Connection] which is based on a real socket.

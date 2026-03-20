@@ -7,7 +7,7 @@ import encore.server.tasks.ServerTask
 import encore.server.tasks.TaskConfig
 import encore.server.tasks.TaskName
 import encore.server.tasks.TaskScheduler
-import encore.utils.logging.Fancam
+import encore.utils.fancam.Fancam
 import kotlin.time.Duration.Companion.seconds
 
 /**

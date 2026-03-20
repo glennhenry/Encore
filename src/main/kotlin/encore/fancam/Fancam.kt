@@ -1,14 +1,16 @@
-package encore.utils.logging
+package encore.fancam
+
+import encore.fancam.events.Level
+import encore.fancam.events.LogEvent
+import encore.fancam.events.TrackEvent
+import encore.fancam.events.LogEventBuilder
+import encore.fancam.events.TrackEventBuilder
+import encore.fancam.impl.FancamTemplate
+import encore.fancam.impl.OfficialFancam
 
 const val LOG_FILE_EXTENSION = "log"
 const val TRACK_FILE_EXTENSION = "jsonl"
 const val LOG_FILE_DIRECTORY = ".logs"
-
-/**
- * Blank spaces to include in the log message when logging with
- * multiple lines and wants the next line to align with the upper log call.
- */
-const val LOG_INDENT_PREFIX = "                                             "
 
 /**
  * A globally accessible facade for [Fancam].
@@ -65,3 +67,9 @@ object Fancam {
      */
     fun track(name: String): TrackEventBuilder = fancam.track(name)
 }
+
+/**
+ * Blank spaces to include in the log message when logging with
+ * multiple lines and wants the next line to align with the upper log call.
+ */
+const val LOG_INDENT_PREFIX = "                                             "

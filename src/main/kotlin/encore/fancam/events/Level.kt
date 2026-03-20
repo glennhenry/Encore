@@ -1,4 +1,4 @@
-package encore.utils.logging
+package encore.fancam.events
 
 /**
  * Specify 6 (5 usable) levels of logging circumstances.

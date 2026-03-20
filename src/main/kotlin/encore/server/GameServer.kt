@@ -14,8 +14,8 @@ import encore.server.messaging.socket.SocketMessage
 import encore.server.messaging.socket.SocketMessageDispatcher
 import encore.utils.functions.hexString
 import encore.utils.functions.safeAsciiString
-import encore.utils.logging.Fancam
-import encore.utils.logging.LOG_INDENT_PREFIX
+import encore.fancam.Fancam
+import encore.fancam.LOG_INDENT_PREFIX
 import kotlin.system.measureTimeMillis
 
 data class GameServerConfig(

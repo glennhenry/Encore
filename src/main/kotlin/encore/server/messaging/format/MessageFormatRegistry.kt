@@ -1,6 +1,6 @@
 package encore.server.messaging.format
 
-import encore.utils.logging.Fancam
+import encore.fancam.Fancam
 
 /**
  * Registry of all [MessageFormat]s supported by the server.
