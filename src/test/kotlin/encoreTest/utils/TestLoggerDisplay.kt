@@ -5,7 +5,6 @@ import encore.startup.venue.EncoreFancamConfig
 import encore.utils.logging.Fancam
 import encore.utils.logging.Level
 import encore.utils.logging.OfficialFancam
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
@@ -37,18 +36,21 @@ class TestLoggerDisplay {
     @RevisitLater("Unit tests could never produce any text to file. Track event formatter always return empty text")
     @Test
     fun `test track event logging`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
-
-        val name = "TrackEventTest"
+        val fancam = OfficialFancam(EncoreFancamConfig())
+        Fancam.initialize(fancam)
 
         // Track event
-        Fancam.track(name)
+        Fancam.track("TrackEventTest")
             .data("playerId", "pid12345")
-            .data("buildingId", "bldId12345")
             .data("completeAt", 12345678)
+            .data("triple", Triple("s", "s", "s"))
+            .data("liz", listOf("liz"))
+            .data("cfg", EncoreFancamConfig())
             .note { "Test6" }
             .route("TrackEventTest")
             .record()
+
+        fancam.flush()
     }
 
     private fun logExample() {

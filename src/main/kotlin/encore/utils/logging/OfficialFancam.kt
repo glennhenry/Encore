@@ -5,6 +5,7 @@ import encore.utils.StackTraceResolver
 import io.ktor.util.date.getTimeMillis
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Default implementation of fancam template.
@@ -152,6 +153,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     )
 
     private fun log(event: LogEvent) {
+        pendingEvents.incrementAndGet()
         eventQueue.offer(LogQueueEvent(event, fromTrackEvent = false))
     }
 
@@ -168,8 +170,12 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     override fun track(name: String): TrackEventBuilder {
         return TrackEventBuilder(
             name = name,
-            onRecordCalled = { eventQueue.offer(TrackQueueEvent(it)) },
+            onRecordCalled = {
+                pendingEvents.incrementAndGet()
+                eventQueue.offer(TrackQueueEvent(it))
+            },
             onLogCalled = { trackEvent, level, logFull ->
+                pendingEvents.incrementAndGet()
                 eventQueue.offer(
                     LogQueueEvent(
                         LogEvent(
@@ -194,6 +200,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     // ensuring proper log call ordering while not blocking main thread
     private val eventQueue = LinkedBlockingQueue<QueueEvent>()
     private val executor = Executors.newSingleThreadExecutor()
+    private val pendingEvents = AtomicInteger(0)
 
     init {
         startConsumer()
@@ -230,6 +237,23 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
             }
         } catch (e: Throwable) {
             e.printStackTrace()
+        } finally {
+            pendingEvents.decrementAndGet()
+        }
+    }
+
+    /**
+     * Force caller to wait for a maximum of [timeoutMs] for pending
+     * log events to be processed.
+     */
+    fun flush(timeoutMs: Long = 3000) {
+        val start = getTimeMillis()
+
+        while (pendingEvents.get() > 0) {
+            if (getTimeMillis() - start > timeoutMs) {
+                throw RuntimeException("Flush timeout")
+            }
+            Thread.sleep(100)
         }
     }
 }
