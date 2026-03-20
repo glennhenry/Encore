@@ -3,6 +3,7 @@ package encore.server.handler.impl
 import encore.server.handler.HandlerContext
 import encore.server.handler.SocketMessageHandler
 import encore.server.messaging.socket.SocketMessage
+import encore.utils.logging.Fancam
 import kotlin.reflect.KClass
 
 /**
