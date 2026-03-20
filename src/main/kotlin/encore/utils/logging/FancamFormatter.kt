@@ -38,15 +38,15 @@ class LogEventFancamFormatter(
     override fun format(event: LogEvent): String {
         val timestamp = formatTimestamp(event.timestamp, timeFormat)
         val source = formatSourceHint(event.source, config.fileNamePadding, isFileTarget)
-        val level = if (isFileTarget) {
-            colorizeText(event.level, event.level.label())
+        val level = if (config.colorEnabled && !isFileTarget) {
+            colorizeText(event.level, "[${event.level.label()}]")
         } else {
-            event.level.label()
+            "[${event.level.label()}]"
         }
 
         if (isFileTarget) {
             // [14:21:54.221](Application.kt:22)[D] <GameService> debug message
-            return "[$timestamp]($source)[$level] <${event.tag}> ${event.message()}"
+            return "[$timestamp]$source$level <${event.tag}> ${event.message()}"
         }
 
         val message = event.message()
@@ -60,7 +60,7 @@ class LogEventFancamFormatter(
             }
 
         // [14:21:54.221](      Application.kt:22)[D] debug message
-        return "[$timestamp]($source)[$level] $message"
+        return "[$timestamp]$source$level $message"
     }
 
     private fun formatTimestamp(timestamp: Long, format: SimpleDateFormat): String {
@@ -131,7 +131,7 @@ class TrackEventFancamFormatter : FancamFormatter<TrackEvent> {
         return jsonSerializer.encodeToString(
             SimpleTrackEvent(
                 name = event.name,
-                datetime = dateFormatter.format(event),
+                datetime = dateFormatter.format(event.timestamp),
                 data = event.data,
                 tags = event.tags,
                 source = event.source,
@@ -151,6 +151,6 @@ class ConsoleTrackEventFancamFormatter : FancamFormatter<TrackEvent> {
     private val jsonSerializer = Json { prettyPrint = false }
 
     override fun format(event: TrackEvent): String {
-        return "[TrackEvent:${event.name}] ${event.note} ${jsonSerializer.encodeToString(event.data)}"
+        return "[TrackEvent:${event.name}] ${event.note()} ${jsonSerializer.encodeToString(event.data)}"
     }
 }

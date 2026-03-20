@@ -206,6 +206,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
                     val event = eventQueue.take()
                     process(event)
                 } catch (e: InterruptedException) {
+                    e.printStackTrace()
                     Thread.currentThread().interrupt()
                 }
             }
@@ -213,21 +214,24 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     }
 
     private fun process(event: QueueEvent) {
-        when (event) {
-            is LogQueueEvent -> {
-                val log = event.event
-                consoleLogProducer.produce(log)
-                if (log.filename != null && !event.fromTrackEvent) {
-                    fileLogProducer.produce(log)
+        try {
+            when (event) {
+                is LogQueueEvent -> {
+                    val log = event.event
+                    consoleLogProducer.produce(log)
+                    if (log.filename != null && !event.fromTrackEvent) {
+                        fileLogProducer.produce(log)
+                    }
+                }
+
+                is TrackQueueEvent -> {
+                    fileTrackProducer.produce(event.event)
                 }
             }
-
-            is TrackQueueEvent -> {
-                fileTrackProducer.produce(event.event)
-            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
     }
-
 }
 
 sealed interface QueueEvent
