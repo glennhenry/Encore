@@ -21,7 +21,7 @@
                 </test>
             </mongo>
         </database>
-        <logger>
+        <fancam>
             <level>TRACE</level>
             <color enabled="true">
                 <useBackgroundColor>true</useBackgroundColor>
@@ -32,7 +32,7 @@
                 <maxFileSize>5</maxFileSize>
                 <maxFileRotation>5</maxFileRotation>
             </formatting>
-        </logger>
+        </fancam>
     </encore>
 
     <!-- Custom config, follow your definition in code -->

@@ -6,6 +6,7 @@ import com.mongodb.assertions.Assertions.assertFalse
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.data.collection.PlayerAccount
+import encore.user.PlayerAccountRepository
 import encore.user.PlayerAccountRepositoryMongo
 import kotlinx.coroutines.test.runTest
 import org.bson.Document

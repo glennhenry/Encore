@@ -1,3 +1,4 @@
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 /**
@@ -5,6 +6,7 @@ import kotlin.test.Test
  *
  * .\gradlew run --tests "Playground.playground" --console=plain
  */
+@Ignore
 class Playground {
     @Test
     fun playground() {

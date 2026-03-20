@@ -106,13 +106,13 @@ data class EncoreFancamConfig(
      *
      * e.g., level INFO means only seeing log message with INFO, WARN, ERROR
      */
-    @VenueKey("logger.level")
+    @VenueKey("fancam.level")
     val level: String = Level.Trace.name,
 
     /**
      * Whether to color log messages or output as plain text.
      */
-    @VenueKey("logger.color._enabled")
+    @VenueKey("fancam.color._enabled")
     val colorEnabled: Boolean = true,
 
     /**
@@ -120,31 +120,31 @@ data class EncoreFancamConfig(
      *
      * Recommend set to `true` in light mode
      */
-    @VenueKey("logger.color.useBackgroundColor")
+    @VenueKey("fancam.color.useBackgroundColor")
     val useBackgroundColor: Boolean = true,
 
     /**
      * Specify the empty space allocation to show a hyperlinked filename
      */
-    @VenueKey("logger.formatting.fileNamePadding")
+    @VenueKey("fancam.formatting.fileNamePadding")
     val fileNamePadding: Int = 25,
 
     /**
      * Maximum message length for a single line (by `\n`)
      * if `logFull=false` in the log event.
      */
-    @VenueKey("logger.formatting.maxLineLength")
+    @VenueKey("fancam.formatting.maxLineLength")
     val maxLineLength: Int = 500,
 
     /**
      * Maximum file size in MB (for all files)
      */
-    @VenueKey("logger.formatting.maxFileSize")
+    @VenueKey("fancam.formatting.maxFileSize")
     val maxFileSize: Int = 5,
 
     /**
      * Maximum file rotation (for all files)
      */
-    @VenueKey("logger.formatting.maxFileRotation")
+    @VenueKey("fancam.formatting.maxFileRotation")
     val maxFileRotation: Int = 5,
 )

@@ -9,7 +9,7 @@ import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.core.PlayerService
 import encore.data.runMongoCatching
 import encore.data.throwIfNotModified
-import encore.utils.fancam.Fancam
+import encore.fancam.Fancam
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest

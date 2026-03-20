@@ -5,9 +5,9 @@ import encore.startup.venue.EncoreConfig
 import encore.startup.venue.FakeEnvProvider
 import encore.startup.venue.VenuePreparer
 import encore.utils.JSON
-import encore.utils.fancam.Fancam
-import encore.utils.fancam.events.Level
-import encore.utils.fancam.impl.RehearsalFancam
+import encore.fancam.Fancam
+import encore.fancam.events.Level
+import encore.fancam.impl.RehearsalFancam
 import encoreTest.utils.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -94,7 +94,7 @@ class VenuePreparerTest {
                             </test>
                         </mongo>
                     </database>
-                    <Fancam>
+                    <fancam>
                         <level>TRACE</level>
                         <color enabled="true">
                             <colorEntireMessage>true</colorEntireMessage>
@@ -106,7 +106,7 @@ class VenuePreparerTest {
                             <maxFileSize>5</maxFileSize>
                             <maxFileRotation>5</maxFileRotation>
                         </formatting>
-                    </Fancam>
+                    </fancam>
                 </encore>
                 <custom>
                     <parent>
@@ -155,7 +155,7 @@ class VenuePreparerTest {
                             </test>
                         </mongo>
                     </database>
-                    <Fancam>
+                    <fancam>
                         <level>TRACE</level>
                         <color enabled="true">
                             <colorEntireMessage>true</colorEntireMessage>
@@ -168,7 +168,7 @@ class VenuePreparerTest {
                             <maxFileRotation>5</maxFileRotation>
                             <timestampFormat>ABCDEF</timestampFormat>
                         </formatting>
-                    </Fancam>
+                    </fancam>
                 </encore>
                 <random>
                     <parent>
@@ -217,7 +217,7 @@ class VenuePreparerTest {
                             </test>
                         </mongo>
                     </database>
-                    <Fancam>
+                    <fancam>
                         <level>TRACE</level>
                         <color enabled="true">
                             <colorEntireMessage>true</colorEntireMessage>
@@ -230,7 +230,7 @@ class VenuePreparerTest {
                             <maxFileRotation>5</maxFileRotation>
                             <timestampFormat>ABCDEF</timestampFormat>
                         </formatting>
-                    </Fancam>
+                    </fancam>
                 </encore>
             </venue>
         """.trimIndent().toFile("venue.xml")

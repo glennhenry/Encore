@@ -141,12 +141,16 @@ class VenuePreparer(
             val key = "$xmlFieldPrefix.${keyAnn.path}"
             val value = checkEnv(key, xmlFieldPrefix, envPrefix) ?: map[key]
 
+            // not found in XML and ENV
             if (value == null) {
+                // not found and no default
                 if (!param.isOptional) {
                     throw IllegalStateException(
                         "Config value: $key is missing from XML and ENV."
                     )
                 }
+                // not found in XML, but have default
+                Fancam.trace { "Defaulted: ${keyAnn.path}" }
                 continue
             }
 

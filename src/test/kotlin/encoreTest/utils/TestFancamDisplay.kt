@@ -2,9 +2,9 @@ package encoreTest.utils
 
 import encore.annotation.RevisitLater
 import encore.startup.venue.EncoreFancamConfig
-import encore.utils.fancam.Fancam
-import encore.utils.fancam.events.Level
-import encore.utils.fancam.impl.OfficialFancam
+import encore.fancam.Fancam
+import encore.fancam.events.Level
+import encore.fancam.impl.OfficialFancam
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
