@@ -6,8 +6,8 @@ import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import encore.utils.functions.hexString
-import encore.utils.functions.safeAsciiString
+import encore.utils.hexString
+import encore.utils.safeAsciiString
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
 import encore.fancam.events.Level

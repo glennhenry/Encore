@@ -12,8 +12,8 @@ import encore.server.handler.DefaultHandlerContext
 import encore.server.messaging.format.DecodeResult
 import encore.server.messaging.socket.SocketMessage
 import encore.server.messaging.socket.SocketMessageDispatcher
-import encore.utils.functions.hexString
-import encore.utils.functions.safeAsciiString
+import encore.utils.hexString
+import encore.utils.safeAsciiString
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
 import kotlin.system.measureTimeMillis

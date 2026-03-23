@@ -1,7 +1,7 @@
 package encore.server.messaging.format
 
 import encore.server.messaging.socket.SocketMessage
-import encore.utils.functions.safeAsciiString
+import encore.utils.safeAsciiString
 import encore.server.messaging.socket.DefaultMessage
 
 /**

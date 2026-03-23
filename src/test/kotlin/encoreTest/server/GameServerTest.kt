@@ -15,7 +15,7 @@ import encore.server.handler.SocketMessageHandler
 import encore.server.messaging.format.DecodeResult
 import encore.server.messaging.format.MessageFormat
 import encore.server.messaging.socket.SocketMessage
-import encore.utils.functions.safeAsciiString
+import encore.utils.safeAsciiString
 import kotlin.reflect.KClass
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds

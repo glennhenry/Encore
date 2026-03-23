@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import encore.user.model.ServerMetadata
 import encore.user.model.UserProfile
-import encore.utils.functions.UUID
+import encore.utils.UUID
 import encore.fancam.Fancam
 import kotlin.io.encoding.Base64
 

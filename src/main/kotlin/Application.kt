@@ -23,7 +23,7 @@ import encore.user.PlayerAccountRepositoryMongo
 import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager
 import encore.serialization.JSON
-import encore.utils.functions.UUID
+import encore.utils.UUID
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam
 import encore.ws.WebSocketManager

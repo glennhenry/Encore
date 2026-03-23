@@ -14,7 +14,7 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.serialization.json.Json
-import encore.utils.functions.UUID
+import encore.utils.UUID
 import encore.fancam.Fancam
 import encore.ws.WsMessage
 import java.io.File

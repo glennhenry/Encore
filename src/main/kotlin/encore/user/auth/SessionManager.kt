@@ -3,7 +3,7 @@ package encore.user.auth
 import encore.user.model.UserSession
 import encore.core.data.AdminData
 import kotlinx.coroutines.CoroutineDispatcher
-import encore.utils.functions.UUID
+import encore.utils.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -11,8 +11,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import encore.utils.functions.SystemTime
-import encore.utils.functions.TimeProvider
+import encore.utils.SystemTime
+import encore.utils.TimeProvider
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours

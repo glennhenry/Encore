@@ -1,77 +1,53 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package encore.serialization
 
-import encore.fancam.Fancam
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.*
+import kotlinx.serialization.serializer
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 /**
- * Global JSON serialization helper, intended to provide a single,
- * shared [Json] configuration.
- *
- * This must be initialized via [initialize] before use.
+ * Parse a JSON string into a map.
  */
-object JSON {
-    private var _json: Json? = null
-    val json: Json
-        get() = _json ?: error("JSON is not initialized. Call JSON.initialize() first.")
-
-    fun initialize(json: Json) {
-        if (_json != null) {
-            Fancam.warn { "JSON.initialize() called after initialization. Ignoring." }
-            return
-        }
-        this._json = json
-    }
-
-    inline fun <reified T> encode(value: T): String {
-        return json.encodeToString<T>(value)
-    }
-
-    inline fun <reified T> encode(serializer: SerializationStrategy<T>, value: T): String {
-        return json.encodeToString(serializer, value)
-    }
-
-    inline fun <reified T> decode(value: String): T {
-        return json.decodeFromString<T>(value)
-    }
-
-    inline fun <reified T> decode(deserializer: DeserializationStrategy<T>, value: String): T {
-        return json.decodeFromString(deserializer, value)
-    }
-}
-
-fun parseJsonToMap(json: String): Map<String, Any?> {
+fun parseJsonToMap(serializer: Json, jsonStr: String): Map<String, Any> {
     return try {
-        val parsed = JSON.decode<JsonObject>(json)
-        parsed.mapValues { (_, v) -> parseJsonElement(v) }
-    } catch (_: Exception) {
+        val parsed = serializer.decodeFromString<JsonObject>(jsonStr)
+        parsed.mapValues { (_, v) -> v.toAny() }
+    } catch (e: Throwable) {
+        e.printStackTrace()
         emptyMap()
     }
 }
 
-fun parseJsonElement(el: JsonElement): Any = when (el) {
+/**
+ * Convert [JsonElement] into an [Any] type.
+ */
+fun JsonElement.toAny(): Any = when (this) {
     is JsonPrimitive -> {
         when {
-            el.isString -> el.content
-            el.booleanOrNull != null -> el.boolean
-            el.intOrNull != null -> el.int
-            el.longOrNull != null -> el.long
-            el.doubleOrNull != null -> el.double
-            else -> el.content
+            this.isString -> this.content
+            this.booleanOrNull != null -> this.boolean
+            this.intOrNull != null -> this.int
+            this.longOrNull != null -> this.long
+            this.doubleOrNull != null -> this.double
+            else -> this.content
         }
     }
 
-    is JsonObject -> el.mapValues { parseJsonElement(it.value) }
-    is JsonArray -> el.map { parseJsonElement(it) }
+    is JsonObject -> this.mapValues { it.value.toAny() }
+    is JsonArray -> this.map { it.toAny() }
 }
 
-fun Map<String, *>?.toJsonElement(): JsonObject = buildJsonObject {
-    this@toJsonElement?.forEach { (key, value) ->
-        put(key, value.toJsonElement())
+/**
+ * Convert a map to [JsonObject] representation.
+ */
+fun Map<String, Any>?.toJsonObject(): JsonObject {
+    return buildJsonObject {
+        this@toJsonObject?.forEach { (key, value) ->
+            put(key, value.toJsonElement())
+        }
     }
 }
 

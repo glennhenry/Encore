@@ -1,6 +1,6 @@
 package encoreTest
 
-import encore.utils.functions.TimeProvider
+import encore.utils.TimeProvider
 import kotlin.time.Duration
 
 /**

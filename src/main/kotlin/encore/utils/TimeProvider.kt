@@ -1,4 +1,4 @@
-package encore.utils.functions
+package encore.utils
 
 import io.ktor.util.date.getTimeMillis
 

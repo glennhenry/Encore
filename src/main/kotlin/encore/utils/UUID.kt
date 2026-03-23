@@ -1,4 +1,4 @@
-package encore.utils.functions
+package encore.utils
 
 import java.util.UUID
 

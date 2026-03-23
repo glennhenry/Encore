@@ -8,7 +8,7 @@ import encore.fancam.events.TrackEvent
 import encore.fancam.formatter.FancamFormatter
 import encore.fancam.formatter.LogEventFancamFormatter
 import encore.fancam.formatter.TrackEventFancamFormatter
-import encore.utils.functions.toMB
+import encore.utils.toMB
 import encore.utils.getRotatedFile
 
 /**
