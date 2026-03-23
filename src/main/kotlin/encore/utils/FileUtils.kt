@@ -14,14 +14,14 @@ import java.io.File
  * @param filename The filename without extension or rotation number.
  * @param extension File extension without dot.
  * @param maxRotation The number of maximum rotation before cycling back to 1.
- * @param shouldRotate The predicate that resolves whether a file should be rotated or not.
+ * @param rotateWhen The predicate that resolves whether a file should be rotated or not.
  *
  * @return The specified file which is guaranteed to exists.
  */
 fun getRotatedFile(
     directory: String, filename: String,
     extension: String, maxRotation: Int,
-    shouldRotate: (File) -> Boolean,
+    rotateWhen: (File) -> Boolean,
 ): File {
     val dir = File(directory).also { it.mkdir() }
 
@@ -39,7 +39,7 @@ fun getRotatedFile(
     val file = File(dir, "$filename-$currentRotation.$extension")
 
     // check if file should be rotated
-    if (file.exists() && shouldRotate(file)) {
+    if (file.exists() && rotateWhen(file)) {
         // new rotation which cycles from 1 to max and back to 1
         val nextRotation = (currentRotation % maxRotation) + 1
         val nextFile = File(dir, "$filename-$nextRotation.$extension")
