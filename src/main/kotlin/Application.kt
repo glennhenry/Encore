@@ -151,8 +151,8 @@ suspend fun Application.module() {
     )
 
     // initialize components with circular dependency
-    wsManager.init(serverContext)
-    commandDispatcher.init(serverContext)
+    wsManager.initialize(serverContext)
+    commandDispatcher.initialize(serverContext)
 
     commandDispatcher.register(ExampleCommand())
 

@@ -1,13 +1,14 @@
 package encore.ws
 
 import encore.context.ServerContext
+import encore.fancam.Fancam
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.put
-import encore.utils.JSON
+import encore.serialization.JSON
 import java.util.concurrent.ConcurrentHashMap
 
 typealias ClientSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>
@@ -16,7 +17,19 @@ typealias ClientSessions = ConcurrentHashMap<String, DefaultWebSocketServerSessi
  * Track websocket connections.
  */
 class WebSocketManager {
-    private lateinit var serverContext: ServerContext
+    private var _serverContext: ServerContext? = null
+    private val serverContext: ServerContext
+        get() = _serverContext
+            ?: error("Dependency error: WebSocketManager hasn't received ServerContext. Call initialize() first.")
+
+    fun initialize(context: ServerContext) {
+        if (_serverContext != null) {
+            Fancam.warn { "WebSocketManager.initialize() called after initialization. Ignoring." }
+            return
+        }
+        this._serverContext = context
+    }
+
     private val clients = ClientSessions()
 
     /**
@@ -85,9 +98,5 @@ class WebSocketManager {
 
     private fun createMessage(type: String, payload: JsonElement): Frame {
         return Frame.Text(JSON.encode(WsMessage(type, payload)))
-    }
-
-    fun init(context: ServerContext) {
-        this.serverContext = context
     }
 }

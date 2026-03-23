@@ -21,7 +21,19 @@ import encore.fancam.Fancam
  * See example in `test.devtools.CommandDispatcherTest`.
  */
 class CommandDispatcher {
-    private lateinit var serverContext: ServerContext
+    private var _serverContext: ServerContext? = null
+    private val serverContext: ServerContext
+        get() = _serverContext
+            ?: error("Dependency error: CommandDispatcher hasn't received ServerContext. Call initialize() first.")
+
+    fun initialize(context: ServerContext) {
+        if (_serverContext != null) {
+            Fancam.warn { "CommandDispatcher.initialize() called after initialization. Ignoring." }
+            return
+        }
+        this._serverContext = context
+    }
+
     private val commands = mutableMapOf<String, Command>()
     private val parser = CommandParser()
 
@@ -151,9 +163,5 @@ class CommandDispatcher {
      */
     fun getAllRegisteredCommands(): Set<Command> {
         return commands.values.toSet()
-    }
-
-    fun init(context: ServerContext) {
-        this.serverContext = context
     }
 }
