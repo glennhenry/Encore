@@ -1,21 +1,30 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package encore.utils
+package encore.serialization
 
+import encore.fancam.Fancam
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 /**
- * Preset JSON serialization and deserialization.
+ * Global JSON serialization helper, intended to provide a single,
+ * shared [Json] configuration.
+ *
+ * This must be initialized via [initialize] before use.
  */
-@Suppress("unused")
 object JSON {
-    lateinit var json: Json
+    private var _json: Json? = null
+    val json: Json
+        get() = _json ?: error("JSON is not initialized. Call JSON.initialize() first.")
 
     fun initialize(json: Json) {
-        this.json = json
+        if (_json != null) {
+            Fancam.warn { "JSON.initialize() called after initialization. Ignoring." }
+            return
+        }
+        this._json = json
     }
 
     inline fun <reified T> encode(value: T): String {
@@ -35,7 +44,6 @@ object JSON {
     }
 }
 
-@Suppress("unused")
 fun parseJsonToMap(json: String): Map<String, Any?> {
     return try {
         val parsed = JSON.decode<JsonObject>(json)
