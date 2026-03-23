@@ -1,7 +1,7 @@
 package encore.fancam.impl
 
-import encore.startup.venue.EncoreFancamConfig
-import encore.utils.StackTraceResolver
+import encore.EncoreFancamConfig
+import encore.fancam.utils.StackTraceResolver
 import encore.fancam.events.Level
 import encore.fancam.events.LogEvent
 import encore.fancam.producer.ConsoleFancamProducer

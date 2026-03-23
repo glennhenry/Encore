@@ -1,13 +1,16 @@
-package encore.startup.venue
+package encore
 
 import encore.annotation.VenueKey
 import encore.fancam.events.Level
+import game.config.CustomConfig
+import game.config.SecretConfig
 
 /**
  * Definition of config required by the framework.
  * Define them in `venue.xml` or here directly (for default value).
  *
  * This data class is not intended to be extended by user.
+ * Use [CustomConfig] or [SecretConfig] instead.
  *
  * @property devMode
  * @property server

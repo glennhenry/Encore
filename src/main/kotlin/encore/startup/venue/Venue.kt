@@ -1,5 +1,6 @@
 package encore.startup.venue
 
+import encore.EncoreConfig
 import encore.annotation.VenueKey
 import encore.startup.venue.Venue.custom
 import encore.startup.venue.Venue.encore
@@ -18,7 +19,7 @@ import java.io.File
  *
  * The configuration is loaded during [prepare]. XML values are flattened and
  * bound to strongly typed configuration classes such as:
- * - [EncoreConfig] — framework configuration
+ * - [encore.EncoreConfig] — framework configuration
  * - [CustomConfig] — user-defined application configuration
  * - [SecretConfig] — sensitive values
  *
@@ -44,10 +45,17 @@ import java.io.File
  * @property secret Sensitive configuration loaded from `venue.secret.xml`.
  */
 object Venue {
-    private var done: Boolean = false
-    lateinit var encore: EncoreConfig
-    lateinit var custom: CustomConfig
-    lateinit var secret: SecretConfig
+    private var _encore: EncoreConfig? = null
+    val encore: EncoreConfig
+        get() = _encore ?: error("Venue config is not initialized yet. Must call Venue.prepare() first.")
+
+    private var _custom: CustomConfig? = null
+    val custom: CustomConfig
+        get() = _custom ?: error("Venue config is not initialized yet. Must call Venue.prepare() first.")
+
+    private var _secret: SecretConfig? = null
+    val secret: SecretConfig
+        get() = _secret ?: error("Venue config is not initialized yet. Must call Venue.prepare() first.")
 
     /**
      * Loads and validates configuration from `venue.xml` and `venue.secret.xml`.
@@ -60,7 +68,7 @@ object Venue {
      *  - required configuration values are missing
      */
     fun prepare() {
-        if (done) {
+        if (_encore != null) {
             Fancam.warn { "Venue.prepare() called after initialization. Ignoring." }
             return
         }
@@ -80,13 +88,12 @@ object Venue {
             if (venueSecretFile.exists()) add(venueSecretFile)
         })
 
-        encore = preparer.get(EncoreConfig::class, VenueCategory.ENCORE, ENCORE_ENV_PREFIX)
-        custom = preparer.get(CustomConfig::class, VenueCategory.CUSTOM, ENCORE_ENV_PREFIX)
-        secret = preparer.get(SecretConfig::class, VenueCategory.SECRET, ENCORE_ENV_PREFIX)
+        _encore = preparer.get(EncoreConfig::class, VenueCategory.ENCORE, ENCORE_ENV_PREFIX)
+        _custom = preparer.get(CustomConfig::class, VenueCategory.CUSTOM, ENCORE_ENV_PREFIX)
+        _secret = preparer.get(SecretConfig::class, VenueCategory.SECRET, ENCORE_ENV_PREFIX)
         preparer.validate()
 
         Fancam.info { "Venue preparation finished." }
-        done = true
     }
 
     /**

@@ -1,6 +1,6 @@
 package encore.fancam.events
 
-import encore.utils.StackTraceResolver
+import encore.fancam.utils.StackTraceResolver
 import encore.fancam.Fancam
 import io.ktor.util.date.getTimeMillis
 

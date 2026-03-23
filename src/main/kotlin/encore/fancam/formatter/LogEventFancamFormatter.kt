@@ -1,7 +1,6 @@
 package encore.fancam.formatter
 
-import encore.startup.venue.EncoreFancamConfig
-import encore.fancam.formatter.AnsiColors
+import encore.EncoreFancamConfig
 import encore.fancam.events.Level
 import encore.fancam.events.LogEvent
 import encore.fancam.events.TraceElement

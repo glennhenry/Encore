@@ -1,4 +1,4 @@
-package encore.utils
+package encore.fancam.utils
 
 import encore.fancam.events.TraceElement
 import encore.fancam.events.toTraceElement

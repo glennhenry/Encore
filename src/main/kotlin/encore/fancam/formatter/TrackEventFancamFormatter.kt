@@ -2,7 +2,7 @@ package encore.fancam.formatter
 
 import encore.fancam.events.SimpleTrackEvent
 import encore.fancam.events.TrackEvent
-import encore.utils.toJsonElement
+import encore.serialization.toJsonElement
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat

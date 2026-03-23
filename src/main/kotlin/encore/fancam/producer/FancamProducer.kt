@@ -1,6 +1,6 @@
 package encore.fancam.producer
 
-import encore.startup.venue.EncoreFancamConfig
+import encore.EncoreFancamConfig
 import encore.fancam.LOG_FILE_DIRECTORY
 import encore.fancam.events.FileRoutableEvent
 import encore.fancam.events.LogEvent

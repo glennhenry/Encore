@@ -1,6 +1,6 @@
 package encore.annotation
 
-import encore.startup.venue.EncoreConfig
+import encore.EncoreConfig
 import game.config.CustomConfig
 import game.config.SecretConfig
 

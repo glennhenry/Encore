@@ -86,8 +86,9 @@ class VenuePreparer(
             buildString {
                 appendLine("Unused configuration keys detected:")
                 unused.sortedBy { it.length }.forEach {
-                    appendLine(" - $it")
+                    appendLine("    - $it")
                 }
+                appendLine("Don't forget to modify 'EncoreConfig', 'CustomConfig', or 'SecretConfig' if you are adding new things.")
             }
         }
     }

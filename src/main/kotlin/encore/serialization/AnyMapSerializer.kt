@@ -1,4 +1,4 @@
-package encore.utils
+package encore.serialization
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.MapSerializer

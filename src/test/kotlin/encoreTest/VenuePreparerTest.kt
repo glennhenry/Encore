@@ -3,8 +3,7 @@ package encoreTest
 import encore.annotation.VenueKey
 import encore.fancam.Fancam
 import encore.fancam.events.Level
-import encore.fancam.impl.RehearsalFancam
-import encore.startup.venue.EncoreConfig
+import encore.EncoreConfig
 import encore.startup.venue.FakeEnvProvider
 import encore.startup.venue.VenuePreparer
 import encoreTest.utils.TestFancam

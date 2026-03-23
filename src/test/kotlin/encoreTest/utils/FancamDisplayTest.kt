@@ -1,7 +1,7 @@
 package encoreTest.utils
 
 import encore.annotation.RevisitLater
-import encore.startup.venue.EncoreFancamConfig
+import encore.EncoreFancamConfig
 import encore.fancam.Fancam
 import encore.fancam.events.Level
 import encore.fancam.impl.OfficialFancam
