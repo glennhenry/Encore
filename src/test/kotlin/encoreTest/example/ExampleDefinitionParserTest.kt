@@ -26,7 +26,7 @@ class ExampleDefinitionParserTest {
      */
     @Test
     fun testExampleResParser() {
-        val tempResFile = File.createTempFile("test_res", ".res")
+        val tempResFile = File.createTempFile("test_res", ".res").also { it.deleteOnExit() }
         tempResFile.writeText("""
             hello=1
             world=2

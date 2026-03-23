@@ -14,7 +14,7 @@ import kotlin.test.Test
  * use this to show color
  * ./gradlew test --tests "encoreTest.utils.TestLoggerDisplay" --console=plain
  */
-class TestFancamDisplay {
+class FancamDisplayTest {
     @Test
     fun `fancam without color`() = runTest {
         Fancam.initialize(OfficialFancam(EncoreFancamConfig(colorEnabled = false,)))
