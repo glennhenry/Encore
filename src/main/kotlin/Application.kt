@@ -83,6 +83,7 @@ suspend fun Application.module() {
         json(json)
     }
     JSON.initialize(json)
+    // Protobuf.initialize(ProtoBuf)
 
     /* 2. Setup logger */
     Fancam.initialize(OfficialFancam(Venue.encore.fancam))
