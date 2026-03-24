@@ -37,16 +37,16 @@ if /i "%BUILDDOCS%"=="y" (
         exit /b 1
     )
 
-    echo Moving built docs to deploy/docs/ ...
+    echo Moving built docs to deploy/docs_build/ ...
     popd
 
     if not exist deploy mkdir deploy
-    if exist deploy\docs rmdir /s /q deploy\docs
-    mkdir deploy\docs
+    if exist deploy\docs_build rmdir /s /q deploy\docs_build
+    mkdir deploy\docs_build
 
-    xcopy /e /i /y "docs\dist" "deploy\docs" >nul
+    xcopy /e /i /y "docs\dist" "deploy\docs_build" >nul
 
-    echo Documentation successfully moved to deploy/docs/
+    echo Documentation successfully moved to deploy/docs_build/
 ) else (
     echo Skipping documentation build.
 )

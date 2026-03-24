@@ -14,14 +14,15 @@ fun Route.fileRoutes() {
     }
     staticFiles("site", File("assets/site"))
 
-    get("/docs") {
-        val docsIndex = File("docs/index.html")
-        if (docsIndex.exists()) {
-            call.respondFile(docsIndex)
-        } else {
-            call.respond(HttpStatusCode.NotFound, "Only available in production; Please start the docs using vite server or build the server first.")
+    val docsDir = File("docs_build")
+    if (File(docsDir, "index.html").exists()) {
+        staticFiles("docs", docsDir)
+    } else {
+        get("/docs") {
+            call.respond(
+                HttpStatusCode.NotFound,
+                "Docs website not available. Please start it with a separate vite server."
+            )
         }
     }
-
-    staticFiles("docs", File("docs"))
 }

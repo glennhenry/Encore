@@ -27,19 +27,19 @@ if [[ "$BUILDDOCS" == "y" || "$BUILDDOCS" == "Y" ]]; then
   cd ..
 
   echo
-  echo " Moving built docs to deploy/docs/..."
+  echo " Moving built docs to deploy/docs_build/..."
 
   mkdir -p deploy
-  rm -rf deploy/docs
-  mkdir -p deploy/docs
+  rm -rf deploy/docs_build
+  mkdir -p deploy/docs_build
 
   if command -v rsync &> /dev/null; then
-    rsync -a docs/dist/ deploy/docs/
+    rsync -a docs/dist/ deploy/docs_build/
   else
-    cp -r docs/dist/* deploy/docs/
+    cp -r docs/dist/* deploy/docs_build/
   fi
 
-  echo "Documentation successfully moved to deploy/docs/"
+  echo "Documentation successfully moved to deploy/docs_build/"
 else
   echo "Skipping documentation build."
 fi
