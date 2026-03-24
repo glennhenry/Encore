@@ -1,4 +1,4 @@
-package encore.data.collection
+package encore.db.collection
 
 /**
  * Database-level representation of server-wide data.

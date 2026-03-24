@@ -1,6 +1,6 @@
 package encore.core
 
-import encore.data.collection.ServerData
+import encore.db.collection.ServerData
 
 /**
  * Defines a global service that manages server-wide game state and logic.

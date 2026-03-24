@@ -1,4 +1,4 @@
-package encore.data
+package encore.db
 
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Indexes
@@ -7,9 +7,9 @@ import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import com.toxicbakery.bcrypt.Bcrypt
 import encore.core.data.AdminData
-import encore.data.collection.PlayerAccount
-import encore.data.collection.PlayerData
-import encore.data.collection.ServerData
+import encore.db.collection.PlayerAccount
+import encore.db.collection.PlayerData
+import encore.db.collection.ServerData
 import io.ktor.util.date.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

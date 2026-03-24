@@ -1,6 +1,6 @@
 package encore.context
 
-import encore.data.Database
+import encore.db.Database
 import encore.server.core.network.Connection
 import java.util.concurrent.ConcurrentHashMap
 

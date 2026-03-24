@@ -1,4 +1,5 @@
 package encore.startup
 
-class EncoreIdentity {
+object EncoreIdentity {
+    
 }

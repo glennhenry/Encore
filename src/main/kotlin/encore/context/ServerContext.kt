@@ -2,8 +2,8 @@ package encore.context
 
 import encore.core.PlayerService
 import encore.core.ServerService
-import encore.data.Database
-import encore.data.EmptyDatabase
+import encore.db.Database
+import encore.db.EmptyDatabase
 import encore.devtools.command.core.CommandDispatcher
 import encore.server.core.OnlinePlayerRegistry
 import encore.server.messaging.format.MessageFormatRegistry

@@ -1,11 +1,11 @@
 package encoreTest.user
 
 import encoreTest.CHANGE_ME_TEST_DB_NAME
-import encore.data.MongoImpl
+import encore.db.MongoImpl
 import com.mongodb.assertions.Assertions.assertFalse
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.data.collection.PlayerAccount
+import encore.db.collection.PlayerAccount
 import encore.user.PlayerAccountRepository
 import encore.user.PlayerAccountRepositoryMongo
 import kotlinx.coroutines.test.runTest

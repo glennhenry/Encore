@@ -1,8 +1,8 @@
 package encore.context
 
 import com.mongodb.kotlin.client.coroutine.MongoCollection
-import encore.data.Database
-import encore.data.collection.PlayerData
+import encore.db.Database
+import encore.db.collection.PlayerData
 import encore.server.core.network.Connection
 import java.util.concurrent.ConcurrentHashMap
 

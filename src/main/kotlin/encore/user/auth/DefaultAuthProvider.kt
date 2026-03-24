@@ -1,7 +1,7 @@
 package encore.user.auth
 
 import encore.core.data.AdminData
-import encore.data.Database
+import encore.db.Database
 import encore.user.PlayerAccountRepository
 import encore.user.model.UserSession
 import encore.fancam.Fancam

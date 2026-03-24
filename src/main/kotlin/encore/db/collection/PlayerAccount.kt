@@ -1,4 +1,4 @@
-package encore.data.collection
+package encore.db.collection
 
 import encore.core.data.AdminData
 import kotlinx.serialization.Serializable

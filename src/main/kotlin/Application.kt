@@ -6,7 +6,7 @@ import encore.context.DefaultContextTracker
 import encore.context.ServerContext
 import encore.context.ServerServices
 import encore.core.data.GameDefinition
-import encore.data.MongoImpl
+import encore.db.MongoImpl
 import encore.devtools.command.core.CommandDispatcher
 import encore.devtools.command.impl.ExampleCommand
 import encore.server.GameServer
