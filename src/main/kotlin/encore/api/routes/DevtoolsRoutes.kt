@@ -1,22 +1,17 @@
 package encore.api.routes
 
 import encore.context.ServerContext
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
+import encore.fancam.Fancam
+import encore.utils.UUID
+import encore.ws.WsMessage
+import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.routing.application
-import io.ktor.server.websocket.webSocket
+import io.ktor.server.websocket.*
 import io.ktor.util.date.*
-import io.ktor.websocket.CloseReason
-import io.ktor.websocket.Frame
-import io.ktor.websocket.close
-import io.ktor.websocket.readText
+import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
-import encore.utils.UUID
-import encore.fancam.Fancam
-import encore.ws.WsMessage
 import java.io.File
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -35,8 +30,8 @@ import kotlin.time.Duration.Companion.minutes
  *     - If invalid, send back `wall.html` (back to step 2).
  *     - If valid, set cookie of `backstage-clientId` with a new generated token (valid for 6 hours).
  *     Then, server responds with `backstage.html`.
- * 5. Client-side connects to websocket, including the `backstage-clientId` cookie.
- * 6. Server verify the `backstage-clientId` cookie.
+ * 5. Client-side connects to websocket, including the previous token to the query parameter of the WS link.
+ * 6. Server verify the WS query param.
  *     - If invalid, refuse the connection. This will prevent arbitrary websocket connection.
  *     The page will still be valid, though client can't do anything.
  *     - If valid, then websocket connection is approved.
@@ -146,13 +141,21 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
     }
 
     webSocket("/backstage/ws") {
-        if (!call.ensureSession { serverContext.sessionManager.verify(it) }) {
+        val token = if (application.developmentMode) {
+            // dev mode uses arbitrary identifier
+            "DEV-${getTimeMillis()}"
+        } else {
+            // websocket can't send cookie, token cookie for WS is included in the param instead
+            // also verify the token
+            call.request.queryParameters["token"]
+                ?.takeIf { serverContext.sessionManager.verify(it) }
+        }
+
+        if (token == null) {
             close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
             return@webSocket
         }
 
-        // shouldn't be null after ensureSession, unless devmode
-        val token = call.request.cookies["backstage-clientId"] ?: "DEV-${getTimeMillis()}"
         serverContext.wsManager.addClient(token, this)
 
         try {
@@ -192,7 +195,7 @@ suspend fun ApplicationCall.ensureSession(verify: (String) -> Boolean): Boolean 
     val cookie = request.cookies["backstage-clientId"]
     val cookieValid = cookie != null && verify(cookie)
 
-    if (!cookieValid && !application.developmentMode) {
+    if (!application.developmentMode && !cookieValid) {
         respond(HttpStatusCode.Forbidden, "Session invalid, please re-login")
         return false
     }

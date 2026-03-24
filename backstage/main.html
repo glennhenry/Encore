@@ -94,6 +94,11 @@
             overflow-x: auto;
         }
 
+        #ws-status {
+            font-size: 14px;
+            padding-bottom: 4px;
+        }
+
         #send-command {
             padding: 4px;
             border-radius: 0;
@@ -140,10 +145,14 @@
                 <p id="send-command-status">Status: idle</p>
             </div>
             <div>
+                <p id="ws-status">WebSocket status:</p>
+            </div>
+            <div>
                 <h3>About</h3>
                 <p>This command tool enable interaction with the server during runtime.</p>
                 <p>
-                    By implementing the <code style="font-size: large;">Command</code> interface, you can perform various
+                    By implementing the <code style="font-size: large;">Command</code> interface, you can perform
+                    various
                     server-side operations
                 </p>
                 <p>such as scanning local files, modifying data, triggering tasks, and more.</p>
@@ -151,7 +160,8 @@
                     All of these actions can be executed directly with commands,
                 </p>
                 <p>
-                    without changing the server’s code or restarting the server, only implementing the command themselves.
+                    without changing the server’s code or restarting the server, only implementing the command
+                    themselves.
                 </p>
             </div>
             <div style="margin-top: 20px;">
@@ -175,8 +185,32 @@
     let commandSendStatus = 0
     let lastOutputNode = null;
 
-    const websocket = new WebSocket(`ws://127.0.0.1:8080/backstage/ws`);
-    websocket.onopen = () => { console.log("WS connected.") };
+    function getCookie(name) {
+        const cookies = document.cookie.split(";").map(c => c.trim());
+        for (const cookie of cookies) {
+            if (cookie.startsWith(name + "=")) {
+                return cookie.substring((name + "=").length);
+            }
+        }
+        return null;
+    }
+
+    // websocket can't send cookie, send via param instead
+    // which is retrieved from cookie set by the server
+    const token = getCookie("backstage-clientId");
+    const websocket = new WebSocket(`ws://127.0.0.1:8080/backstage/ws?token=${token}`);
+
+    websocket.onopen = () => {
+        console.log("WS connected.");
+        updateWsStatusMessage("Status: WS connected.", "green");
+    };
+    websocket.onclose = (event) => {
+        console.log("WS closed.");
+        console.log("Code: " + event.code);
+        console.log("Reason: " + event.reason);
+        console.log("Was clean: " + event.wasClean);
+        updateWsStatusMessage(`Status: WS closed: ${event.reason}`, "red");
+    };
     websocket.onmessage = (event) => {
         try {
             const msg = JSON.parse(event.data);
@@ -225,6 +259,12 @@
 
     function updateSendStatusMessage(message) {
         document.getElementById("send-command-status").textContent = message
+    }
+
+    function updateWsStatusMessage(message, color) {
+        const wsstatus = document.getElementById("ws-status");
+        wsstatus.textContent = message
+        wsstatus.style.color = color
     }
 
     function sendCommand() {
