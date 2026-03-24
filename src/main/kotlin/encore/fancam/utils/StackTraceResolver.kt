@@ -17,8 +17,7 @@ class StackTraceResolver {
     }
 
     private fun isInternal(className: String): Boolean {
-        return className.startsWith("encore.utils.logging") ||
-                className.startsWith("encore.utils.StackTraceResolver") ||
+        return className.startsWith("encore.fancam") ||
                 className.startsWith("java.lang.Thread") ||
                 className.startsWith("java.util.concurrent")
     }
