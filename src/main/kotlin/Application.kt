@@ -103,11 +103,28 @@ suspend fun Application.module() {
     /* 5. Install status pages */
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            Fancam.error { "Server error at ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
-            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            Fancam.error { "Internal server error: ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
+
+            val message = if (this@module.developmentMode) {
+                cause.stackTrace.joinToString("\n")
+            } else {
+                "Stage was sabotaged..."
+            }
+
+            call.respondText(
+                text = errorHtml(500, "<pre>${message}</pre>"),
+                contentType = ContentType.Text.Html,
+                status = HttpStatusCode.InternalServerError
+            )
         }
+
         unhandled { call ->
             Fancam.error { "Unhandled API route: ${call.request.httpMethod} ${call.request.uri}." }
+            call.respondText(
+                text = errorHtml(404, "Not found in the system."),
+                contentType = ContentType.Text.Html,
+                status = HttpStatusCode.NotFound
+            )
         }
     }
 
@@ -259,4 +276,21 @@ fun startMongo(databaseName: String, mongoUrl: String, adminEnabled: Boolean): M
             throw e
         }
     }
+}
+
+/**
+ * HTML template for error page.
+ */
+fun errorHtml(code: Int, message: String): String {
+    return "<!doctypehtml>" +
+            "<html lang=en>" +
+            "<meta charset=UTF-8>" +
+            "<title>Uh-oh... contract ended</title>" +
+            "<style>" +
+            "body{font-family:system-ui,-apple-system,sans-serif;background-color:#f5f5f5}" +
+            "h1{font-size:1.2rem}</style>" +
+            "<div class=container>" +
+            "<h1>Error: $code</h1>" +
+            "<p>$message" +
+            "</div>"
 }
