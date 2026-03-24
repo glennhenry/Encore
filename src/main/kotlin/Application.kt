@@ -1,5 +1,5 @@
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import encore.api.routes.devtoolsRoutes
+import encore.api.routes.backstageRoutes
 import encore.api.routes.fileRoutes
 import encore.api.routes.timeUnderMinutes
 import encore.context.DefaultContextTracker
@@ -7,8 +7,8 @@ import encore.context.ServerContext
 import encore.context.ServerServices
 import encore.core.data.GameDefinition
 import encore.db.MongoImpl
-import encore.devtools.command.core.CommandDispatcher
-import encore.devtools.command.impl.ExampleCommand
+import encore.backstage.command.core.CommandDispatcher
+import encore.backstage.command.impl.ExampleCommand
 import encore.server.GameServer
 import encore.server.GameServerConfig
 import encore.server.ServerContainer
@@ -42,6 +42,7 @@ import io.ktor.server.websocket.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -49,6 +50,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import org.bson.Document
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
@@ -176,13 +178,13 @@ suspend fun Application.module() {
     /* 9. Initialize GameDefinition */
     GameDefinition.initialize()
 
-    // represent ephemeral token storage generated to enter /devtools
-    val devtoolsToken = mutableMapOf<String, Long>()
+    // represent ephemeral token storage generated to enter /backstage
+    val backstageToken = ConcurrentHashMap<String, Long>()
 
     /* 10. Register routes */
     routing {
         fileRoutes()
-        devtoolsRoutes(serverContext, devtoolsToken)
+        backstageRoutes(serverContext, backstageToken)
     }
 
     /* 11. Initialize servers */
@@ -195,7 +197,7 @@ suspend fun Application.module() {
     val apiPort = Venue.encore.server.port
     Fancam.info { "Server successfully started." }
     Fancam.info { "File/API server available at ${gameServerConfig.host}:$apiPort." }
-    Fancam.info { "Devtools available at ${gameServerConfig.host}:$apiPort/devtools." }
+    Fancam.info { "Devtools available at ${gameServerConfig.host}:$apiPort/backstage." }
 
     if (File("docs/index.html").exists()) {
         Fancam.info { "Docs website available on ${gameServerConfig.host}:$apiPort." }
@@ -231,25 +233,30 @@ suspend fun Application.module() {
     run {
         container.initializeAll()
         container.startAll()
-        container.startAcceptingCommandInputs {
-            while (isActive) {
-                val cmd = withContext(Dispatchers.IO) { readlnOrNull() } ?: break
-                val clean = cmd.trim().lowercase()
-                if (clean.isNotBlank()) {
-                    when (clean) {
-                        "token" -> {
-                            val token = UUID.new()
-                            println(token)
-                            devtoolsToken[token] = getTimeMillis()
-                            devtoolsToken.map { (token, millis) ->
-                                if (!timeUnderMinutes(millis, 1)) {
-                                    devtoolsToken.remove(token)
-                                }
+    }
+
+    launch(Dispatchers.IO) {
+        while (isActive) {
+            val cmd = withContext(Dispatchers.IO) { readlnOrNull() } ?: break
+            val clean = cmd.trim().lowercase()
+            if (clean.isNotBlank()) {
+                when (clean) {
+                    "token" -> {
+                        val token = UUID.new()
+                        println(token)
+                        backstageToken[token] = getTimeMillis()
+                        val toRemove = mutableListOf<String>()
+                        backstageToken.forEach { (token, millis) ->
+                            if (!timeUnderMinutes(millis, 1)) {
+                                toRemove.add(token)
                             }
                         }
-
-                        else -> {}
+                        toRemove.forEach {
+                            backstageToken.remove(it)
+                        }
                     }
+
+                    else -> {}
                 }
             }
         }

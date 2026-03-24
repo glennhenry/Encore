@@ -68,6 +68,10 @@ tasks.test {
     }
 }
 
+tasks.run {
+    standardInput = System.`in`
+}
+
 dependencies {
     // Ktor core
     implementation(libs.ktor.server.core)

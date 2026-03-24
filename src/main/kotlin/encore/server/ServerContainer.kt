@@ -26,13 +26,6 @@ class ServerContainer(private val servers: List<Server>, private val context: Se
         servers.forEach { it.start() }
     }
 
-    /**
-     * To run `readln()` from terminal.
-     */
-    fun startAcceptingCommandInputs(blockingRead: suspend () -> Unit) {
-        coroutineScope.launch { blockingRead() }
-    }
-
     suspend fun shutdownAll() {
         servers.forEach { it.shutdown() }
         job.cancelAndJoin()
