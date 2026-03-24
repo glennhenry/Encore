@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Devtools</title>
+    <title>Backstage</title>
 
     <style>
         * {
@@ -175,7 +175,7 @@
     let commandSendStatus = 0
     let lastOutputNode = null;
 
-    const websocket = new WebSocket(`ws://127.0.0.1:8080/devtools/ws`);
+    const websocket = new WebSocket(`ws://127.0.0.1:8080/backstage/ws`);
     websocket.onopen = () => { console.log("WS connected.") };
     websocket.onmessage = (event) => {
         try {
@@ -267,7 +267,7 @@
     }
 
     function fetchHelpMessage() {
-        fetch("/devtools/cmd-help-text")
+        fetch("/backstage/cmd-help-text")
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

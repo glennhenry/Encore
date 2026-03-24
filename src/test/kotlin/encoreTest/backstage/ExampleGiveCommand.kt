@@ -1,11 +1,11 @@
-package encoreTest.devtools
+package encoreTest.backstage
 
 import encore.context.ServerContext
-import encore.devtools.command.core.ArgumentCollection
-import encore.devtools.command.core.ArgumentDescriptor
-import encore.devtools.command.core.Command
-import encore.devtools.command.core.CommandResult
-import encore.devtools.command.core.CommandVariant
+import encore.backstage.command.core.ArgumentCollection
+import encore.backstage.command.core.ArgumentDescriptor
+import encore.backstage.command.core.Command
+import encore.backstage.command.core.CommandResult
+import encore.backstage.command.core.CommandVariant
 import kotlin.text.toIntOrNull
 
 /**

@@ -13,7 +13,7 @@ import kotlinx.serialization.json.JsonElement
  * - `action` identifies the specific message type within that category.
  *
  * Example:
- *  - A message with type `dev:cmdin` indicates a devtools command input sent from the client.
+ *  - A message with type `dev:cmdin` indicates a backstage command input sent from the client.
  *  - A message with type `webchat:in` may indicate a message sent by client from a web-based chat system.
  */
 @Serializable

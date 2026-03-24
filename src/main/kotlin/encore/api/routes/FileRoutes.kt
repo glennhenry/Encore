@@ -21,7 +21,8 @@ fun Route.fileRoutes() {
         get("/docs") {
             call.respond(
                 HttpStatusCode.NotFound,
-                "Docs website not available. Please start it with a separate vite server."
+                "Docs website not available. Please start it with a separate vite server. " +
+                        "If in prod, build the documentation website to access it."
             )
         }
     }

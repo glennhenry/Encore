@@ -1,8 +1,8 @@
-package encoreTest.devtools
+package encoreTest.backstage
 
 import com.mongodb.assertions.Assertions.assertTrue
 import encore.context.ServerContext
-import encore.devtools.command.core.*
+import encore.backstage.command.core.*
 import encore.fancam.events.Level
 import encoreTest.utils.TestFancam
 import encoreTest.utils.randomString
@@ -13,7 +13,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
- * Command dispatcher test and example of command implementation [encoreTest.devtools.ExampleGiveCommand].
+ * Command dispatcher test and example of command implementation [encoreTest.backstage.ExampleGiveCommand].
  *
  * Does not need to test invalid request since parser already validates that.
  */

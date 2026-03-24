@@ -1,11 +1,11 @@
-package encore.devtools.command.core
+package encore.backstage.command.core
 
 import encore.context.ServerContext
 
 /**
  * Represents a server command that can be invoked to perform a specific action in server.
  *
- * See `test.devtools.CommandDispatcherTest` for example.
+ * See `test.backstage.CommandDispatcherTest` for example.
  *
  * @property commandId A human-readable name for the command which is also used to call the command.
  *                     Must be unique to other commands. Case-sensitive.

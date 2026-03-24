@@ -1,8 +1,8 @@
-package encoreTest.devtools
+package encoreTest.backstage
 
-import encore.devtools.command.core.ArgumentCollection
-import encore.devtools.command.core.CommandParser
-import encore.devtools.command.core.CommandRequest
+import encore.backstage.command.core.ArgumentCollection
+import encore.backstage.command.core.CommandParser
+import encore.backstage.command.core.CommandRequest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

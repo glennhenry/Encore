@@ -1,4 +1,4 @@
-package encore.devtools.command.core
+package encore.backstage.command.core
 
 import encore.annotation.RevisitLater
 import encore.context.ServerContext
@@ -10,15 +10,15 @@ import encore.fancam.Fancam
  * Server commands offers the ability to control the server from command implementation.
  * It gives the possibility to modify server's behavior, such as modifying player's data.
  *
- * The server accepts command from simple CLI via the external web devtools.
+ * The server accepts command from simple CLI via the external web devtools (backstage).
  *
  * How to use:
  * - Implement [Command].
  * - Register the command with [register].
- * - Via the devtools, type the command with input arguments.
+ * - Via the backstage, type the command with input arguments.
  * - Syntax typically looks like 'give playerABC water 100'.
  *
- * See example in `test.devtools.CommandDispatcherTest`.
+ * See example in `test.backstage.CommandDispatcherTest`.
  */
 class CommandDispatcher {
     private var _serverContext: ServerContext? = null
