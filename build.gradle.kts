@@ -38,9 +38,21 @@ val copyBackstageAssets by tasks.registering(Copy::class) {
     into("deploy/backstage")
 }
 
+val copyVenue by tasks.registering(Copy::class) {
+    from("venue.xml")
+    into("deploy")
+}
+
+val copyVenueSecret by tasks.registering(Copy::class) {
+    from("venue.secret.xml")
+    into("deploy")
+}
+
 tasks.shadowJar {
     finalizedBy(copyBackstageAssets)
     finalizedBy(copyGameAssets)
+    finalizedBy(copyVenue)
+    finalizedBy(copyVenueSecret)
 }
 
 tasks.named<JavaExec>("run") {
