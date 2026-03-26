@@ -4,25 +4,41 @@ import encore.fancam.Fancam
 import encore.fancam.impl.RehearsalFancam
 
 /**
- * Global test helper to create and access [RehearsalFancam], ensuring the same
- * object is used in the initialized fancam implemention of [Fancam] used by
- * various system components.
+ * Test helper for creating and accessing a shared [RehearsalFancam] instance.
  *
- * Example:
+ * This ensures all system components use the same underlying fancam implementation
+ * called from the [Fancam] facade.
+ *
+ * You only need to use this helper whenever you need to assert or inspect logged events.
+ *
+ * Usage:
  * ```
- * // create and initialize facade
- * // must call in @BeforeTest to ensure system components get the same object
  * @BeforeTest
  * fun setup() {
+ *     // Must be called before running tests to ensure a shared instance
  *     TestFancam.create()
  * }
  *
- * // get and use
+ * // Access the instance for assertions
  * TestFancam.get().assertLogHas(...)
  *
- * // clear all logs
- * TestFancam.get().clear()
+ * // Clear all recorded logs
+ * TestFancam.clear()
  * ```
+ *
+ * **Details:**
+ * The [Fancam] has a hidden dependency of a fancam implementation.
+ * This is solved by it having a default implementation of [RehearsalFancam].
+ *
+ * In tests where we want to assert log calls, we will need access to a concrete
+ * `RehearsalFancam`, which the facade doesn't expose. The result is each tests
+ * need to create their own `RehearsalFancam`. This won't work consistently until
+ * the facade itself store the custom `RehearsalFancam`.
+ *
+ * This helper provides shorthand to create and initialize the fancam facade.
+ *
+ * - [create]: Creates new `RehearsalFancam`, and use it to initialize the `Fancam` facade.
+ * - [get]: Returns the same `RehearsalFancam`.
  */
 object TestFancam {
     private lateinit var fancam: RehearsalFancam

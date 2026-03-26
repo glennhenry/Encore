@@ -22,9 +22,10 @@ import java.text.SimpleDateFormat
  * - Does not implement file and client target.
  *
  * **Important**: if you are using `RehearsalFancam` to assert log calls,
- * you must still call the fancam initialization with the same object of `RehearsalFancam`.
- * This ensures the default `RehearsalFancam` on [Fancam], uses the same object.
- * Helper for this is available in `encoreTest.utils.TestFancam`.
+ * you must still call [Fancam.initialize] to pass a `RehearsalFancam`.
+ * This ensures that every systems uses the same underlying `RehearsalFancam`
+ * implementation from the [Fancam] facade. A helper for this is available
+ * in `encoreTest.utils.TestFancam`.
  *
  * Example:
  * ```
@@ -119,15 +120,17 @@ class RehearsalFancam : FancamTemplate {
             onRecordCalled = { println("TrackEvent.onRecordCalled: NOT IMPLEMENTED") },
             onLogCalled = { trackEvent, level, logFull ->
                 addToTrackEvent(level, trackEvent)
-                log(LogEvent(
-                    message = { formatTrack(trackEvent, level) },
-                    timestamp = trackEvent.timestamp,
-                    level = level,
-                    tag = trackEvent.tags.tagsToCommaSeparated(),
-                    logFull = logFull,
-                    source = trackEvent.source,
-                    targetFile = trackEvent.route
-                ), add = false)
+                log(
+                    LogEvent(
+                        message = { formatTrack(trackEvent, level) },
+                        timestamp = trackEvent.timestamp,
+                        level = level,
+                        tag = trackEvent.tags.tagsToCommaSeparated(),
+                        logFull = logFull,
+                        source = trackEvent.source,
+                        targetFile = trackEvent.route
+                    ), add = false
+                )
             }
         )
     }
@@ -177,7 +180,9 @@ class RehearsalFancam : FancamTemplate {
             Level.Info -> takeLastLogInfo(lastN).any { predicate(it.message()) }
             Level.Warn -> takeLastLogWarn(lastN).any { predicate(it.message()) }
             Level.Error -> takeLastLogError(lastN).any { predicate(it.message()) }
-            Level.Off -> { true }
+            Level.Off -> {
+                true
+            }
         }
 
         if (!assert) {
@@ -198,7 +203,9 @@ class RehearsalFancam : FancamTemplate {
             Level.Info -> takeLastTrackInfo(lastN).any { predicate(it.data) }
             Level.Warn -> takeLastTrackWarn(lastN).any { predicate(it.data) }
             Level.Error -> takeLastTrackError(lastN).any { predicate(it.data) }
-            Level.Off -> { true }
+            Level.Off -> {
+                true
+            }
         }
 
         if (!assert) {
