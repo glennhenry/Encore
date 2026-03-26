@@ -157,16 +157,54 @@ class RehearsalFancam : FancamTemplate {
         }
     }
 
+    /**
+     * Returns the last [n] trace calls, or all entries if fewer are available.
+     */
     fun takeLastLogTrace(n: Int): List<LogEvent> = tracelog.takeLast(n)
+
+    /**
+     * Returns the last [n] debug calls, or all entries if fewer are available.
+     */
     fun takeLastLogDebug(n: Int): List<LogEvent> = debuglog.takeLast(n)
+
+    /**
+     * Returns the last [n] info calls, or all entries if fewer are available.
+     */
     fun takeLastLogInfo(n: Int): List<LogEvent> = infolog.takeLast(n)
+
+    /**
+     * Returns the last [n] warn calls, or all entries if fewer are available.
+     */
     fun takeLastLogWarn(n: Int): List<LogEvent> = warnlog.takeLast(n)
+
+    /**
+     * Returns the last [n] error calls, or all entries if fewer are available.
+     */
     fun takeLastLogError(n: Int): List<LogEvent> = errorlog.takeLast(n)
 
+    /**
+     * Returns the last [n] trace calls, or all entries if fewer are available.
+     */
     fun takeLastTrackTrace(n: Int): List<TrackEvent> = tracetrack.takeLast(n)
+
+    /**
+     * Returns the last [n] debug calls, or all entries if fewer are available.
+     */
     fun takeLastTrackDebug(n: Int): List<TrackEvent> = debugtrack.takeLast(n)
+
+    /**
+     * Returns the last [n] info calls, or all entries if fewer are available.
+     */
     fun takeLastTrackInfo(n: Int): List<TrackEvent> = infotrack.takeLast(n)
+
+    /**
+     * Returns the last [n] warn calls, or all entries if fewer are available.
+     */
     fun takeLastTrackWarn(n: Int): List<TrackEvent> = warntrack.takeLast(n)
+
+    /**
+     * Returns the last [n] error calls, or all entries if fewer are available.
+     */
     fun takeLastTrackError(n: Int): List<TrackEvent> = errortrack.takeLast(n)
 
     /**

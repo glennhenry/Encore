@@ -39,6 +39,18 @@ data class LogEvent(
         get() = targetFile
     override val extension: String
         get() = LOG_FILE_EXTENSION
+
+    override fun toString(): String {
+        return "LogEvent(" +
+                "message=<lambdaeval>, " +
+                "timestamp=$timestamp, " +
+                "level=$level, " +
+                "tag=$tag, " +
+                "logFull=$logFull, " +
+                "source=$source, " +
+                "targetFile=$targetFile" +
+                ")"
+    }
 }
 
 /**
@@ -83,6 +95,18 @@ data class TrackEvent(
         get() = route
     override val extension: String
         get() = TRACK_FILE_EXTENSION
+
+    override fun toString(): String {
+        return "LogEvent(" +
+                "name=$name, " +
+                "timestamp=$timestamp, " +
+                "route=$route, " +
+                "tags=${tags.joinToString(prefix = "[", postfix = "]")}, " +
+                "source=$source, " +
+                "note=<lambdaeval>, " +
+                "data=$data" +
+                ")"
+    }
 }
 
 /**
