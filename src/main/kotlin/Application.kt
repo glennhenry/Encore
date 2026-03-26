@@ -199,10 +199,10 @@ suspend fun Application.module() {
     Fancam.info { "File/API server available at ${gameServerConfig.host}:$apiPort." }
     Fancam.info { "Devtools available at ${gameServerConfig.host}:$apiPort/backstage." }
 
-    if (File("docs/index.html").exists()) {
+    if (File("docs_build/index.html").exists()) {
         Fancam.info { "Docs website available on ${gameServerConfig.host}:$apiPort." }
     } else {
-        Fancam.trace { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
+        Fancam.info { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
     }
 
     val gameServer = GameServer(gameServerConfig) { socketDispatcher, serverContext ->

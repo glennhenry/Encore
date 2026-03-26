@@ -53,50 +53,58 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
 
         // skip on developmentMode
         if (application.developmentMode) {
-            Fancam.debug { "Request to /backstage auth skipped (development mode)" }
+            Fancam.info { "Request to /backstage (passed): auth skipped in development mode" }
             call.respondFile(mainHtml)
             return@get
         }
 
         val token = call.request.queryParameters["token"]
         val cookie = call.request.cookies["backstage-clientId"]
-        val cookieValid = cookie != null && serverContext.sessionManager.verify(cookie)
 
-        // user already authenticated before, does not need token from query parameter
-        if (cookieValid) {
-            Fancam.debug { "Request to /backstage succeed: user has client cookie" }
+        // PASS: user with cookie already authenticated before
+        if (cookie != null && serverContext.sessionManager.verify(cookie)) {
+            Fancam.info { "Request to /backstage (passed): user has cookie and is valid" }
             call.respondFile(mainHtml)
             return@get
         }
 
-        // user authenticating but fails
-        if (token == null) {
-            Fancam.debug { "Request to /backstage (no token), responded with wall" }
-            call.respondFile(wallHtml)
+        // WALL: user with cookie but expired
+        if (cookie != null && !serverContext.sessionManager.verify(cookie)) {
+            Fancam.info { "Request to /backstage (wall): user has cookie but expired" }
+            call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Cookie expired"), ContentType.Text.Html)
             return@get
         }
 
+        // WALL: user without cookie and without token.
+        if (token == null) {
+            Fancam.info { "Request to /backstage (wall): no token provided" }
+            call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Insert token"), ContentType.Text.Html)
+            return@get
+        }
+
+        // WALL: user has unknown token
         if (!tokenStorage.contains(token)) {
-            Fancam.debug { "Request to /backstage: got unknown token" }
+            Fancam.info { "Request to /backstage (wall): got unknown token: $token" }
             call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Unknown token"), ContentType.Text.Html)
             return@get
         }
 
+        // WALL: user has known token, but expired
         if (tokenStorage.contains(token) && !timeUnderMinutes(tokenStorage[token]!!, 1)) {
-            Fancam.debug { "Request to /backstage: token already expired" }
+            Fancam.info { "Request to /backstage (wall): token already expired" }
             call.respondText(
-                insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token already expired"),
+                insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),
                 ContentType.Text.Html
             )
             return@get
         }
 
-        // user successful authentication: tokenValid && !cookieValid
+        // PASS: user has valid token
         val session = serverContext.sessionManager.create(
             userId = UUID.new(), validFor = 6.hours, lifetime = 6.hours
         )
         call.response.cookies.append("backstage-clientId", session.token, maxAge = 21600, path = "/backstage")
-        Fancam.debug { "Request to /backstage: token correct, user logged in" }
+        Fancam.info { "Request to /backstage (passed): token correct and user is now logged in" }
         call.respondFile(mainHtml)
     }
 
@@ -152,9 +160,11 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
         }
 
         if (token == null) {
+            Fancam.info { "WebSocket request for /backstage: failed with invalid token=$token" }
             close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
             return@webSocket
         }
+        Fancam.info { "WebSocket request for /backstage: success with $token" }
 
         serverContext.wsManager.addClient(token, this)
 
