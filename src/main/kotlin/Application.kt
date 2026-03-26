@@ -18,7 +18,7 @@ import encore.server.messaging.format.MessageFormat
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskName
-import encore.startup.venue.Venue
+import encore.venue.Venue
 import encore.user.PlayerAccountRepositoryMongo
 import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager

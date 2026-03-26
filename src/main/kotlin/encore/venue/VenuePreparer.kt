@@ -1,4 +1,4 @@
-package encore.startup.venue
+package encore.venue
 
 import encore.annotation.VenueKey
 import encore.utils.XMLFlattener

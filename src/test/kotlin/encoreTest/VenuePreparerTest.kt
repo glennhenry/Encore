@@ -4,8 +4,8 @@ import encore.annotation.VenueKey
 import encore.fancam.Fancam
 import encore.fancam.events.Level
 import encore.EncoreConfig
-import encore.startup.venue.FakeEnvProvider
-import encore.startup.venue.VenuePreparer
+import encore.venue.FakeEnvProvider
+import encore.venue.VenuePreparer
 import encoreTest.utils.TestFancam
 import encoreTest.utils.assertDoesNotFail
 import encoreTest.utils.toFile

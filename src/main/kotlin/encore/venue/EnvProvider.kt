@@ -1,4 +1,4 @@
-package encore.startup.venue
+package encore.venue
 
 /**
  * Defines component that provides environment variables.

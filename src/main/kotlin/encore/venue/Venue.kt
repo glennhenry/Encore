@@ -1,10 +1,10 @@
-package encore.startup.venue
+package encore.venue
 
 import encore.EncoreConfig
 import encore.annotation.VenueKey
-import encore.startup.venue.Venue.custom
-import encore.startup.venue.Venue.encore
-import encore.startup.venue.Venue.secret
+import encore.venue.Venue.custom
+import encore.venue.Venue.encore
+import encore.venue.Venue.secret
 import encore.fancam.Fancam
 import game.config.CustomConfig
 import game.config.SecretConfig
@@ -19,7 +19,7 @@ import java.io.File
  *
  * The configuration is loaded during [prepare]. XML values are flattened and
  * bound to strongly typed configuration classes such as:
- * - [encore.EncoreConfig] — framework configuration
+ * - [EncoreConfig] — framework configuration
  * - [CustomConfig] — user-defined application configuration
  * - [SecretConfig] — sensitive values
  *
