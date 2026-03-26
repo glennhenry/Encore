@@ -2,6 +2,7 @@ package encore.fancam.impl
 
 import encore.fancam.Fancam
 import encore.fancam.events.*
+import encore.serialization.toJsonElement
 import io.ktor.util.date.*
 import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
@@ -57,7 +58,8 @@ class RehearsalFancam : FancamTemplate {
     }
 
     private fun formatTrack(event: TrackEvent, level: Level): String {
-        return "[${date.format(event.timestamp)}][${level.label()}] ${json.encodeToString(event.data)}"
+        val data = event.data.toJsonElement(useReflection = false)
+        return "[${date.format(event.timestamp)}][${level.label()}] ${json.encodeToString(data)}"
     }
 
     override fun trace(tag: String, msg: () -> String) {
@@ -208,23 +210,25 @@ class RehearsalFancam : FancamTemplate {
     fun takeLastTrackError(n: Int): List<TrackEvent> = errortrack.takeLast(n)
 
     /**
-     * To assert whether any of the [lastN] message has log event of [level]
-     * and match some predicate (e.g., string contains something).
+     * To assert whether the recorded log events of [withLevel] matches some predicate
+     * (e.g., string contains something) within any of the [withinLastN] message.
+     *
+     * @throws AssertionError if fail to match the predicate.
      */
-    fun assertLogHas(level: Level, lastN: Int, predicate: (String) -> Boolean): Boolean {
-        val assert = when (level) {
-            Level.Trace -> takeLastLogTrace(lastN).any { predicate(it.message()) }
-            Level.Debug -> takeLastLogDebug(lastN).any { predicate(it.message()) }
-            Level.Info -> takeLastLogInfo(lastN).any { predicate(it.message()) }
-            Level.Warn -> takeLastLogWarn(lastN).any { predicate(it.message()) }
-            Level.Error -> takeLastLogError(lastN).any { predicate(it.message()) }
+    fun assertLogHas(withLevel: Level, withinLastN: Int, predicate: (String) -> Boolean): Boolean {
+        val assert = when (withLevel) {
+            Level.Trace -> takeLastLogTrace(withinLastN).any { predicate(it.message()) }
+            Level.Debug -> takeLastLogDebug(withinLastN).any { predicate(it.message()) }
+            Level.Info -> takeLastLogInfo(withinLastN).any { predicate(it.message()) }
+            Level.Warn -> takeLastLogWarn(withinLastN).any { predicate(it.message()) }
+            Level.Error -> takeLastLogError(withinLastN).any { predicate(it.message()) }
             Level.Off -> {
                 true
             }
         }
 
         if (!assert) {
-            throw AssertionError("Failed to match predicate of $level in the last $lastN calls")
+            throw AssertionError("Failed to match predicate of $withLevel in the last $withinLastN calls")
         } else {
             return true
         }
@@ -233,6 +237,8 @@ class RehearsalFancam : FancamTemplate {
     /**
      * To assert whether the [lastN] message has track event of [level]
      * and match some predicate (e.g., data map contains something).
+     *
+     * @throws AssertionError if fail to match the predicate.
      */
     fun assertTrackHas(level: Level, lastN: Int, predicate: (Map<String, Any>) -> Boolean): Boolean {
         val assert = when (level) {
