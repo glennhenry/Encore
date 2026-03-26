@@ -1,4 +1,5 @@
 import com.mongodb.kotlin.client.coroutine.MongoClient
+import encore.EncoreIdentity
 import encore.api.routes.backstageRoutes
 import encore.api.routes.fileRoutes
 import encore.api.routes.timeUnderMinutes
@@ -27,6 +28,7 @@ import encore.utils.UUID
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam
 import encore.ws.WebSocketManager
+import game.GameIdentity
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -261,6 +263,8 @@ suspend fun Application.module() {
             }
         }
     }
+
+    println(EncoreIdentity.banner(GameIdentity))
 
     Runtime.getRuntime().addShutdownHook(Thread {
         runBlocking {
