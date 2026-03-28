@@ -1,7 +1,7 @@
 package encore.user.auth
 
 import encore.user.model.UserSession
-import encore.core.data.AdminData
+import encore.user.AdminData
 import kotlinx.coroutines.CoroutineDispatcher
 import encore.utils.UUID
 import kotlinx.coroutines.CoroutineScope

@@ -1,6 +1,6 @@
 package encore.user.model
 
-import encore.core.data.AdminData
+import encore.user.AdminData
 import io.ktor.util.date.getTimeMillis
 import kotlinx.serialization.Serializable
 

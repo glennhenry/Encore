@@ -1,6 +1,6 @@
 package encore.db.collection
 
-import encore.core.data.AdminData
+import encore.user.AdminData
 import encore.core.model.GameData
 
 /**

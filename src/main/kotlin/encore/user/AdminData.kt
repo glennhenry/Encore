@@ -1,4 +1,4 @@
-package encore.core.data
+package encore.user
 
 /**
  * Dummy data ready to use, typically for admin account.

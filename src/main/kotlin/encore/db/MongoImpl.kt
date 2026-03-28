@@ -6,7 +6,7 @@ import com.mongodb.client.result.UpdateResult
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import com.toxicbakery.bcrypt.Bcrypt
-import encore.core.data.AdminData
+import encore.user.AdminData
 import encore.db.collection.PlayerAccount
 import encore.db.collection.PlayerData
 import encore.db.collection.ServerData

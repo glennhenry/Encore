@@ -1,6 +1,6 @@
 package encore.db.collection
 
-import encore.core.data.AdminData
+import encore.user.AdminData
 import kotlinx.serialization.Serializable
 import encore.user.model.ServerMetadata
 import encore.user.model.UserProfile
