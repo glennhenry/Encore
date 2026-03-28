@@ -1,4 +1,4 @@
-package encore.backstage.command.core
+package encore.backstage.command
 
 /**
  * Describes a single command argument.

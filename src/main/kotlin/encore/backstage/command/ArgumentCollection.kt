@@ -1,4 +1,4 @@
-package encore.backstage.command.core
+package encore.backstage.command
 
 /**
  * A wrapper around the list of raw argument strings provided to a command.

@@ -8,8 +8,8 @@ import encore.context.ServerContext
 import encore.context.ServerServices
 import encore.definition.GameReference
 import encore.db.MongoImpl
-import encore.backstage.command.core.CommandDispatcher
-import encore.backstage.command.impl.ExampleCommand
+import encore.backstage.command.CommandDispatcher
+import encore.backstage.command.ExampleCommand
 import encore.server.GameServer
 import encore.server.GameServerConfig
 import encore.server.ServerContainer

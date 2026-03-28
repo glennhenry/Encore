@@ -1,12 +1,6 @@
-package encore.backstage.command.impl
+package encore.backstage.command
 
 import encore.context.ServerContext
-import encore.backstage.command.core.ArgumentCollection
-import encore.backstage.command.core.ArgumentDescriptor
-import encore.backstage.command.core.Command
-import encore.backstage.command.core.CommandResult
-import encore.backstage.command.core.CommandVariant
-import kotlin.text.toIntOrNull
 
 class ExampleCommand : Command {
     override val commandId: String = "test"

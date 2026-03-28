@@ -1,4 +1,4 @@
-package encore.backstage.command.core
+package encore.backstage.command
 
 import encore.annotation.source.RevisitLater
 import encore.context.ServerContext

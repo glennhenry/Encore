@@ -4,7 +4,7 @@ import encore.service.PlayerService
 import encore.service.ServerService
 import encore.db.Database
 import encore.db.EmptyDatabase
-import encore.backstage.command.core.CommandDispatcher
+import encore.backstage.command.CommandDispatcher
 import encore.server.core.OnlinePlayerRegistry
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
