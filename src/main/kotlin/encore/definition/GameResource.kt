@@ -1,4 +1,4 @@
-package encore.core.data.resources
+package encore.definition
 
 /**
  * Represents a static game resource used for loading and storing game data.

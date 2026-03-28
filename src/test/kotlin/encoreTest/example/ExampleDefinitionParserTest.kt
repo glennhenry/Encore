@@ -1,8 +1,8 @@
 package encoreTest.example
 
-import encore.core.data.GameDefinition
-import encore.core.data.resources.GameResource
-import encore.core.data.resources.GameResourcesParser
+import encore.definition.GameReference
+import encore.definition.GameResource
+import encore.definition.GameResourceParser
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,11 +35,11 @@ class ExampleDefinitionParserTest {
         """.trimIndent())
 
         val res = ResResource(tempResFile.path)
-        ExampleResParser().parse(res, GameDefinition)
+        ExampleResParser().parse(res, GameReference)
 
-        assertEquals(GameDefinition.exampleFromResParser["hello"], 1)
-        assertEquals(GameDefinition.exampleFromResParser["ktor"], 4)
-        assertEquals(GameDefinition.exampleFromResParser.size, 4)
+        assertEquals(GameReference.exampleFromResParser["hello"], 1)
+        assertEquals(GameReference.exampleFromResParser["ktor"], 4)
+        assertEquals(GameReference.exampleFromResParser.size, 4)
     }
 }
 
@@ -64,9 +64,9 @@ class ResResource(override val path: String) : GameResource {
  *
  * The `.res` format is just "<property>=<number>".
  */
-class ExampleResParser : GameResourcesParser<ResResource> {
+class ExampleResParser : GameResourceParser<ResResource> {
     private val map = mutableMapOf<String, Int>()
-    override fun parse(res: ResResource, gameDefinition: GameDefinition) {
+    override fun parse(res: ResResource, gameDefinition: GameReference) {
         val text = res.readText()
         for (line in text.lines()) {
             val group = line.split("=")

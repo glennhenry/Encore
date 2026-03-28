@@ -1,7 +1,5 @@
-package encore.core.data
+package encore.definition
 
-import encore.core.data.resources.GameResource
-import encore.core.data.resources.GameResourcesParser
 import encore.fancam.Fancam
 import io.ktor.util.date.*
 import kotlin.reflect.KClass
@@ -11,11 +9,11 @@ import kotlin.time.Duration.Companion.milliseconds
  * Define the core definitions and rules that shapes the game.
  *
  * For each kind of game resource, an implementation of [GameResource]
- * and a parser [GameResourcesParser] is needed.
+ * and a parser [GameResourceParser] is needed.
  *
  * Implementor can add data structure and indexes in this object and parser would populate it.
  */
-object GameDefinition {
+object GameReference {
     val exampleFromResParser = mutableMapOf<String, Int>()
 
     /**
@@ -28,7 +26,7 @@ object GameDefinition {
 
         // REPLACE add
         val resources = listOf<GameResource>()
-        val parsers: Map<KClass<out GameResource>, GameResourcesParser<*>> = mapOf()
+        val parsers: Map<KClass<out GameResource>, GameResourceParser<*>> = mapOf()
 
         for (res in resources) {
             val start = getTimeMillis()
@@ -39,7 +37,7 @@ object GameDefinition {
             }
 
             @Suppress("UNCHECKED_CAST")
-            (parser as GameResourcesParser<GameResource>).parse(res, this)
+            (parser as GameResourceParser<GameResource>).parse(res, this)
 
             Fancam.info { "Finished parsing ${res.name} in ${(getTimeMillis() - start).milliseconds}" }
         }
@@ -54,7 +52,7 @@ object GameDefinition {
      * to populate `GameDefinition` without interfering each others.
      */
     fun reset() {
-        GameDefinition.apply {
+        GameReference.apply {
             exampleFromResParser.clear()
         }
     }

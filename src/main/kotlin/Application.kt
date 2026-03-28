@@ -6,7 +6,7 @@ import encore.api.routes.timeUnderMinutes
 import encore.context.DefaultContextTracker
 import encore.context.ServerContext
 import encore.context.ServerServices
-import encore.core.data.GameDefinition
+import encore.definition.GameReference
 import encore.db.MongoImpl
 import encore.backstage.command.core.CommandDispatcher
 import encore.backstage.command.impl.ExampleCommand
@@ -178,7 +178,7 @@ suspend fun Application.module() {
     commandDispatcher.register(ExampleCommand())
 
     /* 9. Initialize GameDefinition */
-    GameDefinition.initialize()
+    GameReference.initialize()
 
     // represent ephemeral token storage generated to enter /backstage
     val backstageToken = ConcurrentHashMap<String, Long>()
