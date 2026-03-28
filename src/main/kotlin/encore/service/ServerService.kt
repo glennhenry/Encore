@@ -1,4 +1,4 @@
-package encore.core
+package encore.service
 
 import encore.db.collection.ServerData
 

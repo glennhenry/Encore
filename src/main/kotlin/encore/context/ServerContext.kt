@@ -1,7 +1,7 @@
 package encore.context
 
-import encore.core.PlayerService
-import encore.core.ServerService
+import encore.service.PlayerService
+import encore.service.ServerService
 import encore.db.Database
 import encore.db.EmptyDatabase
 import encore.backstage.command.core.CommandDispatcher

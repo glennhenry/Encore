@@ -6,7 +6,7 @@ import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.core.PlayerService
+import encore.service.PlayerService
 import encore.db.runMongoCatching
 import encore.db.throwIfNotModified
 import encore.fancam.Fancam

@@ -2,7 +2,7 @@ package encore.context
 
 import encore.db.collection.PlayerAccount
 import encore.server.core.network.Connection
-import encore.core.PlayerService
+import encore.service.PlayerService
 
 /**
  * Represents the **server-side context** of a connected player.

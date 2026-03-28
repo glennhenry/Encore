@@ -1,4 +1,4 @@
-package encore.core
+package encore.service
 
 /**
  * Represents a player-scoped game services.
