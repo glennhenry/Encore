@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat
  * you must still call [Fancam.initialize] to pass a `RehearsalFancam`.
  * This ensures that every systems uses the same underlying `RehearsalFancam`
  * implementation from the [Fancam] facade. A helper for this is available
- * in `encoreTest.utils.TestFancam`.
+ * in `test.kotlin.testHelper`.
  *
  * Example:
  * ```

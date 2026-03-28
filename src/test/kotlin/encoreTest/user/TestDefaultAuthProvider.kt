@@ -1,6 +1,6 @@
 package encoreTest.user
 
-import encoreTest.CHANGE_ME_TEST_DB_NAME
+import testHelper.CHANGE_ME_TEST_DB_NAME
 import encore.db.MongoImpl
 import com.mongodb.assertions.Assertions.assertFalse
 import com.mongodb.kotlin.client.coroutine.MongoClient

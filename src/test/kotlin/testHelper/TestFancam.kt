@@ -1,13 +1,13 @@
-package encoreTest.utils
+package testHelper
 
 import encore.fancam.Fancam
 import encore.fancam.impl.RehearsalFancam
 
 /**
- * Test helper for creating and accessing a shared [RehearsalFancam] instance.
+ * Test helper for creating and accessing a shared [encore.fancam.impl.RehearsalFancam] instance.
  *
  * This ensures all system components use the same underlying fancam implementation
- * called from the [Fancam] facade.
+ * called from the [encore.fancam.Fancam] facade.
  *
  * You only need to use this helper whenever you need to assert or inspect logged events.
  *
@@ -27,8 +27,8 @@ import encore.fancam.impl.RehearsalFancam
  * ```
  *
  * **Details:**
- * The [Fancam] has a hidden dependency of a fancam implementation.
- * This is solved by it having a default implementation of [RehearsalFancam].
+ * The [encore.fancam.Fancam] has a hidden dependency of a fancam implementation.
+ * This is solved by it having a default implementation of [encore.fancam.impl.RehearsalFancam].
  *
  * In tests where we want to assert log calls, we will need access to a concrete
  * `RehearsalFancam`, which the facade doesn't expose. The result is each tests

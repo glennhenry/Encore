@@ -1,7 +1,7 @@
 package encoreTest
 
 import encore.utils.XMLFlattener
-import encoreTest.utils.toFile
+import testHelper.toTempFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -21,7 +21,7 @@ class XMLFlattenerTest {
                     </child2>
                 </parent2>
             </root>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val flattener = XMLFlattener()
         val map = flattener.flatten(input, "root")
@@ -39,7 +39,7 @@ class XMLFlattenerTest {
                     <child enabled="true" />
                 </parent>
             </root>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val flattener = XMLFlattener()
 
@@ -62,7 +62,7 @@ class XMLFlattenerTest {
                     </child>
                 </parent>
             </root>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val flattener = XMLFlattener()
 
@@ -84,7 +84,7 @@ class XMLFlattenerTest {
                     </child>
                 </parent>
             </root>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val flattener = XMLFlattener()
 

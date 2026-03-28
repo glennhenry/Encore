@@ -1,7 +1,7 @@
 package encoreTest.user
 
 import encore.user.auth.SessionManager
-import encoreTest.FakeTimeProvider
+import testHelper.FakeTimeProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy

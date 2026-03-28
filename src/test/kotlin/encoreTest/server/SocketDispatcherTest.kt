@@ -4,7 +4,7 @@ import encore.server.handler.HandlerContext
 import encore.server.handler.SocketMessageHandler
 import encore.server.messaging.socket.SocketMessage
 import encore.server.messaging.socket.SocketMessageDispatcher
-import encoreTest.utils.assertDoesNotFail
+import testHelper.assertDoesNotFail
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

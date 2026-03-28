@@ -11,8 +11,8 @@ import encore.backstage.command.CommandVariant
 import encore.context.ServerContext
 import encore.backstage.command.variantsAsString
 import encore.fancam.events.Level
-import encoreTest.utils.TestFancam
-import encoreTest.utils.randomString
+import testHelper.TestFancam
+import testHelper.randomString
 import kotlin.random.Random
 import kotlin.test.BeforeTest
 import kotlin.test.Test

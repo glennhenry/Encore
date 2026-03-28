@@ -1,4 +1,4 @@
-package encoreTest.utils
+package encoreTest.fancam
 
 import encore.annotation.source.RevisitLater
 import encore.EncoreFancamConfig

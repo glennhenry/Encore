@@ -1,10 +1,9 @@
-package encoreTest.utils
+package encoreTest.fancam
 
 import encore.fancam.events.Level
 import encore.fancam.impl.RehearsalFancam
 import org.junit.Test
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class RehearsalFancamTest {

@@ -1,3 +1,3 @@
-package encoreTest
+package testHelper
 
 const val CHANGE_ME_TEST_DB_NAME = "CHANGE_ME-test-DB"

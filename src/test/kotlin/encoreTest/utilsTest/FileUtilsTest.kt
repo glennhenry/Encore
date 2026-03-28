@@ -1,4 +1,4 @@
-package encoreTest.utils
+package encoreTest.utilsTest
 
 import encore.utils.getRotatedFile
 import java.io.File

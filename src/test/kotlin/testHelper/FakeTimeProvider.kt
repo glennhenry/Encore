@@ -1,10 +1,11 @@
-package encoreTest
+package testHelper
 
 import encore.utils.TimeProvider
 import kotlin.time.Duration
 
 /**
- * Fake time provider to easily advance time.
+ * A test-focused implementation of [TimeProvider] which enables
+ * the control of time, allowing control to time-constrained system components.
  */
 class FakeTimeProvider(var currentTime: Long) : TimeProvider {
     override fun now(): Long = currentTime

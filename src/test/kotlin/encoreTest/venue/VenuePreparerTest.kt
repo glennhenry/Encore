@@ -1,4 +1,4 @@
-package encoreTest
+package encoreTest.venue
 
 import encore.annotation.runtime.VenueKey
 import encore.fancam.Fancam
@@ -6,9 +6,9 @@ import encore.fancam.events.Level
 import encore.EncoreConfig
 import encore.venue.FakeEnvProvider
 import encore.venue.VenuePreparer
-import encoreTest.utils.TestFancam
-import encoreTest.utils.assertDoesNotFail
-import encoreTest.utils.toFile
+import testHelper.TestFancam
+import testHelper.assertDoesNotFail
+import testHelper.toTempFile
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,7 +32,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         val config = preparer.get(TestConfig::class, "encore")
@@ -52,7 +52,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
 
@@ -105,7 +105,7 @@ class VenuePreparerTest {
                     </parent>
                 </custom>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         val config = preparer.get(EncoreConfig::class, "encore")
@@ -167,14 +167,14 @@ class VenuePreparerTest {
                     </parent>
                 </random>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
         val xml2 = """
             <venue>
                 <secret>
                     <anything>123</anything>
                 </secret>
             </venue>
-        """.trimIndent().toFile("venue2.xml")
+        """.trimIndent().toTempFile("venue2.xml")
 
         val preparer = VenuePreparer(listOf(xml, xml2))
         val secret = preparer.get(TestSecretConfig::class, "secret")
@@ -224,7 +224,7 @@ class VenuePreparerTest {
                     </fancam>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val envProvider = FakeEnvProvider(
             mapOf(
@@ -250,14 +250,14 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue1.xml")
+        """.trimIndent().toTempFile("venue1.xml")
         val xml2 = """
             <venue>
                 <secret>
                     <anything>123</anything>
                 </secret>
             </venue>
-        """.trimIndent().toFile("venue2.xml")
+        """.trimIndent().toTempFile("venue2.xml")
 
         val preparer = VenuePreparer(listOf(xml1, xml2))
         val config1 = preparer.get(TestConfig::class, "encore")
@@ -280,7 +280,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue1.xml")
+        """.trimIndent().toTempFile("venue1.xml")
         val xml2 = """
             <venue>
                 <encore>
@@ -290,7 +290,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue2.xml")
+        """.trimIndent().toTempFile("venue2.xml")
 
         val preparer = VenuePreparer(listOf(xml1, xml2))
         val config = preparer.get(TestConfig::class, "encore")
@@ -327,7 +327,7 @@ class VenuePreparerTest {
                     <host>localhost</host>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         val config = preparer.get(TestConfigWithDefault::class, "encore")
@@ -346,7 +346,7 @@ class VenuePreparerTest {
                     <field1>1</field1>
                 </custom>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         val custom = preparer.get(TestCustomConfigWithDefault::class, "custom")
@@ -365,7 +365,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
 
@@ -386,7 +386,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         preparer.get(TestConfig::class, "encore")
@@ -412,7 +412,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
 
@@ -431,7 +431,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         assertFailsWith<IllegalStateException> {
@@ -450,7 +450,7 @@ class VenuePreparerTest {
                     </server>
                 </notencore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         assertFailsWith<IllegalStateException> {
@@ -469,7 +469,7 @@ class VenuePreparerTest {
                     </server>
                 </notencore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         assertDoesNotFail {
@@ -491,7 +491,7 @@ class VenuePreparerTest {
                     <port>8080</port>
                 </server2>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val preparer = VenuePreparer(listOf(xml))
         assertFailsWith<IllegalStateException> {
@@ -510,7 +510,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val envProvider = FakeEnvProvider(
             mapOf("ENCORE_SERVER_HOST" to "127.0.0.1")
@@ -530,7 +530,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val envProvider = FakeEnvProvider(
             mapOf("ENCORE_SERVER_HOST" to "localhost")
@@ -556,7 +556,7 @@ class VenuePreparerTest {
                     </parent>
                 </custom>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val envProvider = FakeEnvProvider(
             mapOf("ENCORE_PARENT_CHILD" to "1234")
@@ -576,7 +576,7 @@ class VenuePreparerTest {
                     </server>
                 </encore>
             </venue>
-        """.trimIndent().toFile("venue.xml")
+        """.trimIndent().toTempFile("venue.xml")
 
         val envProvider = FakeEnvProvider(
             mapOf("ENCORE_SERVER_PORT" to "notnumber")

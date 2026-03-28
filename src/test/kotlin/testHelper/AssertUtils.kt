@@ -1,8 +1,13 @@
-package encoreTest.utils
+package testHelper
 
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
+/**
+ * Assert that the called [block] does not fail.
+ *
+ * @throws AssertionError
+ */
 fun <T> assertDoesNotFail(block: () -> T): T {
     try {
         return block()

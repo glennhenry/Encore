@@ -1,4 +1,4 @@
-package encoreTest.utils
+package testHelper
 
 fun randomString(length: Int, pool: List<Char>): String {
     return buildString(length) {
