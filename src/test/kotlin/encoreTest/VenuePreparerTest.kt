@@ -1,6 +1,6 @@
 package encoreTest
 
-import encore.annotation.VenueKey
+import encore.annotation.runtime.VenueKey
 import encore.fancam.Fancam
 import encore.fancam.events.Level
 import encore.EncoreConfig

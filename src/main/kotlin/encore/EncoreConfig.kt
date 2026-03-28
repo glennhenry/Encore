@@ -1,6 +1,6 @@
 package encore
 
-import encore.annotation.VenueKey
+import encore.annotation.runtime.VenueKey
 import encore.fancam.events.Level
 import game.config.CustomConfig
 import game.config.SecretConfig

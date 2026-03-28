@@ -1,6 +1,6 @@
 package encore.backstage.command.core
 
-import encore.annotation.RevisitLater
+import encore.annotation.source.RevisitLater
 import encore.context.ServerContext
 import encore.fancam.Fancam
 

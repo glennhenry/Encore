@@ -1,6 +1,6 @@
 package encore.venue
 
-import encore.annotation.VenueKey
+import encore.annotation.runtime.VenueKey
 import encore.utils.XMLFlattener
 import encore.fancam.Fancam
 import java.io.File

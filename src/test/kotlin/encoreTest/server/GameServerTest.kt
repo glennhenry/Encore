@@ -1,6 +1,6 @@
 package encoreTest.server
 
-import encore.annotation.RevisitLater
+import encore.annotation.source.RevisitLater
 import encore.context.ServerContext
 import encore.server.GameServer
 import encore.server.GameServerConfig

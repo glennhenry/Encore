@@ -1,7 +1,7 @@
 package encore.venue
 
 import encore.EncoreConfig
-import encore.annotation.VenueKey
+import encore.annotation.runtime.VenueKey
 import encore.venue.Venue.custom
 import encore.venue.Venue.encore
 import encore.venue.Venue.secret

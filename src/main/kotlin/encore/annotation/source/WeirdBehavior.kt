@@ -1,4 +1,4 @@
-package encore.annotation
+package encore.annotation.source
 
 /**
  * Marks code that exhibits unusual, undocumented, or unclear behavior.

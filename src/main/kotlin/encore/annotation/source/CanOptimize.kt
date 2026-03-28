@@ -1,4 +1,4 @@
-package encore.annotation
+package encore.annotation.source
 
 /**
  * Marks a piece of code as optimizable, highlighting a potential

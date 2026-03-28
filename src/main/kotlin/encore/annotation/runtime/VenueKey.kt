@@ -1,11 +1,7 @@
-package encore.annotation
-
-import encore.EncoreConfig
-import game.config.CustomConfig
-import game.config.SecretConfig
+package encore.annotation.runtime
 
 /**
- * Used to annotate [EncoreConfig], [CustomConfig], and [SecretConfig]
+ * Used to annotate [encore.EncoreConfig], [game.config.CustomConfig], and [game.config.SecretConfig]
  * to define their corresponding XML path, allowing custom structure in
  * data class without a requirement to follow the XML structure.
  *
