@@ -4,7 +4,7 @@ import kotlin.test.Test
 /**
  * Playground for quick testing and code run
  *
- * .\gradlew run --tests "Playground.playground" --console=plain
+ * .\gradlew test --tests "Playground.playground" --console=plain
  */
 @Ignore
 class Playground {
