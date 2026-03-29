@@ -1,59 +1,108 @@
 package encore.definition
 
+import encore.definition.GameReference.get
+import encore.definition.GameReference.initialize
 import encore.fancam.Fancam
-import io.ktor.util.date.*
+import io.ktor.util.date.getTimeMillis
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Define the core definitions and rules that shapes the game.
+ * A global registry of game definitions.
  *
- * For each kind of game resource, an implementation of [GameResource]
- * and a parser [GameResourceParser] is needed.
+ * Each [GameDefinition] encapsulates rules, policies, or static data
+ * describing some aspect of the game.
  *
- * Implementor can add data structure and indexes in this object and parser would populate it.
+ * This class act as a registry and provides a lookup for particular game definition.
+ * - Registration of definitions via [initialize].
+ * - Lookup of definitions via [get].
+ *
+ * Typical usage:
+ * ```
+ * GameReference.initialize {
+ *     add(XmlRes("boss.xml"), XmlLoader())
+ *     add(JsonRes("items.json"), JsonLoader())
+ * }
+ *
+ * val bossHp = GameReference.get<BossConfig>().getBossHpFor(bossId)
+ * ```
  */
 object GameReference {
-    val exampleFromResParser = mutableMapOf<String, Int>()
+    private var initialized = false
 
     /**
-     * Initialize GameDefinition by reading all resources using the registered parsers.
+     * Holds all registered game definitions.
      *
-     * Here, implementor must list game resources to be loaded along with the parser.
+     * Access should generally go through [get]. Direct modification of
+     * this map is not intended. Definitions should be registered through [initialize].
      */
-    fun initialize() {
-        val startA = getTimeMillis()
-
-        // REPLACE add
-        val resources = listOf<GameResource>()
-        val parsers: Map<KClass<out GameResource>, GameResourceParser<*>> = mapOf()
-
-        for (res in resources) {
-            val start = getTimeMillis()
-            val parser = parsers[res::class]
-            if (parser == null) {
-                Fancam.warn { "No parser registered for resource type: ${res::class.simpleName}" }
-                continue
-            }
-
-            @Suppress("UNCHECKED_CAST")
-            (parser as GameResourceParser<GameResource>).parse(res, this)
-
-            Fancam.info { "Finished parsing ${res.name} in ${(getTimeMillis() - start).milliseconds}" }
+    val registry = mutableMapOf<KClass<out Any>, Any>()
+        get() = if (!initialized) {
+            error("GameReference is not initialized. Call initialize() first.")
+        } else {
+            field
         }
 
-        Fancam.info { "All game resources loaded in ${(getTimeMillis() - startA).milliseconds}" }
+    /**
+     * Initializes the registry by loading definitions from
+     * the provided [GameDataSource] and [GameDataLoader] pairs
+     * via the DSL [block].
+     *
+     * Subsequent calls after initialization are ignored with a warning.
+     *
+     * @param block A DSL context to register sources and loaders.
+     */
+    fun initialize(block: InitContext.() -> Unit) {
+        if (initialized) {
+            Fancam.warn { "GameReference.initialize() called after initialization. Ignoring." }
+            return
+        }
+
+        val start1 = getTimeMillis()
+        Fancam.info { "Initializing GameReference..." }
+
+        val ctx = InitContext()
+        ctx.block()
+        ctx.entries.forEach { (source, loader) ->
+            val start2 = getTimeMillis()
+            val definitions = loader.produce(source)
+            val finish2 = (getTimeMillis() - start2).milliseconds
+            Fancam.info {
+                "Loaded ${source.name} in $finish2 produced ${definitions.size} definition entries."
+            }
+
+            definitions.forEach { registry[it::class] = it }
+        }
+
+        Fancam.info { "GameReference initialization finished in ${(getTimeMillis() - start1).milliseconds}" }
+        initialized = true
     }
 
     /**
-     * Reset game definition data and indexes.
+     * Retrieves a registered [GameDefinition] of type [T].
      *
-     * This function is only used during unit tests, to allow each parser
-     * to populate `GameDefinition` without interfering each others.
+     * @throws IllegalArgumentException if no definition of the requested type is registered.
      */
-    fun reset() {
-        GameReference.apply {
-            exampleFromResParser.clear()
-        }
+    inline fun <reified T : Any> get(): T {
+        return registry[T::class] as? T
+            ?: throw IllegalArgumentException("Class ${T::class.simpleName} is not registered.")
+    }
+}
+
+/**
+ * DSL context for registering [GameDataSource] and [GameDataLoader] pairs
+ * during [GameReference.initialize].
+ */
+class InitContext {
+    internal val entries = mutableListOf<Pair<GameDataSource, GameDataLoader>>()
+
+    /**
+     * Registers a [source] with its corresponding [loader].
+     *
+     * @param source The raw game data source.
+     * @param loader The loader responsible for converting the source into [GameDefinition]s.
+     */
+    fun add(source: GameDataSource, loader: GameDataLoader) {
+        entries += source to loader
     }
 }
