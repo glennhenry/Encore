@@ -1,7 +1,7 @@
-package encore.security.validation
+package encore.security.screening
 
 /**
- * Represents a single validation stage within a [ValidationScheme].
+ * Represents a single validation stage within a [Screening].
  *
  * Each stage performs a single logical check (predicate) and may optionally define
  * its own failure handling behavior via [failStrategy] and [failReason].
@@ -12,7 +12,7 @@ package encore.security.validation
  * @param predicate The condition to evaluate; should return `true` if valid.
  *                  Can be made suspendable via `Predicate` interface.
  */
-data class ValidationStage<T>(
+data class ScreeningStage<T>(
     val name: String = "",
     val failStrategy: FailStrategy? = null,
     val failReason: String? = null,

@@ -1,9 +1,9 @@
-package encore.security.validation
+package encore.security.screening
 
 /**
  * Defines the strategy to apply when a validation check fails.
  *
- * Used by [ValidationScheme] to determine how the system should react
+ * Used by [Screening] to determine how the system should react
  * to invalid player states or actions during request validation.
  *
  * The level of severity here is only used for reference, please suit with the practical cases.
