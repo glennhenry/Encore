@@ -178,7 +178,7 @@ suspend fun Application.module() {
     commandDispatcher.register(ExampleCommand())
 
     /* 9. Initialize GameDefinition */
-    GameReference.initialize()
+    GameReference.initialize{}
 
     // represent ephemeral token storage generated to enter /backstage
     val backstageToken = ConcurrentHashMap<String, Long>()

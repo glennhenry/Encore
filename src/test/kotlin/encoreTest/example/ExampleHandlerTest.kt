@@ -10,7 +10,6 @@ import encore.server.core.network.TestConnection
 import encore.server.handler.HandlerContext
 import encore.server.messaging.socket.SocketMessage
 import encore.server.handler.SocketMessageHandler
-import encoreTest.HandlerTestState
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
