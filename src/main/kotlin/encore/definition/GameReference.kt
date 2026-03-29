@@ -28,7 +28,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * ```
  */
 object GameReference {
-    private var initialized = false
+    private var initializeState = 0
 
     /**
      * Holds all registered game definitions.
@@ -37,7 +37,7 @@ object GameReference {
      * this map is not intended. Definitions should be registered through [initialize].
      */
     val registry = mutableMapOf<KClass<out Any>, Any>()
-        get() = if (!initialized) {
+        get() = if (initializeState == 0) {
             error("GameReference is not initialized. Call initialize() first.")
         } else {
             field
@@ -53,10 +53,11 @@ object GameReference {
      * @param block A DSL context to register sources and loaders.
      */
     fun initialize(block: InitContext.() -> Unit) {
-        if (initialized) {
-            Fancam.warn { "GameReference.initialize() called after initialization. Ignoring." }
+        if (initializeState == 1 || initializeState == 2) {
+            Fancam.warn { "GameReference.initialize() called during or after initialization. Ignoring." }
             return
         }
+        initializeState = 1
 
         val start1 = getTimeMillis()
         Fancam.info { "Initializing GameReference..." }
@@ -68,14 +69,14 @@ object GameReference {
             val definitions = loader.produce(source)
             val finish2 = (getTimeMillis() - start2).milliseconds
             Fancam.info {
-                "Loaded ${source.name} in $finish2 produced ${definitions.size} definition entries."
+                "Loaded '${source.name}' in $finish2, produced ${definitions.size} definition entries."
             }
 
             definitions.forEach { registry[it::class] = it }
         }
 
         Fancam.info { "GameReference initialization finished in ${(getTimeMillis() - start1).milliseconds}" }
-        initialized = true
+        initializeState = 2
     }
 
     /**
