@@ -1,31 +1,31 @@
 package encore.security.screening
 
 /**
- * Represents the outcome of a [Screening] execution.
+ * Result of executing a [Screening].
  *
- * A validation may either **pass**, **fail**, or **encounter an error**.
- * Each non-success result carries contextual information such as the
- * associated [FailStrategy], reason, and any captured exception.
+ * A screening can:
+ * - complete successfully ([Passed])
+ * - stop at a failing stage ([Failed])
+ * - abort due to an exception ([Error])
  */
-sealed class ScreeningResult(
-    val failStrategy: FailStrategy? = null,
-    val failReason: String? = null,
-    val failedAtStage: String? = null,
-    val error: Throwable? = null
-) {
+sealed class ScreeningResult {
     /**
-     * The validation passed successfully where all conditions were met.
+     * All stages passed successfully.
      */
     object Passed : ScreeningResult()
 
     /**
-     * The validation failed because one or more conditions did not meet the requirements.
+     * Execution stopped because a stage returned `false`.
+     *
+     * @param stageIndex Index of the first failing stage (counting starts from 1).
      */
-    class Failed(failStrategy: FailStrategy, failReason: String, failedAtStage: String) : ScreeningResult(failStrategy, failReason, failedAtStage)
+    data class Failed(val stageIndex: Int) : ScreeningResult()
 
     /**
-     * The validation could not be performed due to an internal error.
+     * Execution aborted due to an exception thrown during a stage.
+     *
+     * @param stageIndex Index of the stage where the error occurred (counting starts from 1).
+     * @param error The thrown exception.
      */
-    class Error(failStrategy: FailStrategy, failReason: String, failedAtStage: String, error: Throwable) :
-        ScreeningResult(failStrategy, failReason, failedAtStage, error)
+    data class Error(val stageIndex: Int, val error: Throwable) : ScreeningResult()
 }

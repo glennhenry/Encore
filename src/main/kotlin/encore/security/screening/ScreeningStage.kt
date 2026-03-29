@@ -1,26 +1,25 @@
 package encore.security.screening
 
 /**
- * Represents a single validation stage within a [Screening].
+ * A single validation step within a [Screening].
  *
- * Each stage performs a single logical check (predicate) and may optionally define
- * its own failure handling behavior via [failStrategy] and [failReason].
+ * Each stage represents a condition that must evaluate to `true`
+ * for the screening to continue. Stages are executed in order and
+ * evaluation stops at the first failure.
  *
- * @param name Human-readable label for the stage.
- * @param failStrategy Optional override for how this stage handles failure.
- * @param failReason Optional description of why this validation is required.
- * @param predicate The condition to evaluate; should return `true` if valid.
- *                  Can be made suspendable via `Predicate` interface.
+ * @param description Explanation of the condition being tested.
+ *                    Also used for identification during debugging when
+ *                    the stage fails or throws.
+ * @param predicate Condition to evaluate. Should return `true` if the
+ *                  stage passes. May be suspendable via [Predicate].
  */
 data class ScreeningStage<T>(
-    val name: String = "",
-    val failStrategy: FailStrategy? = null,
-    val failReason: String? = null,
+    val description: String = "",
     val predicate: Predicate<T>
 )
 
 /**
- * Wrapper of predicate to enforce either [check] or [checkSuspend].
+ * Wrapper of predicate input, enforcing either [check] or [checkSuspend].
  */
 sealed interface Predicate<T> {
     fun check(ctx: T): Boolean
@@ -45,8 +44,6 @@ class NonSuspendPredicate<T>(
 class SuspendPredicate<T>(
     private val block: suspend T.() -> Boolean
 ) : Predicate<T> {
-    override fun check(ctx: T): Boolean =
-        error("Suspend predicate used in non-suspend validation")
-
+    override fun check(ctx: T): Boolean = error("Suspend predicate used in non-suspend validation")
     override suspend fun checkSuspend(ctx: T) = ctx.block()
 }
