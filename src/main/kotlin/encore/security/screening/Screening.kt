@@ -86,13 +86,14 @@ class Screening<T>(private val title: String, private val factory: () -> T) {
             }
 
             if (!passed) {
-                Fancam.trace { "Screening '$title' failed at $stageDesription (target=$target)" }
+                Fancam.info { "Screening '$title' failed at $stageDesription (target=$target)" }
                 return ScreeningResult.Failed(stageIndex)
             }
 
             Fancam.trace { "Screening '$title' passed $stageDesription (target=$target)" }
         }
 
+        Fancam.info { "Screening '$title' completed successfully (target=$target)" }
         return ScreeningResult.Passed
     }
 
