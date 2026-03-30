@@ -1,13 +1,13 @@
 package encore.context
 
-import encore.service.PlayerService
-import encore.service.ServerService
 import encore.db.Database
 import encore.db.EmptyDatabase
 import encore.backstage.command.CommandDispatcher
 import encore.server.core.OnlinePlayerRegistry
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
+import encore.subunit.Subunit
+import encore.subunit.scope.ServerScope
 import encore.user.EmptyPlayerAccountRepository
 import encore.user.PlayerAccountRepository
 import encore.user.auth.AuthProvider
@@ -29,7 +29,7 @@ import encore.ws.WebSocketManager
  * @property taskDispatcher Provide API to start and stop server-sided task.
  * @property commandDispatcher Tracks and executes server commands.
  * @property wsManager Manages client websocket connections.
- * @property services Container for server services instance.
+ * @property subunits Container for server subunit instances.
  */
 data class ServerContext(
     val db: Database,
@@ -42,7 +42,7 @@ data class ServerContext(
     val taskDispatcher: ServerTaskDispatcher,
     val commandDispatcher: CommandDispatcher,
     val wsManager: WebSocketManager,
-    val services: ServerServices
+    val subunits: ServerSubunits
 ) {
     companion object {
         /**
@@ -72,7 +72,7 @@ data class ServerContext(
                 taskDispatcher = ServerTaskDispatcher(),
                 commandDispatcher = CommandDispatcher(),
                 wsManager = WebSocketManager(),
-                services = ServerServices()
+                subunits = ServerSubunits()
             )
         }
     }
@@ -96,15 +96,20 @@ fun ServerContext.requirePlayerContext(playerId: String): PlayerContext =
         ?: error("PlayerContext not found for playerId=$playerId")
 
 /**
- * A container that holds all **global service instances** used by the server.
+ * Container for all server-scoped [Subunit] instances.
  *
- * Whereas [PlayerService] encapsulates domain logic specific to individual players,
- * [ServerService] encapsulates server-wide domain logic that operates on shared data.
+ * Server subunits encapsulate domain logic that operates at the server level.
+ * They may manage shared state or provide global domain functionality,
+ * with or without persistent data.
  *
- * For example, a leaderboard is not owned by any single player — it represents
- * global state managed by the server. A `LeaderboardService` might provide operations
- * to retrieve player rankings or update them.
+ * Server subunits are typically bound to [ServerScope].
+ *
+ * Examples:
+ * - A leaderboard representing global state is not owned by any single player.
+ *   A `LeaderboardSubunit` may expose operations to query or update rankings.
+ * - A matchmaking system may not persist data, but can maintain in-memory
+ *   state and provide matchmaking-specific functionality.
  */
-data class ServerServices(
+data class ServerSubunits(
     val example: String = ""
 )

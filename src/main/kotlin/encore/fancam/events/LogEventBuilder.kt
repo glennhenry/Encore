@@ -8,9 +8,9 @@ import io.ktor.util.date.getTimeMillis
  *
  * Example (via [Fancam]):
  * ```kotlin
- * Fancam.event(Level.Info, "InventoryService")
- *       .message { "service working..." }
- *       .toFile("InventoryService")
+ * Fancam.event(Level.Info, "InventorySubunit")
+ *       .message { "subunit working..." }
+ *       .toFile("InventorySubunit")
  *       .log(full = true)
  * ```
  *

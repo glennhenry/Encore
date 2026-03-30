@@ -38,20 +38,20 @@ import encore.fancam.producer.FancamProducer
  *
  * Any simple print at various level with categorical info tag:
  * ```kotlin
- * const val ServiceTag = "Service"
+ * const val SubunitTag = "Subunit"
  * const val MultipleTag = "Game,Player,Inventory"
  *
- * Fancam.warn(ServiceTag) { "Service x under problem." }
- * Fancam.warn(MultipleTag) { "Service x under problem." }
+ * Fancam.warn(SubunitTag) { "Subunit x under problem." }
+ * Fancam.warn(MultipleTag) { "Subunit x under problem." }
  * ```
  *
  * ### 2. Advanced logging with builder DSL
  *
  * For more advanced config such as file target and to toggle [LogEvent.logFull].
  * ```kotlin
- * fancam.event(Level.Info, "InventoryService")
- *       .message { "service working..." }
- *       .toFile("InventoryService")
+ * fancam.event(Level.Info, "InventorySubunit")
+ *       .message { "subunit working..." }
+ *       .toFile("InventorySubunit")
  *       .log(full = true)
  * ```
  *

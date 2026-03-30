@@ -32,7 +32,7 @@ class LogEventFancamFormatter(
         }
 
         if (isFileTarget) {
-            // [14:21:54.221](Application.kt:22)[D] <GameService> debug message
+            // [14:21:54.221](Application.kt:22)[D] <InventorySubunit> debug message
             return "[$timestamp]$source$level <${event.tag}> ${event.message()}"
         }
 

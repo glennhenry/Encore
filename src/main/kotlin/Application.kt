@@ -5,7 +5,7 @@ import encore.api.routes.fileRoutes
 import encore.api.routes.timeUnderMinutes
 import encore.context.DefaultContextTracker
 import encore.context.ServerContext
-import encore.context.ServerServices
+import encore.context.ServerSubunits
 import encore.definition.GameReference
 import encore.db.MongoImpl
 import encore.backstage.command.CommandDispatcher
@@ -156,7 +156,7 @@ suspend fun Application.module() {
     val taskDispatcher = ServerTaskDispatcher()
     val commandDispatcher = CommandDispatcher()
     val wsManager = WebSocketManager()
-    val services = ServerServices()
+    val subunits = ServerSubunits()
     val serverContext = ServerContext(
         db = database,
         playerAccountRepository = playerAccountRepository,
@@ -168,7 +168,7 @@ suspend fun Application.module() {
         taskDispatcher = taskDispatcher,
         commandDispatcher = commandDispatcher,
         wsManager = wsManager,
-        services = services
+        subunits = subunits
     )
 
     // initialize components with circular dependency

@@ -2,36 +2,40 @@ package encore.context
 
 import encore.db.collection.PlayerAccount
 import encore.server.core.network.Connection
-import encore.service.PlayerService
+import encore.subunit.Subunit
+import encore.subunit.scope.PlayerScope
 
 /**
  * Represents the **server-side context** of a connected player.
  *
  * This context holds all data and references required to manage a player session:
+ * - [playerId] as the player's unique identifier.
  * - The player's [Connection], used to send and receive network messages.
  * - The player's [PlayerAccount], which includes profile and server-related metadata.
- * - The player's game-specific state, accessible through various [PlayerServices].
+ * - The player's game-specific state, accessible through various [PlayerSubunits].
  *
- * A [PlayerContext] must be created before use—typically right after a player
+ * A [PlayerContext] must be created before usage, typically right after a player
  * successfully authenticates. Context creation is handled by [ContextTracker].
  */
 data class PlayerContext(
     val playerId: String,
     val connection: Connection,
     val account: PlayerAccount,
-    val services: PlayerServices
+    val subunits: PlayerSubunits
 )
 
 /**
- * A container that holds all **service instances** related to a specific player.
+ * Container for all player-scoped [Subunit] instances.
  *
- * Each [PlayerService] encapsulates domain logic and manages the player's in-memory state,
- * while also providing an abstraction layer over persistence (database) operations.
- * Controllers or message handlers interact with the player indirectly through these services.
+ * Player subunits encapsulate domain logic that operates at the individual
+ * player's level. It typically manages player's data over persistence (database) layer.
  *
- * All service instances should be initialized before use, usually during
- * [PlayerContext] creation.
+ * Player subunits are typically bound to [PlayerScope].
+ *
+ * Example:
+ * - An inventory represents the player's inventory data.
+ *   An `InventorySubunit` may expose operations to query or update inventory.
  */
-data class PlayerServices(
+data class PlayerSubunits(
     val example: String = "REPLACE"
 )

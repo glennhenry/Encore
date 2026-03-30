@@ -17,11 +17,11 @@ class DefaultContextTracker: ContextTracker {
      * Creates and registers a new [PlayerContext] for the given player.
      *
      * This function loads the player's account from the [Database], initializes
-     * the associated [PlayerServices], and stores the resulting context in [players].
+     * the associated [PlayerSubunits], and stores the resulting context in [players].
      *
      * @param playerId The unique identifier of the player.
      * @param connection The player's active network [Connection].
-     * @param db The [Database] instance used to load account data and initialize services.
+     * @param db The [Database] instance used to load account data and initialize subunits.
      *
      * @throws IllegalArgumentException If the player's account data cannot be found.
      */
@@ -37,20 +37,20 @@ class DefaultContextTracker: ContextTracker {
             playerId = playerId,
             connection = connection,
             account = playerAccount,
-            services = initializeServices(playerId, db)
+            subunits = initializeSubunits(playerId, db)
         )
         players[playerId] = context
     }
 
-    private suspend fun initializeServices(
+    private suspend fun initializeSubunits(
         playerId: String,
         db: Database,
-    ): PlayerServices {
+    ): PlayerSubunits {
         val playerDataCollection = db.getCollection<MongoCollection<PlayerData>>("player_data")
 
         // REPLACE add
 
-        return PlayerServices(
+        return PlayerSubunits(
             example = ""
         )
     }

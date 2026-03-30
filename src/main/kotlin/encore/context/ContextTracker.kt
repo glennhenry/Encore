@@ -8,7 +8,7 @@ import encore.server.core.network.Connection
  *
  * This class is responsible for:
  * - Creating new [PlayerContext] instances.
- * - Creating a context includes initializing all [PlayerServices] for each player.
+ * - Creating a context includes initializing all [PlayerSubunits] for each player.
  * - Storing active player contexts for lookup and management during gameplay.
  */
 interface ContextTracker {
