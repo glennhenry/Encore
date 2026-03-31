@@ -68,7 +68,7 @@ object GameReference {
             val start2 = getTimeMillis()
             val definitions = loader.produce(source)
             val finish2 = (getTimeMillis() - start2).milliseconds
-            Fancam.info {
+            Fancam.trace {
                 "Loaded '${source.name}' in $finish2, produced ${definitions.size} definition entries."
             }
 
