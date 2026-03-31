@@ -2,7 +2,7 @@ package encore.context
 
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import encore.db.Database
-import encore.db.collection.PlayerData
+import encore.db.collection.PlayerObjects
 import encore.server.core.network.Connection
 import java.util.concurrent.ConcurrentHashMap
 
@@ -46,7 +46,7 @@ class DefaultContextTracker: ContextTracker {
         playerId: String,
         db: Database,
     ): PlayerSubunits {
-        val playerDataCollection = db.getCollection<MongoCollection<PlayerData>>("player_data")
+        val playerObjectsCollection = db.getCollection<MongoCollection<PlayerObjects>>("player_data")
 
         // REPLACE add
 

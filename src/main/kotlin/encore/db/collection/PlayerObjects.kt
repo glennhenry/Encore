@@ -5,18 +5,18 @@ import encore.user.AdminData
 /**
  * Database-level representation of a player's game data.
  */
-data class PlayerData(
+data class PlayerObjects(
     val playerId: String,
 ) {
     companion object {
-        fun admin(): PlayerData {
-            return PlayerData(
+        fun admin(): PlayerObjects {
+            return PlayerObjects(
                 playerId = AdminData.PLAYER_ID,
             )
         }
 
-        fun newGame(playerId: String): PlayerData {
-            return PlayerData(
+        fun newGame(playerId: String): PlayerObjects {
+            return PlayerObjects(
                 playerId = playerId,
             )
         }

@@ -8,8 +8,8 @@ import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import com.toxicbakery.bcrypt.Bcrypt
 import encore.user.AdminData
 import encore.db.collection.PlayerAccount
-import encore.db.collection.PlayerData
-import encore.db.collection.ServerData
+import encore.db.collection.PlayerObjects
+import encore.db.collection.ServerObjects
 import io.ktor.util.date.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,8 +26,8 @@ import kotlin.io.encoding.Base64
  */
 class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database {
     private val accountCollection = db.getCollection<PlayerAccount>("player_account")
-    private val dataCollection = db.getCollection<PlayerData>("player_data")
-    private val serverCollection = db.getCollection<ServerData>("server_data")
+    private val dataCollection = db.getCollection<PlayerObjects>("player_data")
+    private val serverCollection = db.getCollection<ServerObjects>("server_data")
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> getCollection(name: String): MongoCollection<T> {
@@ -57,7 +57,7 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
                 if (adminDoc == null) {
                     val start = getTimeMillis()
                     val doc = PlayerAccount.admin()
-                    val obj = PlayerData.admin()
+                    val obj = PlayerObjects.admin()
 
                     accountCollection.insertOne(doc)
                     dataCollection.insertOne(obj)
@@ -81,11 +81,11 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
         return accountCollection.find(Filters.eq("playerId", playerId)).firstOrNull()
     }
 
-    override suspend fun loadPlayerData(playerId: String): PlayerData? {
+    override suspend fun loadPlayerObjects(playerId: String): PlayerObjects? {
         return dataCollection.find(Filters.eq("playerId", playerId)).firstOrNull()
     }
 
-    override suspend fun loadServerData(): ServerData {
+    override suspend fun loadServerObjects(): ServerObjects {
         return serverCollection.find().firstOrNull() ?: throw NoSuchElementException("No global ServerData found")
     }
 
@@ -99,7 +99,7 @@ class MongoImpl(db: MongoDatabase, private val adminEnabled: Boolean) : Database
             profile = profile,
             metadata = ServerMetadata()
         )
-        val obj = PlayerData.newGame(playerId)
+        val obj = PlayerObjects.newGame(playerId)
 
         accountCollection.insertOne(doc)
         dataCollection.insertOne(obj)

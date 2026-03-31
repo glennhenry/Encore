@@ -6,6 +6,6 @@ package encore.db.collection
  * This collection stores global, non–player-specific information such as leaderboards or
  * clan data.
  */
-data class ServerData(
+data class ServerObjects(
     val example: String = "REPLACE"
 )
