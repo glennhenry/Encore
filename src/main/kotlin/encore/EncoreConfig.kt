@@ -127,10 +127,16 @@ data class EncoreFancamConfig(
     val useBackgroundColor: Boolean = true,
 
     /**
-     * Specify the empty space allocation to show a hyperlinked filename
+     * Specify the empty space allocation to show a hyperlinked filename.
      */
     @VenueKey("fancam.formatting.fileNamePadding")
     val fileNamePadding: Int = 25,
+
+    /**
+     * Specify the empty space allocation to show the tag of log message.
+     */
+    @VenueKey("fancam.formatting.tagPadding")
+    val tagPadding: Int = 10,
 
     /**
      * Maximum message length for a single line (by `\n`)
