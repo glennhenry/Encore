@@ -3,13 +3,18 @@ import encore.EncoreIdentity
 import encore.api.routes.backstageRoutes
 import encore.api.routes.fileRoutes
 import encore.api.routes.timeUnderMinutes
+import encore.backstage.command.CommandDispatcher
+import encore.backstage.command.ExampleCommand
 import encore.context.DefaultContextTracker
 import encore.context.ServerContext
 import encore.context.ServerSubunits
+import encore.db.MONGO_PLAYER_ACCOUNT_COLLECTION_NAME
+import encore.db.MongoDataStore
+import encore.db.PlayerCreationSubunit
 import encore.definition.GameReference
-import encore.db.MongoImpl
-import encore.backstage.command.CommandDispatcher
-import encore.backstage.command.ExampleCommand
+import encore.fancam.Fancam
+import encore.fancam.impl.OfficialFancam
+import encore.serialization.JSON
 import encore.server.GameServer
 import encore.server.GameServerConfig
 import encore.server.ServerContainer
@@ -19,14 +24,11 @@ import encore.server.messaging.format.MessageFormat
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskName
-import encore.venue.Venue
 import encore.user.PlayerAccountRepositoryMongo
 import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager
-import encore.serialization.JSON
 import encore.utils.UUID
-import encore.fancam.Fancam
-import encore.fancam.impl.OfficialFancam
+import encore.venue.Venue
 import encore.ws.WebSocketManager
 import game.GameIdentity
 import io.ktor.http.*
@@ -42,11 +44,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
@@ -133,11 +131,12 @@ suspend fun Application.module() {
     }
 
     /* 6. Configure Database */
-    val database = startMongo(
-        databaseName = Venue.encore.database.dbNameProd,
-        mongoUrl = Venue.encore.database.dbUrlProd,
-        adminEnabled = Venue.encore.adminEnabled
-    )
+    val mongoc = MongoClient.create(Venue.encore.database.dbUrlProd)
+    val db = mongoc.getDatabase("admin")
+    val commandResult = db.runCommand(Document("ping", 1))
+    Fancam.info { "MongoDB connection successful: $commandResult" }
+
+
 
     /* 7. Install websockets */
     install(WebSockets) {
@@ -147,9 +146,11 @@ suspend fun Application.module() {
     }
 
     /* 8. Setup ServerContext */
-    val playerAccountRepository = PlayerAccountRepositoryMongo(database.getCollection("player_account"))
+    val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd))
+    val playerCreationSubunit = PlayerCreationSubunit(dataStore)
+    val playerAccountRepository = PlayerAccountRepositoryMongo(db.getCollection(MONGO_PLAYER_ACCOUNT_COLLECTION_NAME))
     val sessionManager = SessionManager()
-    val authProvider = DefaultAuthProvider(database, playerAccountRepository, sessionManager)
+    val authProvider = DefaultAuthProvider(playerCreationSubunit, playerAccountRepository, sessionManager)
     val onlinePlayerRegistry = OnlinePlayerRegistry()
     val contextTracker = DefaultContextTracker()
     val codecDispatcher = MessageFormatRegistry()
@@ -158,7 +159,7 @@ suspend fun Application.module() {
     val wsManager = WebSocketManager()
     val subunits = ServerSubunits()
     val serverContext = ServerContext(
-        db = database,
+        db = dataStore,
         playerAccountRepository = playerAccountRepository,
         sessionManager = sessionManager,                   // is not used unless auth is implemented
         authProvider = authProvider,                       // is not used unless auth is implemented
@@ -178,7 +179,7 @@ suspend fun Application.module() {
     commandDispatcher.register(ExampleCommand())
 
     /* 9. Initialize GameDefinition */
-    GameReference.initialize{}
+    GameReference.initialize {}
 
     // represent ephemeral token storage generated to enter /backstage
     val backstageToken = ConcurrentHashMap<String, Long>()
@@ -272,21 +273,6 @@ suspend fun Application.module() {
         }
         Fancam.info { "Server shutdown complete." }
     })
-}
-
-fun startMongo(databaseName: String, mongoUrl: String, adminEnabled: Boolean): MongoImpl {
-    return runBlocking {
-        try {
-            val mongoc = MongoClient.create(mongoUrl)
-            val db = mongoc.getDatabase("admin")
-            val commandResult = db.runCommand(Document("ping", 1))
-            Fancam.info { "MongoDB connection successful: $commandResult" }
-            MongoImpl(mongoc.getDatabase(databaseName), adminEnabled)
-        } catch (e: Exception) {
-            Fancam.error { "MongoDB connection failed inside timeout: ${e.message}" }
-            throw e
-        }
-    }
 }
 
 /**
