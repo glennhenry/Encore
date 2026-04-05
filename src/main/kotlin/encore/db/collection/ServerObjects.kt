@@ -7,5 +7,6 @@ package encore.db.collection
  * clan data.
  */
 data class ServerObjects(
+    val dbId: String = "sobjs",
     val example: String = "REPLACE"
 )

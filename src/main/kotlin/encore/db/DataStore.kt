@@ -1,0 +1,62 @@
+package encore.db
+
+import encore.db.collection.PlayerAccount
+import encore.db.collection.PlayerObjects
+import encore.db.collection.ServerObjects
+
+/**
+ * A suspendable persistence component that provides access to player and server data.
+ *
+ * Implementation exposes way to retrieve the core collections and player creation.
+ *
+ * Higher-level operations such as player creation or alteration of certain player objects
+ * fields should be handled by subunits.
+ */
+interface DataStore {
+    /**
+     * Ensures the data store is fully initialized.
+     *
+     * This suspend function will wait until any asynchronous setup is complete.
+     * Call this before performing operations that require the store to be ready.
+     */
+    suspend fun awaitInit()
+
+    /**
+     * Returns whether an account associated with [playerId] exists.
+     */
+    suspend fun playerExists(playerId: String): Boolean
+
+    /**
+     * Returns the [PlayerAccount] for the given [playerId].
+     */
+    suspend fun getPlayerAccount(playerId: String): PlayerAccount?
+
+    /**
+     * Returns the [PlayerObjects] (game data) for the given [playerId].
+     */
+    suspend fun getPlayerObjects(playerId: String): PlayerObjects?
+
+    /**
+     * Returns the [ServerObjects] (global server data).
+     */
+    suspend fun getServerObjects(): ServerObjects?
+
+    /**
+     * Creates a new player with the given account and objects.
+     *
+     * @return [Result] type denoting success or failure.
+     */
+    suspend fun create(account: PlayerAccount, objects: PlayerObjects): Result<Unit>
+
+    /**
+     * Deletes a player associated with the [playerId].
+     */
+    suspend fun delete(playerId: String): Result<Unit>
+
+    /**
+     * Shutdown the data store.
+     *
+     * This should contains the necessary clean-up code before closing.
+     */
+    suspend fun shutdown()
+}
