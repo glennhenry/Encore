@@ -6,6 +6,8 @@ import encore.fancam.Fancam
 import encore.fancam.events.Level
 import encore.fancam.impl.OfficialFancam
 import kotlinx.coroutines.test.runTest
+import testHelper.toTempFile
+import java.io.File
 import kotlin.test.Test
 
 /**
@@ -17,13 +19,13 @@ import kotlin.test.Test
 class FancamDisplayTest {
     @Test
     fun `fancam without color`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig(colorEnabled = false,)))
+        Fancam.initialize(OfficialFancam(EncoreFancamConfig(colorEnabled = false)))
         logExample()
     }
 
     @Test
     fun `fancam with foreground color`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig(useBackgroundColor = false,)))
+        Fancam.initialize(OfficialFancam(EncoreFancamConfig(useBackgroundColor = false)))
         logExample()
     }
 
@@ -31,6 +33,35 @@ class FancamDisplayTest {
     fun `fancam with color`() = runTest {
         Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
         logExample()
+    }
+
+    @Test
+    fun `fancam route to file`() = runTest {
+        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
+
+        Fancam.event(Level.Trace, "trace")
+            .message { "Trace message" }
+            .logToFileOnly("FancamDisplayTest")
+
+        Fancam.event(Level.Debug, "")
+            .message { "Debug message" }
+            .logToFileOnly("FancamDisplayTest")
+
+        Fancam.event(Level.Info, "info")
+            .message { "Info message" }
+            .logToFileOnly("FancamDisplayTest")
+
+        Fancam.event(Level.Warn, "warn")
+            .message { "Warn message" }
+            .logToFileOnly("FancamDisplayTest")
+
+        Fancam.event(Level.Error, "error")
+            .message { "Error message" }
+            .logToFileOnly("FancamDisplayTest")
+
+        Fancam.event(Level.Warn, "warn")
+            .message { "Warn message" }
+            .logToFileOnly("FancamDisplayTest")
     }
 
     @RevisitLater("Unit tests could never produce any text to file. Track event formatter always return empty text")
@@ -59,7 +90,10 @@ class FancamDisplayTest {
         Fancam.info { "This is an example of 'Fancam.info' message (1)." }
         Fancam.warn("TestTag") { "This is an example of 'Fancam.warn' message with custom tag with custom tag (1)." }
         Fancam.warn { "This is an example of 'Fancam.warn' message (1)." }
-        Fancam.error(Exception("Example exception", RuntimeException("cause of the example")), "TestTag") { "This is an example of 'Fancam.error' message with custom tag with custom tag (1)." }
+        Fancam.error(
+            Exception("Example exception", RuntimeException("cause of the example")),
+            "TestTag"
+        ) { "This is an example of 'Fancam.error' message with custom tag with custom tag (1)." }
         Fancam.error { "This is an example of 'Fancam.error' message (1)." }
     }
 }

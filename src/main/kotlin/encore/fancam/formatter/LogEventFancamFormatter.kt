@@ -35,11 +35,10 @@ class LogEventFancamFormatter(
             return buildString {
                 // [14:21:54.221](Application.kt:22)[D][InventorySubunit] debug message
                 // everything printed, no truncation, no padding
-                append("[$timestamp]$source$level <${event.tag.ifBlank { "_" }}> ${event.message()}")
+                append("[$timestamp]$source$level[${event.tag.ifBlank { "_" }}] ${event.message()}")
                 if (event.level == Level.Error) {
-                    event.throwable?.let {
-                        appendLine(it.toLimitedString())
-                    }
+                    appendLine()
+                    appendLine(event.throwable.toLimitedString())
                 }
             }
         }
