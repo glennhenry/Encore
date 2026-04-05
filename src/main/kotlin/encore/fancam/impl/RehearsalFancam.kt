@@ -114,9 +114,9 @@ class RehearsalFancam : FancamTemplate {
     }
 
     override fun event(level: Level, tag: String): LogEventBuilder {
-        return LogEventBuilder(level, tag, null) {
+        return LogEventBuilder(level, tag, null) { event, _ ->
             if (level == Level.Off) return@LogEventBuilder
-            log(it)
+            log(event)
         }
     }
 

@@ -167,17 +167,17 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
         targetFile = null
     )
 
-    private fun log(event: LogEvent) {
+    private fun log(event: LogEvent, fileOnlyOutput: Boolean = false) {
         pendingEvents.incrementAndGet()
-        eventQueue.offer(LogQueueEvent(event, fromTrackEvent = false))
+        eventQueue.offer(LogQueueEvent(event, fromTrackEvent = false, fileOnlyOutput))
     }
 
     override fun event(level: Level, tag: String): LogEventBuilder {
-        return LogEventBuilder(level, tag, sourceResolver.resolve()) {
-            if (it.level == Level.Off) {
+        return LogEventBuilder(level, tag, sourceResolver.resolve()) { event, fileOnlyOutput ->
+            if (event.level == Level.Off) {
                 warn { "Log with Level.Off is not intended to be used." }
             } else {
-                log(it)
+                log(event, fileOnlyOutput)
             }
         }
     }
@@ -201,7 +201,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
                             logFull = logFull,
                             source = trackEvent.source,
                             targetFile = trackEvent.route
-                        ), fromTrackEvent = true
+                        ), fromTrackEvent = true, fileOnlyOutput = false
                         // track event is only outputted to file via onRecordCalled
                         // fromTrackEvent flag prevent the console log event
                         // from producing file output
@@ -240,9 +240,14 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
             when (event) {
                 is LogQueueEvent -> {
                     val log = event.event
-                    consoleLogProducer.produce(log)
+                    if (!event.fileOnlyOutput) {
+                        consoleLogProducer.produce(log)
+                    }
                     if (log.filename != null && !event.fromTrackEvent) {
                         fileLogProducer.produce(log)
+                    }
+                    if (event.fileOnlyOutput && log.filename == null) {
+                        warn { "Unexpected condition fileOnlyOutput=$event.fileOnlyOutput but filename=${log.filename}" }
                     }
                 }
 
@@ -276,5 +281,5 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
 }
 
 sealed interface QueueEvent
-data class LogQueueEvent(val event: LogEvent, val fromTrackEvent: Boolean) : QueueEvent
+data class LogQueueEvent(val event: LogEvent, val fromTrackEvent: Boolean, val fileOnlyOutput: Boolean) : QueueEvent
 data class TrackQueueEvent(val event: TrackEvent) : QueueEvent
