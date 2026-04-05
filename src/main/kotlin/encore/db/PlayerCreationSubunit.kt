@@ -78,6 +78,6 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
     }
 
     // unused
-    override fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
-    override fun disband(scope: ServerScope): Result<Unit> = Result.success(Unit)
+    override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
+    override suspend fun disband(scope: ServerScope): Result<Unit> = Result.success(Unit)
 }

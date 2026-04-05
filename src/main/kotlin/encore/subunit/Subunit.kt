@@ -40,7 +40,7 @@ interface Subunit<T : SubunitScope> {
      *
      * @return A result type to denote success or failure.
      */
-    fun debut(scope: T): Result<Unit>
+    suspend fun debut(scope: T): Result<Unit>
 
     /**
      * Disband the subunit for the given [scope].
@@ -53,5 +53,5 @@ interface Subunit<T : SubunitScope> {
      *
      * @return A result type to denote success or failure.
      */
-    fun disband(scope: T): Result<Unit>
+    suspend fun disband(scope: T): Result<Unit>
 }
