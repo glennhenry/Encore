@@ -1,25 +1,19 @@
 package encore.fancam.impl
 
 import encore.EncoreFancamConfig
-import encore.fancam.utils.StackTraceResolver
-import encore.fancam.events.Level
-import encore.fancam.events.LogEvent
-import encore.fancam.producer.ConsoleFancamProducer
+import encore.fancam.events.*
 import encore.fancam.formatter.ConsoleTrackEventFancamFormatter
-import encore.fancam.producer.FileFancamProducer
-import encore.fancam.events.LogEventBuilder
-import encore.fancam.events.TrackEvent
+import encore.fancam.formatter.FancamFormatter
 import encore.fancam.formatter.LogEventFancamFormatter
-import encore.fancam.events.TrackEventBuilder
-import encore.fancam.events.tagsToCommaSeparated
-import encore.fancam.events.toLogLevel
 import encore.fancam.formatter.TrackEventFancamFormatter
-import io.ktor.util.date.getTimeMillis
+import encore.fancam.producer.ConsoleFancamProducer
+import encore.fancam.producer.FancamProducer
+import encore.fancam.producer.FileFancamProducer
+import encore.fancam.utils.StackTraceResolver
+import io.ktor.util.date.*
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicInteger
-import encore.fancam.formatter.FancamFormatter
-import encore.fancam.producer.FancamProducer
 
 /**
  * Default implementation of fancam template.
@@ -154,18 +148,22 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
         log(create(msg, tag, Level.Warn))
     }
 
-    override fun error(tag: String, msg: () -> String) {
+    override fun error(throwable: Throwable?, tag: String, msg: () -> String) {
         if (Level.Error < config.level.toLogLevel()) return
-        log(create(msg, tag, Level.Error))
+        log(create(msg, tag, Level.Error, throwable))
     }
 
-    private fun create(msg: () -> String, tag: String, level: Level): LogEvent = LogEvent(
+    private fun create(
+        msg: () -> String, tag: String,
+        level: Level, throwable: Throwable? = null
+    ): LogEvent = LogEvent(
         message = msg,
         timestamp = getTimeMillis(),
         level = level,
         tag = tag,
         logFull = false,
         source = sourceResolver.resolve(),
+        throwable = throwable,
         targetFile = null
     )
 

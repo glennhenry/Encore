@@ -86,19 +86,23 @@ class RehearsalFancam : FancamTemplate {
         }
     }
 
-    override fun error(tag: String, msg: () -> String) {
-        create(msg, tag, Level.Error).also {
+    override fun error(throwable: Throwable?, tag: String, msg: () -> String) {
+        create(msg, tag, Level.Error, throwable).also {
             log(it)
         }
     }
 
-    private fun create(msg: () -> String, tag: String, level: Level): LogEvent = LogEvent(
+    private fun create(
+        msg: () -> String, tag: String,
+        level: Level, throwable: Throwable? = null
+    ): LogEvent = LogEvent(
         message = msg,
         timestamp = getTimeMillis(),
         level = level,
         tag = tag,
         logFull = true,
         source = null,
+        throwable = throwable,
         targetFile = null
     )
 
@@ -130,6 +134,7 @@ class RehearsalFancam : FancamTemplate {
                         tag = trackEvent.tags.tagsToCommaSeparated(),
                         logFull = logFull,
                         source = trackEvent.source,
+                        throwable = null,
                         targetFile = trackEvent.route
                     ), add = false
                 )

@@ -33,6 +33,7 @@ data class LogEvent(
     val tag: String,
     val logFull: Boolean,
     val source: TraceElement?,
+    val throwable: Throwable? = null,
     val targetFile: String?
 ) : FileRoutableEvent {
     override val filename: String?
@@ -48,6 +49,7 @@ data class LogEvent(
                 "tag=$tag, " +
                 "logFull=$logFull, " +
                 "source=$source, " +
+                "throwable=$throwable, " +
                 "targetFile=$targetFile" +
                 ")"
     }

@@ -70,7 +70,7 @@ object Fancam {
     /**
      * Log with the [Level.Error], category [tag], and lazy message of [msg].
      */
-    fun error(tag: String = "", msg: () -> String) = fancam.error(tag, msg)
+    fun error(throwable: Throwable? = null, tag: String = "", msg: () -> String) = fancam.error(throwable, tag, msg)
 
     /**
      * Create a logging event for [LogEvent] with the [LogEventBuilder].

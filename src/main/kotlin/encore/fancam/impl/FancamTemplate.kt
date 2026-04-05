@@ -23,7 +23,7 @@ interface FancamTemplate {
     fun debug(tag: String = "", msg: () -> String)
     fun info(tag: String = "", msg: () -> String)
     fun warn(tag: String = "", msg: () -> String)
-    fun error(tag: String = "", msg: () -> String)
+    fun error(throwable: Throwable? = null, tag: String = "", msg: () -> String)
 
     /**
      * Construct a [LogEvent] in DSL builder style with [LogEventBuilder].

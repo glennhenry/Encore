@@ -105,7 +105,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
                     }
                 }
             } catch (e: Exception) {
-                Fancam.error("runTask Exception") { "Error on task '${taskToRun.name.code}': $e for playerId=${connection.playerId}, taskId=$taskId" }
+                Fancam.error(null, "runTask Exception") { "Error on task '${taskToRun.name.code}': $e for playerId=${connection.playerId}, taskId=$taskId" }
             } finally {
                 Fancam.info("runTask Goodbye") { "Task '${taskToRun.name.code}' no longer run for playerId=${connection.playerId}, taskId=$taskId" }
                 runningInstances.remove(taskId)

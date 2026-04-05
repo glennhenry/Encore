@@ -12,7 +12,7 @@ import kotlin.test.Test
  * Only test the logger display, not actual code unit tests.
  *
  * use this to show color
- * ./gradlew test --tests "encoreTest.utils.TestLoggerDisplay" --console=plain
+ * ./gradlew test --tests "encoreTest.fancam.FancamDisplayTest" --console=plain
  */
 class FancamDisplayTest {
     @Test
@@ -59,7 +59,7 @@ class FancamDisplayTest {
         Fancam.info { "This is an example of 'Fancam.info' message (1)." }
         Fancam.warn("TestTag") { "This is an example of 'Fancam.warn' message with custom tag with custom tag (1)." }
         Fancam.warn { "This is an example of 'Fancam.warn' message (1)." }
-        Fancam.error("TestTag") { "This is an example of 'Fancam.error' message with custom tag with custom tag (1)." }
+        Fancam.error(Exception("Example exception", RuntimeException("cause of the example")), "TestTag") { "This is an example of 'Fancam.error' message with custom tag with custom tag (1)." }
         Fancam.error { "This is an example of 'Fancam.error' message (1)." }
     }
 }
