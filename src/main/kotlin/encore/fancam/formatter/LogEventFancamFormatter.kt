@@ -32,8 +32,16 @@ class LogEventFancamFormatter(
         }
 
         if (isFileTarget) {
-            // [14:21:54.221](Application.kt:22)[D] <InventorySubunit> debug message
-            return "[$timestamp]$source$level <${event.tag}> ${event.message()}"
+            return buildString {
+                // [14:21:54.221](Application.kt:22)[D][InventorySubunit] debug message
+                // everything printed, no truncation, no padding
+                append("[$timestamp]$source$level <${event.tag.ifBlank { "_" }}> ${event.message()}")
+                if (event.level == Level.Error) {
+                    event.throwable?.let {
+                        appendLine(it.toLimitedString())
+                    }
+                }
+            }
         }
 
         val message = event.message()
@@ -46,8 +54,21 @@ class LogEventFancamFormatter(
                 }
             }
 
-        // [14:21:54.221](      Application.kt:22)[D] debug message
-        return "[$timestamp]$source$level $message"
+        val tag = if (event.tag.length > config.tagPadding) {
+            event.tag.take(config.tagPadding - 3) + "..."
+        } else {
+            event.tag.padEnd(config.tagPadding, '_')
+        }
+
+        return buildString {
+            // [14:21:54.221](      Application.kt:22)[D][Server    ] debug message
+            // have truncation on tag and message, padding is preserved for source and tag
+            append("[$timestamp]$source$level[$tag] $message")
+            if (event.level == Level.Error) {
+                appendLine()
+                appendLine(event.throwable.toLimitedString())
+            }
+        }
     }
 
     private fun formatTimestamp(timestamp: Long, format: SimpleDateFormat): String {
@@ -102,4 +123,49 @@ class LogEventFancamFormatter(
 
         return "$bg$fg$text${AnsiColors.Reset}"
     }
+}
+
+/**
+ * Format a throwable into a string with limits of [maxFrames] and [maxCauses].
+ */
+fun Throwable?.toLimitedString(
+    maxFrames: Int = 8,
+    maxCauses: Int = 3
+): String {
+    if (this == null) return "  (!) Exception not passed"
+
+    fun Throwable.format(depth: Int): String {
+        if (depth >= maxCauses) {
+            return "        ... (cause chain truncated)\n"
+        }
+
+        val header = buildString {
+            if (depth == 0) append("  (!) ")
+            append("${this@format::class.simpleName}: $message")
+        }
+
+        val frames = stackTrace
+            .take(maxFrames)
+            .joinToString("\n") { "        at $it" }
+
+        val more = stackTrace.size - maxFrames
+        val moreLine = when {
+            more <= 0 -> ""
+            cause == null -> "        ... $more more"
+            else -> "        ... $more more\n"
+        }
+
+        val causePart = cause?.let {
+            "    Caused by: ${it.format(depth + 1)}"
+        } ?: ""
+
+        return buildString {
+            appendLine(header)
+            appendLine(frames)
+            append(moreLine)
+            append(causePart)
+        }
+    }
+
+    return this.format(0)
 }
