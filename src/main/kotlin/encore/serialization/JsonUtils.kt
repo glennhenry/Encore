@@ -110,6 +110,7 @@ fun Any?.toJsonElement(useReflection: Boolean = false, visited: MutableSet<Int> 
 
                 when {
                     serializer != null -> {
+                        @Suppress("UNCHECKED_CAST")
                         JSON.json.encodeToJsonElement(serializer as SerializationStrategy<Any>, this)
                     }
 
