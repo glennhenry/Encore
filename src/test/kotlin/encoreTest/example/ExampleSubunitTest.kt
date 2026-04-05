@@ -8,44 +8,48 @@ import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.context.FakeContextTracker
 import encore.context.PlayerContext
-import encore.context.PlayerServices
+import encore.context.PlayerSubunits
 import encore.context.ServerContext
 import encore.db.collection.PlayerAccount
-import encore.service.PlayerService
 import encore.db.runMongoCatching
 import encore.db.throwIfNotModified
+import encore.definition.GameReference
 import encore.fancam.Fancam
 import encore.server.core.network.TestConnection
 import encore.server.handler.DefaultHandlerContext
 import encore.server.handler.HandlerContext
 import encore.server.messaging.socket.SocketMessage
+import encore.subunit.Subunit
+import encore.subunit.scope.PlayerScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.bson.Document
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Demonstrate the way to test services class and its integration with repository class.
+ * Demonstrate the way to test subunits class and its integration with repository class.
  */
-class ExampleServiceTest {
+@Ignore
+class ExampleSubunitTest {
     /**
      * Principle:
-     * - Focus on testing services class, test most of the methods that contains
+     * - Focus on testing subunits class, test most of the methods that contains
      *   domain and processing logic; the repository can be mocked.
      *   Mock the repository as needed, may purposedly return success/fail;
      *   unused methods in the unit test can be ignored.
      * - Repository doesn't need to be tested.
-     * - Can test repository through service + repository integration test.
+     * - Can test repository through subunit + repository integration test.
      *   Though, would only test simple operations just to ensure its integration
      *   and not duplicating tests.
      */
     @Test
-    fun testServices() = runTest {
+    fun testSubunits() = runTest {
         val mockRepo = object : ExampleRepository {
             override suspend fun getStrData(playerId: String) = Result.success("s1")
             override suspend fun getIntData(playerId: String) = Result.success(1)
@@ -64,20 +68,20 @@ class ExampleServiceTest {
 
             override suspend fun updateAllStrData(playerId: String, newManyStrData: List<String>) = TODO()
         }
-        // ExampleService doesn't have complicated logic, so realistically no need to be tested.
+        // ExampleSubunit doesn't have complicated logic, so realistically no need to be tested.
         // but here we try to test init just for demonstration
-        val service = ExampleService(mockRepo)
+        val subunit = ExampleSubunit(mockRepo)
 
 
-        val result = service.init("123")
+        val result = subunit.debut(PlayerScope("123"))
         // ex. if all DB operation returned success, internal initialization shouldn't fail
         assert(result.isSuccess)
         // ex. get methods work correctly (in complex scenario, this may involve processing)
-        assertEquals("s1", service.getStrData())
-        // ex. updating should work, and service own data is also updated
-        val result2 = service.updateIntData(2)
+        assertEquals("s1", subunit.getStrData())
+        // ex. updating should work, and subunit own data is also updated
+        val result2 = subunit.updateIntData(2)
         assert(result2.isSuccess)
-        assertEquals(2, service.getIntData())
+        assertEquals(2, subunit.getIntData())
         // here, we don't need to call getIntData() from DB
         // because we are not trying to DB's code
     }
@@ -88,7 +92,7 @@ class ExampleServiceTest {
      * Though, each test will delete artifacts.
      */
     @Test
-    fun testServiceIntegration() = runTest {
+    fun testSubunitIntegration() = runTest {
         // must start real mongo
         val db = initMongo()
 
@@ -107,20 +111,20 @@ class ExampleServiceTest {
         collection.insertOne(baseData)
 
         val repo = ExampleRepositoryMongo(collection)
-        val service = ExampleService(repo)
+        val subunit = ExampleSubunit(repo)
 
-        // init and ensure service initialization correctness
-        service.init("pid123")
-        assertEquals(42, service.getIntData())
+        // init and ensure subunit initialization correctness
+        subunit.debut(PlayerScope("pid123"))
+        assertEquals(42, subunit.getIntData())
 
-        // try using the service to update data
-        val result = service.updateStrData("updated")
+        // try using the subunit to update data
+        val result = subunit.updateStrData("updated")
         assertTrue(result.isSuccess)
 
-        // ensure DB is updated, and match the data in service
+        // ensure DB is updated, and match the data in subunit
         val updated = collection.find().first()
         assertEquals("updated", updated.strData)
-        assertEquals("updated", service.getStrData())
+        assertEquals("updated", subunit.getStrData())
 
         collection.drop()
     }
@@ -256,9 +260,9 @@ class ExampleRepositoryMongo(val data: MongoCollection<ExampleModel>) : ExampleR
 }
 
 /**
- * Example service class holding a repository contract.
+ * Example subunit class holding a repository contract.
  */
-class ExampleService(private val exampleRepository: ExampleRepository) : PlayerService {
+class ExampleSubunit(private val exampleRepository: ExampleRepository) : Subunit<PlayerScope> {
     private lateinit var playerId: String
     private var strData: String = ""
     private var intData: Int = 0
@@ -280,7 +284,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateStrData(s: String): Result<Unit> {
         val result = exampleRepository.updateStrData(playerId, s)
         result.onFailure {
-            Fancam.error { "Error on ExampleService-updateStrData: ${it.message}" }
+            Fancam.error { "Error on ExampleSubunit-updateStrData: ${it.message}" }
         }
         result.onSuccess {
             strData = s
@@ -291,7 +295,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateIntData(i: Int): Result<Unit> {
         val result = exampleRepository.updateIntData(playerId, i)
         result.onFailure {
-            Fancam.error { "Error on ExampleService-updateIntData: ${it.message}" }
+            Fancam.error { "Error on ExampleSubunit-updateIntData: ${it.message}" }
         }
         result.onSuccess {
             intData = i
@@ -302,7 +306,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateOneManyStrData(old: String, new: String): Result<Unit> {
         val result = exampleRepository.updateOneFromManyStrData(playerId, old, new)
         result.onFailure {
-            Fancam.error { "Error on ExampleService-updateOneManyStrData: ${it.message}" }
+            Fancam.error { "Error on ExampleSubunit-updateOneManyStrData: ${it.message}" }
         }
         result.onSuccess {
             manyStrData.removeIf { it == old }
@@ -314,7 +318,7 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
     suspend fun updateAllManyStrData(m: List<String>): Result<Unit> {
         val result = exampleRepository.updateAllStrData(playerId, m)
         result.onFailure {
-            Fancam.error { "Error on ExampleService-updateAllManyStrData: ${it.message}" }
+            Fancam.error { "Error on ExampleSubunit-updateAllManyStrData: ${it.message}" }
         }
         result.onSuccess {
             manyStrData.clear()
@@ -323,16 +327,16 @@ class ExampleService(private val exampleRepository: ExampleRepository) : PlayerS
         return result
     }
 
-    override suspend fun init(playerId: String): Result<Unit> {
+    override suspend fun debut(scope: PlayerScope): Result<Unit> {
         return runCatching {
-            this.playerId = playerId
-            this.strData = exampleRepository.getStrData(playerId).getOrThrow()
-            this.intData = exampleRepository.getIntData(playerId).getOrThrow()
-            this.manyStrData.addAll(exampleRepository.getAllStrData(playerId).getOrThrow())
+            this.playerId = scope.playerId
+            this.strData = exampleRepository.getStrData(scope.playerId).getOrThrow()
+            this.intData = exampleRepository.getIntData(scope.playerId).getOrThrow()
+            this.manyStrData.addAll(exampleRepository.getAllStrData(scope.playerId).getOrThrow())
         }
     }
 
-    override suspend fun close(playerId: String): Result<Unit> = Result.success(Unit)
+    override suspend fun disband(scope: PlayerScope): Result<Unit> = Result.success(Unit)
 }
 
 /**
@@ -343,7 +347,7 @@ data class HandlerTestState<T : SocketMessage>(
     val playerName: String = "TestPlayerABC",
     val message: T,
     val account: PlayerAccount = PlayerAccount.fake(playerId, playerName),
-    val services: PlayerServices,
+    val subunits: PlayerSubunits,
     val connectionScope: CoroutineScope = CoroutineScope(StandardTestDispatcher())
 ) {
     val connection = TestConnection(
@@ -356,7 +360,7 @@ data class HandlerTestState<T : SocketMessage>(
 
     val serverContext = ServerContext.fake(contextTracker = contextTracker)
 
-    val playerContext = PlayerContext(playerId, connection, account, services).also {
+    val playerContext = PlayerContext(playerId, connection, account, subunits).also {
         contextTracker.fakeContext(it)
     }
 

@@ -1,10 +1,11 @@
 package encoreTest.user
 
 import testHelper.CHANGE_ME_TEST_DB_NAME
-import encore.db.MongoImpl
+import encore.db.MongoDataStore
 import com.mongodb.assertions.Assertions.assertFalse
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import encore.db.PlayerCreationSubunit
 import encore.db.collection.PlayerAccount
 import encore.user.PlayerAccountRepository
 import encore.user.PlayerAccountRepositoryMongo
@@ -31,10 +32,11 @@ class TestDefaultAuthProvider {
         collection.drop()
         mongoDb.createCollection("test_player_account")
 
-        val db = MongoImpl(mongoDb, false)
+        val db = MongoDataStore(mongoDb)
         val manager = SessionManager()
         val repo = PlayerAccountRepositoryMongo(collection)
-        val provider = DefaultAuthProvider(db, repo, manager)
+        val pcs = PlayerCreationSubunit(db)
+        val provider = DefaultAuthProvider(pcs, repo, manager)
 
         val account = PlayerAccount(
             playerId = "pid12345",
@@ -55,10 +57,11 @@ class TestDefaultAuthProvider {
         collection.drop()
         mongoDb.createCollection("test_player_account")
 
-        val db = MongoImpl(mongoDb, false)
+        val db = MongoDataStore(mongoDb)
         val manager = SessionManager()
         val repo = PlayerAccountRepositoryMongo(collection)
-        val provider = DefaultAuthProvider(db, repo, manager)
+        val pcs = PlayerCreationSubunit(db)
+        val provider = DefaultAuthProvider(pcs, repo, manager)
 
         assertFalse(provider.doesUsernameExist("xyz"))
         assertTrue(provider.isUsernameAvailable("xyz"))
@@ -71,10 +74,11 @@ class TestDefaultAuthProvider {
         collection.drop()
         mongoDb.createCollection("test_player_account")
 
-        val db = MongoImpl(mongoDb, false)
+        val db = MongoDataStore(mongoDb)
         val manager = SessionManager()
         val repo = PlayerAccountRepositoryMongo(collection)
-        val provider = DefaultAuthProvider(db, repo, manager)
+        val pcs = PlayerCreationSubunit(db)
+        val provider = DefaultAuthProvider(pcs, repo, manager)
 
         provider.register("helloworld", "kotlinktor")
         assertTrue(provider.doesUsernameExist("helloworld"))
@@ -88,10 +92,11 @@ class TestDefaultAuthProvider {
         collection.drop()
         mongoDb.createCollection("test_player_account")
 
-        val db = MongoImpl(mongoDb, false)
+        val db = MongoDataStore(mongoDb)
         val manager = SessionManager()
         val repo = PlayerAccountRepositoryMongo(collection)
-        val provider = DefaultAuthProvider(db, repo, manager)
+        val pcs = PlayerCreationSubunit(db)
+        val provider = DefaultAuthProvider(pcs, repo, manager)
 
         val session = provider.login("asdf", "fdsa")
         assertTrue(session.isFailure)
@@ -104,10 +109,11 @@ class TestDefaultAuthProvider {
         collection.drop()
         mongoDb.createCollection("test_player_account")
 
-        val db = MongoImpl(mongoDb, false)
+        val db = MongoDataStore(mongoDb)
         val manager = SessionManager()
         val repo = PlayerAccountRepositoryMongo(collection)
-        val provider = DefaultAuthProvider(db, repo, manager)
+        val pcs = PlayerCreationSubunit(db)
+        val provider = DefaultAuthProvider(pcs, repo, manager)
 
         provider.register("helloworld", "kotlinktor")
         val session = provider.login("helloworld", "ktor")
@@ -121,10 +127,11 @@ class TestDefaultAuthProvider {
         collection.drop()
         mongoDb.createCollection("test_player_account")
 
-        val db = MongoImpl(mongoDb, false)
+        val db = MongoDataStore(mongoDb)
         val manager = SessionManager()
         val repo = PlayerAccountRepositoryMongo(collection)
-        val provider = DefaultAuthProvider(db, repo, manager)
+        val pcs = PlayerCreationSubunit(db)
+        val provider = DefaultAuthProvider(pcs, repo, manager)
 
         provider.register("helloworld", "kotlinktor")
         assertNotNull(provider.login("helloworld", "kotlinktor"))

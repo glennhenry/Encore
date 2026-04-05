@@ -1,6 +1,6 @@
 package encoreTest.example
 
-import encore.context.PlayerServices
+import encore.context.PlayerSubunits
 import encore.context.ServerContext
 import encore.db.collection.PlayerAccount
 import kotlinx.coroutines.CoroutineScope
@@ -20,10 +20,10 @@ import kotlin.test.assertEquals
  * and to inspect the outgoing messages produced by handlers.
  *
  * Typically, tests manipulate the server and player state — including [ServerContext],
- * [PlayerAccount], and [PlayerServices]. Some fields or components can remain default or empty
+ * [PlayerAccount], and [PlayerSubunits]. Some fields or components can remain default or empty
  * if they are not relevant to the current test scenario.
  *
- * For classes like services that depend on repository interfaces, provide fake repository
+ * For classes like subunits that depend on repository interfaces, provide fake repository
  * implementations with predefined data and successful operations. This allows isolated and flexible
  * testing without requiring a live database or real dependencies.
  *
@@ -34,7 +34,7 @@ import kotlin.test.assertEquals
  *
  * Things that aren't demonstrated here:
  * - Real service class; although there exist test of service and repo.
- * - ServerContext or services alteration; it's possible to check the modified
+ * - ServerContext or subunits alteration; it's possible to check the modified
  * server context state if the purpose of testing is not only checking the response message.
  */
 class ExampleHandlerTest {
@@ -49,7 +49,7 @@ class ExampleHandlerTest {
             playerName = playerName,
             message = ExampleMessage2(payload = "MSG1.EX.hello.world.kotlin.ktor"),
             account = PlayerAccount.fake(playerId, playerName),
-            services = PlayerServices(),
+            subunits = PlayerSubunits(),
             connectionScope = CoroutineScope(StandardTestDispatcher())
         )
 
@@ -73,7 +73,7 @@ class ExampleHandlerTest {
             playerName = playerName,
             message = ExampleMessage2(payload = "MSG1.EX.hello.world.kotlin|ktor"),
             account = PlayerAccount.fake(playerId, playerName),
-            services = PlayerServices(),
+            subunits = PlayerSubunits(),
             connectionScope = CoroutineScope(StandardTestDispatcher())
         )
 
