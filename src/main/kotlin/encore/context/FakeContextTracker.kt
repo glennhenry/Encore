@@ -1,6 +1,6 @@
 package encore.context
 
-import encore.db.Database
+import encore.db.DataStore
 import encore.server.core.network.Connection
 import java.util.concurrent.ConcurrentHashMap
 
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 class FakeContextTracker : ContextTracker {
     val players = ConcurrentHashMap<String, PlayerContext>()
 
-    override suspend fun createContext(playerId: String, connection: Connection, db: Database) = TODO("SHOULD NOT BE USED")
+    override suspend fun createContext(playerId: String, connection: Connection, db: DataStore) = TODO("SHOULD NOT BE USED")
 
     fun fakeContext(ctx: PlayerContext) {
         players[ctx.playerId] = ctx

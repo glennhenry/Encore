@@ -83,7 +83,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     ): Result<Unit> {
         return runMongoCatching {
             val result = accountCollection.replaceOne(Filters.eq("playerId", playerId), account)
-            result.throwIfNotModified(playerId, "PlayerAccount updatePlayerAccount")
+            result.throwIfNotModified("updatePlayerAccount $playerId")
         }
     }
 
@@ -93,7 +93,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
                 Filters.eq("playerId", playerId),
                 Updates.set("profile.lastLogin", lastLogin)
             )
-            result.throwIfNotModified(playerId, "PlayerAccount updateLastLogin")
+            result.throwIfNotModified("updateLastLogin $playerId")
         }
     }
 

@@ -1,14 +1,12 @@
 package encore.context
 
-import com.mongodb.kotlin.client.coroutine.MongoCollection
-import encore.db.Database
-import encore.db.collection.PlayerObjects
+import encore.db.DataStore
 import encore.server.core.network.Connection
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Default implementation of [ContextTracker] which is based on real player
- * [Connection] and [Database].
+ * [Connection] and [DataStore].
  */
 class DefaultContextTracker: ContextTracker {
     private val players = ConcurrentHashMap<String, PlayerContext>()
@@ -16,22 +14,21 @@ class DefaultContextTracker: ContextTracker {
     /**
      * Creates and registers a new [PlayerContext] for the given player.
      *
-     * This function loads the player's account from the [Database], initializes
+     * This function loads the player's account from the [DataStore], initializes
      * the associated [PlayerSubunits], and stores the resulting context in [players].
      *
      * @param playerId The unique identifier of the player.
      * @param connection The player's active network [Connection].
-     * @param db The [Database] instance used to load account data and initialize subunits.
+     * @param db The [DataStore] instance used to load account data and initialize subunits.
      *
      * @throws IllegalArgumentException If the player's account data cannot be found.
      */
     override suspend fun createContext(
         playerId: String,
         connection: Connection,
-        db: Database
+        db: DataStore
     ) {
-        val playerAccount =
-            requireNotNull(db.loadPlayerAccount(playerId)) { "Missing PlayerAccount for playerId=$playerId" }
+        val playerAccount = requireNotNull(db.getPlayerAccount(playerId)) { "Missing PlayerAccount for playerId=$playerId" }
 
         val context = PlayerContext(
             playerId = playerId,
@@ -44,9 +41,9 @@ class DefaultContextTracker: ContextTracker {
 
     private suspend fun initializeSubunits(
         playerId: String,
-        db: Database,
+        db: DataStore,
     ): PlayerSubunits {
-        val playerObjectsCollection = db.getCollection<MongoCollection<PlayerObjects>>("player_data")
+        val playerObjectsCollection = db.getPlayerObjects(playerId)
 
         // REPLACE add
 

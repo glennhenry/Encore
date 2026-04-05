@@ -1,10 +1,10 @@
 package encore.user.auth
 
+import encore.db.PlayerCreationSubunit
+import encore.fancam.Fancam
 import encore.user.AdminData
-import encore.db.Database
 import encore.user.PlayerAccountRepository
 import encore.user.model.UserSession
-import encore.fancam.Fancam
 
 /**
  * Default auth provider where authentication is handled typically.
@@ -12,12 +12,12 @@ import encore.fancam.Fancam
  * This should be replaced or modified later.
  */
 class DefaultAuthProvider(
-    private val db: Database,
+    private val creationSubunit: PlayerCreationSubunit,
     private val playerAccountRepository: PlayerAccountRepository,
     private val sessionManager: SessionManager
 ) : AuthProvider {
     override suspend fun register(username: String, password: String): Result<UserSession> {
-        val pid = db.createPlayer(username, password)
+        val pid = creationSubunit.createPlayer(username, password)
         return Result.success(sessionManager.create(userId = pid))
     }
 

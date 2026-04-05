@@ -1,7 +1,7 @@
 package encore.context
 
-import encore.db.Database
-import encore.db.EmptyDatabase
+import encore.db.DataStore
+import encore.db.BlankDataStore
 import encore.backstage.command.CommandDispatcher
 import encore.server.core.OnlinePlayerRegistry
 import encore.server.messaging.format.MessageFormatRegistry
@@ -18,7 +18,7 @@ import encore.ws.WebSocketManager
 /**
  * Represents the **global server-side context** which includes various server components.
  *
- * @property db [Database] instance of the server.
+ * @property db [DataStore] instance of the server.
  * @property playerAccountRepository Repository class that holds player accounts.
  * @property sessionManager Manages session of players.
  * @property authProvider Provides authentication functions.
@@ -32,7 +32,7 @@ import encore.ws.WebSocketManager
  * @property subunits Container for server subunit instances.
  */
 data class ServerContext(
-    val db: Database,
+    val db: DataStore,
     val playerAccountRepository: PlayerAccountRepository,
     val sessionManager: SessionManager,
     val authProvider: AuthProvider,
@@ -56,7 +56,7 @@ data class ServerContext(
          * [ServerTaskDispatcher]) are initialized with their default implementations.
          */
         fun fake(
-            db: Database = EmptyDatabase(),
+            db: DataStore = BlankDataStore(),
             playerAccountRepository: PlayerAccountRepository = EmptyPlayerAccountRepository(),
             authProvider: AuthProvider = EmptyAuthProvider(),
             contextTracker: ContextTracker = FakeContextTracker()
