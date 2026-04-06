@@ -10,7 +10,7 @@ import encore.context.ServerContext
 import encore.context.ServerSubunits
 import encore.datastore.MONGO_PLAYER_ACCOUNT_COLLECTION_NAME
 import encore.datastore.MongoDataStore
-import encore.datastore.PlayerCreationSubunit
+import encore.user.PlayerCreationSubunit
 import encore.definition.GameReference
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam

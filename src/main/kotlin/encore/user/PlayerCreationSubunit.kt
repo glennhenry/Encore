@@ -1,12 +1,12 @@
-package encore.datastore
+package encore.user
 
 import com.toxicbakery.bcrypt.Bcrypt
+import encore.datastore.DataStore
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerObjects
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.user.AdminData
 import encore.user.model.ServerMetadata
 import encore.user.model.UserProfile
 import encore.utils.UUID
@@ -15,7 +15,7 @@ import kotlin.io.encoding.Base64
 /**
  * Server-scoped subunit responsible for player creation.
  *
- * Requires a [DataStore] to persist the newly created players.
+ * Requires a [encore.datastore.DataStore] to persist the newly created players.
  */
 class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerScope> {
     /**
@@ -28,7 +28,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
      */
     suspend fun createPlayer(username: String, password: String): String {
         val playerId = UUID.new()
-        val profile = UserProfile.default(playerId, username)
+        val profile = UserProfile.Companion.default(playerId, username)
 
         val account = PlayerAccount(
             playerId = playerId,
@@ -36,7 +36,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             profile = profile,
             metadata = ServerMetadata()
         )
-        val objects = PlayerObjects.newGame(playerId)
+        val objects = PlayerObjects.Companion.newGame(playerId)
 
         val result = dataStore.create(account, objects)
         if (result.isSuccess) {
@@ -62,7 +62,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             return
         }
 
-        val result = dataStore.create(PlayerAccount.admin(), PlayerObjects.admin())
+        val result = dataStore.create(PlayerAccount.Companion.admin(), PlayerObjects.Companion.admin())
 
         if (result.isSuccess) {
             Fancam.info { "New admin account created" }
@@ -74,7 +74,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
     }
 
     private fun hashPw(password: String): String {
-        return Base64.encode(Bcrypt.hash(password, 10))
+        return Base64.Default.encode(Bcrypt.hash(password, 10))
     }
 
     // unused

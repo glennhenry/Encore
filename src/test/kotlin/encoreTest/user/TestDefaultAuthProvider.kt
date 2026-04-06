@@ -5,7 +5,7 @@ import encore.datastore.MongoDataStore
 import com.mongodb.assertions.Assertions.assertFalse
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.datastore.PlayerCreationSubunit
+import encore.user.PlayerCreationSubunit
 import encore.datastore.collection.PlayerAccount
 import encore.user.PlayerAccountRepository
 import encore.user.PlayerAccountRepositoryMongo
