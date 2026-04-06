@@ -38,9 +38,12 @@ class LogEventBuilder(
 ) {
     private var message: () -> String = { "Nothing was logged" }
     private var target: String? = null
+    private var throwable: Throwable? = null
 
     /**
      * Set the lazily evaluated message for the log event.
+     *
+     * Subsequent call will overwrite the previous.
      */
     fun message(message: () -> String): LogEventBuilder = apply {
         this.message = message
@@ -51,12 +54,27 @@ class LogEventBuilder(
      *
      * Only one file target is possible, subsequent call will overwrite it.
      *
-     * Setting the file target is not needed if [logToFileOnly] is called at the end.
+     * Setting the file target won't be necessary if [logToFileOnly] is called at the end.
      *
      * @param filename The filename without extension.
      */
-    fun setFileTarget(filename: String) {
+    fun setFileTarget(filename: String): LogEventBuilder = apply {
         this.target = filename
+    }
+
+    /**
+     * Set the throwable for this event.
+     *
+     * This call will be ignored if the log event's [level]
+     * is not [Level.Error].
+     *
+     * @param throwable a non-null throwable.
+     */
+    fun setThrowable(throwable: Throwable): LogEventBuilder = apply {
+        if (level != Level.Error) {
+            return this
+        }
+        this.throwable = throwable
     }
 
     /**
@@ -77,7 +95,8 @@ class LogEventBuilder(
                 tag = tag,
                 logFull = full,
                 source = src,
-                targetFile = null,
+                throwable = throwable,
+                targetFile = target,
             ), false
         )
     }
@@ -100,6 +119,7 @@ class LogEventBuilder(
                 tag = tag,
                 logFull = true,
                 source = src,
+                throwable = throwable,
                 targetFile = filename,
             ), true
         )
