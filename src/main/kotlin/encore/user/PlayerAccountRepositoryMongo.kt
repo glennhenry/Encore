@@ -5,9 +5,9 @@ import com.mongodb.client.model.Projections
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.toxicbakery.bcrypt.Bcrypt
-import encore.db.collection.PlayerAccount
-import encore.db.runMongoCatching
-import encore.db.throwIfNotModified
+import encore.datastore.collection.PlayerAccount
+import encore.datastore.runMongoCatching
+import encore.datastore.throwIfNotModified
 import kotlinx.coroutines.flow.firstOrNull
 import org.bson.Document
 import kotlin.io.encoding.Base64

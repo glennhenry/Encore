@@ -1,8 +1,8 @@
-package encore.db
+package encore.datastore
 
 import com.toxicbakery.bcrypt.Bcrypt
-import encore.db.collection.PlayerAccount
-import encore.db.collection.PlayerObjects
+import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerObjects
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope

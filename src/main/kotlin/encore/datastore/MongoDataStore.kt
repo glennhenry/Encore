@@ -1,11 +1,11 @@
-package encore.db
+package encore.datastore
 
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.db.collection.PlayerAccount
-import encore.db.collection.PlayerObjects
-import encore.db.collection.ServerObjects
+import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerObjects
+import encore.datastore.collection.ServerObjects
 import encore.fancam.Fancam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

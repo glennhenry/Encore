@@ -1,6 +1,6 @@
 package encore.user
 
-import encore.db.collection.PlayerAccount
+import encore.datastore.collection.PlayerAccount
 
 /**
  * Repository for [PlayerAccount].

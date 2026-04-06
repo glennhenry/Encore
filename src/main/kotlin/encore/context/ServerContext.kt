@@ -1,7 +1,7 @@
 package encore.context
 
-import encore.db.DataStore
-import encore.db.BlankDataStore
+import encore.datastore.DataStore
+import encore.datastore.BlankDataStore
 import encore.backstage.command.CommandDispatcher
 import encore.server.core.OnlinePlayerRegistry
 import encore.server.messaging.format.MessageFormatRegistry

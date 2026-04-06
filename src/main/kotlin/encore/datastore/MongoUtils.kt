@@ -1,4 +1,4 @@
-package encore.db
+package encore.datastore
 
 import com.mongodb.client.result.UpdateResult
 

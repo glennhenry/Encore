@@ -10,10 +10,9 @@ import encore.context.FakeContextTracker
 import encore.context.PlayerContext
 import encore.context.PlayerSubunits
 import encore.context.ServerContext
-import encore.db.collection.PlayerAccount
-import encore.db.runMongoCatching
-import encore.db.throwIfNotModified
-import encore.definition.GameReference
+import encore.datastore.collection.PlayerAccount
+import encore.datastore.runMongoCatching
+import encore.datastore.throwIfNotModified
 import encore.fancam.Fancam
 import encore.server.core.network.TestConnection
 import encore.server.handler.DefaultHandlerContext

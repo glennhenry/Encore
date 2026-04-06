@@ -8,9 +8,9 @@ import encore.backstage.command.ExampleCommand
 import encore.context.DefaultContextTracker
 import encore.context.ServerContext
 import encore.context.ServerSubunits
-import encore.db.MONGO_PLAYER_ACCOUNT_COLLECTION_NAME
-import encore.db.MongoDataStore
-import encore.db.PlayerCreationSubunit
+import encore.datastore.MONGO_PLAYER_ACCOUNT_COLLECTION_NAME
+import encore.datastore.MongoDataStore
+import encore.datastore.PlayerCreationSubunit
 import encore.definition.GameReference
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam

@@ -1,6 +1,6 @@
 package encore.user.auth
 
-import encore.db.PlayerCreationSubunit
+import encore.datastore.PlayerCreationSubunit
 import encore.fancam.Fancam
 import encore.user.AdminData
 import encore.user.PlayerAccountRepository

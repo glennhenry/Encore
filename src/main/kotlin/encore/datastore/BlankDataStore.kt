@@ -1,8 +1,8 @@
-package encore.db
+package encore.datastore
 
-import encore.db.collection.PlayerAccount
-import encore.db.collection.PlayerObjects
-import encore.db.collection.ServerObjects
+import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerObjects
+import encore.datastore.collection.ServerObjects
 
 /**
  * Blank (no-operation) implementation for [DataStore].

@@ -1,6 +1,6 @@
 package encore.user.model
 
-import encore.db.collection.PlayerAccount
+import encore.datastore.collection.PlayerAccount
 import kotlin.time.Duration
 
 /**

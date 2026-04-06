@@ -2,7 +2,7 @@ package encoreTest.example
 
 import encore.context.PlayerSubunits
 import encore.context.ServerContext
-import encore.db.collection.PlayerAccount
+import encore.datastore.collection.PlayerAccount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest

@@ -1,6 +1,6 @@
 package encore.context
 
-import encore.db.collection.PlayerAccount
+import encore.datastore.collection.PlayerAccount
 import encore.server.core.network.Connection
 import encore.subunit.Subunit
 import encore.subunit.scope.PlayerScope

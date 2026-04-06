@@ -1,4 +1,4 @@
-package encore.db.collection
+package encore.datastore.collection
 
 import encore.user.AdminData
 
