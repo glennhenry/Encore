@@ -37,31 +37,40 @@ class FancamDisplayTest {
 
     @Test
     fun `fancam route to file`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
+        // expected file: FancamDisplayTest-1.log
+        // this will kept appending to the file
+        // file rotation is enabled automatically
 
-        Fancam.event(Level.Trace, "trace")
-            .message { "Trace message" }
+        val fancam = OfficialFancam(EncoreFancamConfig())
+        Fancam.initialize(fancam)
+
+        Fancam.event(Level.Trace, "tag1")
+            .message { "This is an example of a trace message" }
             .logToFileOnly("FancamDisplayTest")
 
         Fancam.event(Level.Debug, "")
-            .message { "Debug message" }
+            .message { "Another one is a debug message which doesn't have tag" }
             .logToFileOnly("FancamDisplayTest")
 
-        Fancam.event(Level.Info, "info")
-            .message { "Info message" }
+        Fancam.event(Level.Info, "tag2")
+            .message { "Info is usually used to announce server updates to server operator" }
             .logToFileOnly("FancamDisplayTest")
 
-        Fancam.event(Level.Warn, "warn")
-            .message { "Warn message" }
+        Fancam.event(Level.Warn, "longtag")
+            .message { "Warn is for odd behavior. Anyway this would print into console and output to file." }
+            .setFileTarget("FancamDisplayTest")
+            .log()
+
+        Fancam.event(Level.Error, "smalltag")
+            .message { "This is an example of error with exception alos being outputted." }
+            .setThrowable(Exception("Example exception", RuntimeException("cause of the example")))
             .logToFileOnly("FancamDisplayTest")
 
-        Fancam.event(Level.Error, "error")
-            .message { "Error message" }
+        Fancam.event(Level.Warn, "xiaoting")
+            .message { "Xiaoting is so attractive. I keep thinking about her. I think I have fallen?" }
             .logToFileOnly("FancamDisplayTest")
 
-        Fancam.event(Level.Warn, "warn")
-            .message { "Warn message" }
-            .logToFileOnly("FancamDisplayTest")
+        fancam.flush()
     }
 
     @RevisitLater("Unit tests could never produce any text to file. Track event formatter always return empty text")
