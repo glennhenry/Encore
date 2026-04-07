@@ -16,7 +16,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     override suspend fun getPlayerAccountByName(username: String): Result<PlayerAccount> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq("profile.displayName", username))
+                .find(Filters.eq("username", username))
                 .projection(null)
                 .firstOrNull()
         }
@@ -34,7 +34,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     override suspend fun getPlayerIdFromName(username: String): Result<String> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq("profile.displayName", username))
+                .find(Filters.eq("username", username))
                 .projection(null)
                 .firstOrNull()
                 ?.playerId
@@ -44,7 +44,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     override suspend fun doesUsernameExist(username: String): Result<Boolean> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq("profile.displayName", username))
+                .find(Filters.eq("username", username))
                 .projection(null)
                 .firstOrNull() != null
         }
@@ -53,7 +53,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     override suspend fun isUsernameAvailable(username: String): Result<Boolean> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq("profile.displayName", username))
+                .find(Filters.eq("username", username))
                 .projection(null)
                 .firstOrNull() == null
         }
@@ -62,7 +62,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     override suspend fun doesEmailExist(email: String): Result<Boolean> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq("profile.email", email))
+                .find(Filters.eq("email", email))
                 .projection(null)
                 .firstOrNull() != null
         }
@@ -71,7 +71,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     override suspend fun isEmailAvailable(email: String): Result<Boolean> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq("profile.email", email))
+                .find(Filters.eq("email", email))
                 .projection(null)
                 .firstOrNull() == null
         }
@@ -101,7 +101,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
         return runMongoCatching {
             val doc = accountCollection
                 .withDocumentClass<Document>()
-                .find(Filters.eq("profile.displayName", username))
+                .find(Filters.eq("username", username))
                 .projection(Projections.include("hashedPassword", "playerId"))
                 .firstOrNull()
 
