@@ -11,14 +11,8 @@
         <admin enabled="true" />
         <database>
             <mongo>
-                <prod>
-                    <dbname>CHANGE_ME-prod-DB</dbname>
-                    <dburl>mongodb://localhost:27017</dburl>
-                </prod>
-                <test>
-                    <dbname>CHANGE_ME-test-DB</dbname>
-                    <dburl>mongodb://localhost:27017</dburl>
-                </test>
+                <dbname>CHANGE_ME-prod-DB</dbname>
+                <dburl>mongodb://localhost:27017</dburl>
             </mongo>
         </database>
         <fancam>
