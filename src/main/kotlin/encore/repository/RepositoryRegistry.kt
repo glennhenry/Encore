@@ -1,4 +1,4 @@
-package encore.datastore
+package encore.repository
 
 import encore.fancam.Fancam
 import kotlin.reflect.KClass

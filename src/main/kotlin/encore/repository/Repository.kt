@@ -1,4 +1,4 @@
-package encore.datastore
+package encore.repository
 
 /**
  * Represents a data access abstraction over the underlying database.
