@@ -1,6 +1,7 @@
 package encore.datastore
 
 import com.mongodb.client.result.UpdateResult
+import encore.datastore.collection.PlayerId
 
 /**
  * Thrown when a MongoDB query expected a document but found none.
@@ -11,7 +12,7 @@ class DocumentNotFoundException(message: String) : RuntimeException(message)
  * Thrown when a MongoDB update operation fails to update
  * the specified document (i.e., when `modifiedCount < 1`).
  */
-class DocumentNotUpdatedException(playerId: String) : RuntimeException("Player not updated: $playerId")
+class DocumentNotUpdatedException(playerId: PlayerId) : RuntimeException("Player not updated: $playerId")
 
 /**
  * Executes [block] and wraps its result in a [Result].

@@ -1,5 +1,6 @@
 package encore.server.tasks
 
+import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.*
 import encore.server.core.network.Connection
 import encore.utils.SystemTime
@@ -29,7 +30,7 @@ import kotlin.time.toDuration
  */
 class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskScheduler {
     private val runningInstances = mutableMapOf<String, TaskInstance>()
-    private val taskIdDerivers = mutableMapOf<String, (playerId: String, name: TaskName, stopInput: Any) -> String>()
+    private val taskIdDerivers = mutableMapOf<String, (playerId: PlayerId, name: TaskName, stopInput: Any) -> String>()
     private val stopTaskFactories = mutableMapOf<String, () -> Any>()
 
     /**
@@ -43,7 +44,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
     fun <StopInput : Any> registerTask(
         name: TaskName,
         stopFactory: () -> StopInput,
-        deriveTaskId: (playerId: String, name: TaskName, stopInput: StopInput) -> String
+        deriveTaskId: (playerId: PlayerId, name: TaskName, stopInput: StopInput) -> String
     ) {
         stopTaskFactories[name.code] = stopFactory
         taskIdDerivers[name.code] = { playerId, name, stopInput ->
@@ -194,7 +195,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
     /**
      * Return all running tasks for [playerId].
      */
-    fun getAllRunningTaskFor(playerId: String): List<TaskInstance> {
+    fun getAllRunningTaskFor(playerId: PlayerId): List<TaskInstance> {
         return runningInstances.values.filter { it.playerId == playerId }
     }
 
@@ -259,7 +260,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
     /**
      * Stop all tasks for the [playerId]
      */
-    fun stopAllTasksForPlayer(playerId: String) {
+    fun stopAllTasksForPlayer(playerId: PlayerId) {
         runningInstances
             .filterValues { it.playerId == playerId }
             .forEach { (taskId, _) -> stopRunningTask(taskId) }
@@ -288,7 +289,7 @@ class ServerTaskDispatcher(private val time: TimeProvider = SystemTime) : TaskSc
  */
 data class TaskInstance(
     val name: String,
-    val playerId: String,
+    val playerId: PlayerId,
     val config: TaskConfig,
     val job: Job,
 )

@@ -1,5 +1,6 @@
 package encore.server.core
 
+import encore.datastore.collection.PlayerId
 import io.ktor.util.date.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -12,7 +13,7 @@ class OnlinePlayerRegistry {
     /**
      * Mark a player of [playerId] as online. Does nothing if the player is already online.
      */
-    fun markOnline(playerId: String) {
+    fun markOnline(playerId: PlayerId) {
         val now = getTimeMillis()
         players[playerId] = PlayerStatus(
             playerId = playerId,
@@ -24,14 +25,14 @@ class OnlinePlayerRegistry {
     /**
      * Mark a player of [playerId] as offline. Does nothing if the player is already offline.
      */
-    fun markOffline(playerId: String) {
+    fun markOffline(playerId: PlayerId) {
         players.remove(playerId)
     }
 
     /**
      * Update the last network activity of [playerId]. Does nothing if the player is not online.
      */
-    fun updateLastActivity(playerId: String) {
+    fun updateLastActivity(playerId: PlayerId) {
         players.computeIfPresent(playerId) { _, status ->
             status.copy(lastNetworkActivity = getTimeMillis())
         }
@@ -54,7 +55,7 @@ class OnlinePlayerRegistry {
  *                               of the player's most recent network activity.
  */
 data class PlayerStatus(
-    val playerId: String,
+    val playerId: PlayerId,
     val onlineSince: Long,
     val lastNetworkActivity: Long,
 )

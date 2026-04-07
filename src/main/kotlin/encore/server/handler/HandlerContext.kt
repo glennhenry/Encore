@@ -1,5 +1,6 @@
 package encore.server.handler
 
+import encore.datastore.collection.PlayerId
 import encore.server.core.network.Connection
 import encore.server.messaging.socket.SocketMessage
 
@@ -11,7 +12,7 @@ import encore.server.messaging.socket.SocketMessage
  * @param T Concrete implementation of [SocketMessage] interface.
  */
 interface HandlerContext<T : SocketMessage> {
-    var playerId: String
+    var playerId: PlayerId
     val message: T
 
     /**
@@ -25,5 +26,5 @@ interface HandlerContext<T : SocketMessage> {
     /**
      * To update the playerId for this connection (usually goes through [Connection.updatePlayerId]).
      */
-    fun updatePlayerId(playerId: String)
+    fun updatePlayerId(playerId: PlayerId)
 }

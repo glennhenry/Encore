@@ -2,6 +2,7 @@ package encore.user
 
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerId
 import encore.datastore.collection.PlayerObjects
 import encore.fancam.Fancam
 import encore.subunit.Subunit
@@ -87,7 +88,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         }
     }
 
-    private fun defaultProfile(playerId: String): Profile {
+    private fun defaultProfile(playerId: PlayerId): Profile {
         val now = getTimeMillis()
         return Profile(
             playerId = playerId,

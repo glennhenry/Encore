@@ -1,5 +1,6 @@
 package encore.user.model
 
+import encore.datastore.collection.PlayerId
 import kotlinx.serialization.Serializable
 
 /**
@@ -15,7 +16,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Profile(
-    val playerId: String,
+    val playerId: PlayerId,
     val createdAt: Long,
     val lastActiveAt: Long,
 )

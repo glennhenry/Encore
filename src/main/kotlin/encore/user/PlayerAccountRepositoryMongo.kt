@@ -6,6 +6,7 @@ import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.toxicbakery.bcrypt.Bcrypt
 import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerId
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import kotlinx.coroutines.flow.firstOrNull
@@ -22,7 +23,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
         }
     }
 
-    override suspend fun getPlayerAccountById(playerId: String): Result<PlayerAccount> {
+    override suspend fun getPlayerAccountById(playerId: PlayerId): Result<PlayerAccount> {
         return runMongoCatching {
             accountCollection
                 .find(Filters.eq("playerId", playerId))
@@ -78,7 +79,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
     }
 
     override suspend fun updatePlayerAccount(
-        playerId: String,
+        playerId: PlayerId,
         account: PlayerAccount
     ): Result<Unit> {
         return runMongoCatching {
@@ -87,7 +88,7 @@ class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<Player
         }
     }
 
-    override suspend fun updateLastLogin(playerId: String, lastLogin: Long): Result<Unit> {
+    override suspend fun updateLastLogin(playerId: PlayerId, lastLogin: Long): Result<Unit> {
         return runMongoCatching {
             val result = accountCollection.updateOne(
                 Filters.eq("playerId", playerId),

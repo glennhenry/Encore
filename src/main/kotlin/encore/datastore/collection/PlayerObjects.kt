@@ -12,7 +12,7 @@ import encore.user.AdminData
  * @property playerId Unique identifier of the player.
  */
 data class PlayerObjects(
-    val playerId: String,
+    val playerId: PlayerId,
 ) {
     /**
      * Template to create player objects.
@@ -27,7 +27,7 @@ data class PlayerObjects(
             )
         }
 
-        fun newGame(playerId: String): PlayerObjects {
+        fun newGame(playerId: PlayerId): PlayerObjects {
             return PlayerObjects(
                 playerId = playerId,
             )

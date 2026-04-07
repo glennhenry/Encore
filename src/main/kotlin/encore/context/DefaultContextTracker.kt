@@ -1,6 +1,7 @@
 package encore.context
 
 import encore.datastore.DataStore
+import encore.datastore.collection.PlayerId
 import encore.server.core.network.Connection
 import java.util.concurrent.ConcurrentHashMap
 
@@ -24,7 +25,7 @@ class DefaultContextTracker: ContextTracker {
      * @throws IllegalArgumentException If the player's account data cannot be found.
      */
     override suspend fun createContext(
-        playerId: String,
+        playerId: PlayerId,
         connection: Connection,
         db: DataStore
     ) {
@@ -40,7 +41,7 @@ class DefaultContextTracker: ContextTracker {
     }
 
     private suspend fun initializeSubunits(
-        playerId: String,
+        playerId: PlayerId,
         db: DataStore,
     ): PlayerSubunits {
         val playerObjectsCollection = db.getPlayerObjects(playerId)
@@ -52,11 +53,11 @@ class DefaultContextTracker: ContextTracker {
         )
     }
 
-    override fun getContext(playerId: String): PlayerContext? {
+    override fun getContext(playerId: PlayerId): PlayerContext? {
         return players[playerId]
     }
 
-    override fun removeContext(playerId: String) {
+    override fun removeContext(playerId: PlayerId) {
         players.remove(playerId)
     }
 

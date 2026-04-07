@@ -1,6 +1,7 @@
 package encore.context
 
 import encore.datastore.DataStore
+import encore.datastore.collection.PlayerId
 import encore.server.core.network.Connection
 
 /**
@@ -15,17 +16,17 @@ interface ContextTracker {
     /**
      * Creates and registers a new [PlayerContext] for the given player.
      */
-    suspend fun createContext(playerId: String, connection: Connection, db: DataStore)
+    suspend fun createContext(playerId: PlayerId, connection: Connection, db: DataStore)
 
     /**
      * Get context of [playerId].
      */
-    fun getContext(playerId: String): PlayerContext?
+    fun getContext(playerId: PlayerId): PlayerContext?
 
     /**
      * Remove context of [playerId].
      */
-    fun removeContext(playerId: String)
+    fun removeContext(playerId: PlayerId)
 
     /**
      * Shutdown the tracker.

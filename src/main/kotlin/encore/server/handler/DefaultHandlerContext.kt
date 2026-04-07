@@ -1,5 +1,6 @@
 package encore.server.handler
 
+import encore.datastore.collection.PlayerId
 import encore.server.core.network.Connection
 import encore.server.messaging.socket.SocketMessage
 
@@ -8,14 +9,14 @@ import encore.server.messaging.socket.SocketMessage
  */
 class DefaultHandlerContext<T : SocketMessage>(
     private val connection: Connection,
-    override var playerId: String,
+    override var playerId: PlayerId,
     override val message: T
 ) : HandlerContext<T> {
     override suspend fun sendRaw(raw: ByteArray, logOutput: Boolean, logFull: Boolean) {
         connection.write(raw, logOutput, logFull)
     }
 
-    override fun updatePlayerId(playerId: String) {
+    override fun updatePlayerId(playerId: PlayerId) {
         connection.updatePlayerId(playerId)
         this.playerId = playerId
     }

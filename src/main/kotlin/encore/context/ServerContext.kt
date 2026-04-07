@@ -3,6 +3,7 @@ package encore.context
 import encore.datastore.DataStore
 import encore.datastore.BlankDataStore
 import encore.backstage.command.CommandDispatcher
+import encore.datastore.collection.PlayerId
 import encore.server.core.OnlinePlayerRegistry
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
@@ -48,7 +49,7 @@ data class ServerContext(
         /**
          * Create a fake, simple to use [ServerContext] for testing purposes.
          *
-         * It allows injection of interface-based dependencies such as [Database],
+         * It allows injection of interface-based dependencies such as [DataStore],
          * [PlayerAccountRepository], and [AuthProvider].
          *
          * By default, the [FakeContextTracker] is used, while all other components
@@ -83,7 +84,7 @@ data class ServerContext(
  *
  * @return `null` if context is not found.
  */
-fun ServerContext.getPlayerContextOrNull(playerId: String): PlayerContext? =
+fun ServerContext.getPlayerContextOrNull(playerId: PlayerId): PlayerContext? =
     contextTracker.getContext(playerId)
 
 /**
@@ -91,7 +92,7 @@ fun ServerContext.getPlayerContextOrNull(playerId: String): PlayerContext? =
  *
  * @throws IllegalStateException if context is not found.
  */
-fun ServerContext.requirePlayerContext(playerId: String): PlayerContext =
+fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext =
     getPlayerContextOrNull(playerId)
         ?: error("PlayerContext not found for playerId=$playerId")
 

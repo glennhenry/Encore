@@ -1,6 +1,7 @@
 package encore.context
 
 import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerId
 import encore.server.core.network.Connection
 import encore.subunit.Subunit
 import encore.subunit.scope.PlayerScope
@@ -18,7 +19,7 @@ import encore.subunit.scope.PlayerScope
  * successfully authenticates. Context creation is handled by [ContextTracker].
  */
 data class PlayerContext(
-    val playerId: String,
+    val playerId: PlayerId,
     val connection: Connection,
     val account: PlayerAccount,
     val subunits: PlayerSubunits

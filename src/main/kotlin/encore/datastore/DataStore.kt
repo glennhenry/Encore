@@ -1,6 +1,7 @@
 package encore.datastore
 
 import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerId
 import encore.datastore.collection.PlayerObjects
 import encore.datastore.collection.ServerObjects
 
@@ -24,17 +25,17 @@ interface DataStore {
     /**
      * Returns whether an account associated with [playerId] exists.
      */
-    suspend fun playerExists(playerId: String): Boolean
+    suspend fun playerExists(playerId: PlayerId): Boolean
 
     /**
      * Returns the [PlayerAccount] for the given [playerId].
      */
-    suspend fun getPlayerAccount(playerId: String): PlayerAccount?
+    suspend fun getPlayerAccount(playerId: PlayerId): PlayerAccount?
 
     /**
      * Returns the [PlayerObjects] (game data) for the given [playerId].
      */
-    suspend fun getPlayerObjects(playerId: String): PlayerObjects?
+    suspend fun getPlayerObjects(playerId: PlayerId): PlayerObjects?
 
     /**
      * Returns the [ServerObjects] (global server data).
@@ -51,7 +52,7 @@ interface DataStore {
     /**
      * Deletes a player associated with the [playerId].
      */
-    suspend fun delete(playerId: String): Result<Unit>
+    suspend fun delete(playerId: PlayerId): Result<Unit>
 
     /**
      * Shutdown the data store.

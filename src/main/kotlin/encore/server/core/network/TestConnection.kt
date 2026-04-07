@@ -1,5 +1,6 @@
 package encore.server.core.network
 
+import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -32,7 +33,7 @@ import kotlin.time.Duration.Companion.seconds
 class TestConnection(
     override val remoteAddress: String = "",
     override val connectionScope: CoroutineScope,
-    override var playerId: String,
+    override var playerId: PlayerId,
     override var playerName: String
 ) : Connection {
     private val incoming = Channel<ByteArray>(Channel.UNLIMITED)
@@ -70,7 +71,7 @@ class TestConnection(
         writtenBytes += input
     }
 
-    override fun updatePlayerId(playerId: String) {
+    override fun updatePlayerId(playerId: PlayerId) {
         this.playerId = playerId
     }
 

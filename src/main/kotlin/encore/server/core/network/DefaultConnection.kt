@@ -1,5 +1,6 @@
 package encore.server.core.network
 
+import encore.datastore.collection.PlayerId
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.readAvailable
@@ -23,7 +24,7 @@ class DefaultConnection(
     override val remoteAddress: String,
     override val connectionScope: CoroutineScope
 ) : Connection {
-    override var playerId: String = "[Undetermined]"
+    override var playerId: PlayerId = "[Undetermined]"
     override var playerName: String = "[Undetermined]"
 
     /**
@@ -67,7 +68,7 @@ class DefaultConnection(
         }
     }
 
-    override fun updatePlayerId(playerId: String) {
+    override fun updatePlayerId(playerId: PlayerId) {
         this.playerId = playerId
     }
 

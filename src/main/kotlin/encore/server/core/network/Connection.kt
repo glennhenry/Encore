@@ -1,5 +1,6 @@
 package encore.server.core.network
 
+import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -16,7 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 interface Connection {
     val remoteAddress: String
     val connectionScope: CoroutineScope
-    var playerId: String
+    var playerId: PlayerId
     var playerName: String
 
     /**
@@ -40,7 +41,7 @@ interface Connection {
     /**
      * To update the playerId for this connection.
      */
-    fun updatePlayerId(playerId: String)
+    fun updatePlayerId(playerId: PlayerId)
 
     /**
      * Closes the connection and releases any associated resources.

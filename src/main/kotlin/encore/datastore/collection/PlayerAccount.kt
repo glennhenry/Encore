@@ -18,10 +18,18 @@ import encore.user.model.Profile
  */
 @Serializable
 data class PlayerAccount(
-    val playerId: String,
+    val playerId: PlayerId,
     val username: String,
     val email: String,
     val hashedPassword: String,
     val profile: Profile,
     val metadata: ServerMetadata
 )
+
+/**
+ * Represents a unique player identifier.
+ *
+ * This alias is used so it's possible to centralize code modification
+ * if the underlying type needs to be changed (e.g., to `Long` or `UUID`).
+ */
+typealias PlayerId = String

@@ -1,5 +1,7 @@
 package encore.subunit.scope
 
+import encore.datastore.collection.PlayerId
+
 /**
  * A player-scoped context.
  *
@@ -8,4 +10,4 @@ package encore.subunit.scope
  *
  * @property playerId Player ID associated with this scope.
  */
-data class PlayerScope(val playerId: String) : SubunitScope
+data class PlayerScope(val playerId: PlayerId) : SubunitScope
