@@ -19,10 +19,11 @@ object EncoreIdentity {
     const val Codename = "AfterLight"
     const val Slogan = "Bring it back live."
     const val Logo = """
-   _____  ___________  ___  ____
-  / __/ |/ / ___/ __ \/ _ \/ __/
- / _//    / /__/ /_/ / , _/ _/  
-/___/_/|_/\___/\____/_/|_/___/  
+  _____ _   _  ____ ___  ____  _____ 
+ | ____| \ | |/ ___/ _ \|  _ \| ____|
+ |  _| |  \| | |  | | | | |_) |  _|  
+ | |___| |\  | |__| |_| |  _ <| |___ 
+ |_____|_| \_|\____\___/|_| \_\_____|
 """
 
     fun banner(gameTitle: String, gameVersion: String, gameDescription: String): String {
@@ -38,9 +39,9 @@ object EncoreIdentity {
         val v = gameVersion.ifBlank { "N/A" }
 
         return buildString {
-            appendLine("__________________________________________")
+            appendLine("_______________________________________________")
             appendLine(Logo.trim('\n'))
-            appendLine("------------------------------------------")
+            appendLine("-----------------------------------------------")
             appendLine("Era    : $Version ($Codename)")
             appendLine("Stage  : $t ($v)")
             appendLine("         $gameDescription")
@@ -48,7 +49,7 @@ object EncoreIdentity {
                 appendLine()
             }
             appendLine("Made possible by $Title. $Slogan")
-            appendLine("__________________________________________")
+            appendLine("_______________________________________________")
         }
     }
 }
