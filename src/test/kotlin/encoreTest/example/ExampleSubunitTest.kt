@@ -2,9 +2,7 @@ package encoreTest.example
 
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
-import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoCollection
-import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import encore.fancam.Fancam
@@ -13,8 +11,7 @@ import encore.subunit.scope.PlayerScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
-import org.bson.Document
-import testHelper.CHANGE_ME_TEST_DB_NAME
+import testHelper.initMongo
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -115,13 +112,6 @@ class ExampleSubunitTest {
         assertEquals("updated", subunit.getStrData())
 
         collection.drop()
-    }
-
-    private suspend fun initMongo(): MongoDatabase {
-        val mongoc = MongoClient.create("mongodb://localhost:27017")
-        val db = mongoc.getDatabase(CHANGE_ME_TEST_DB_NAME)
-        db.runCommand(Document("ping", 1))
-        return db
     }
 }
 
