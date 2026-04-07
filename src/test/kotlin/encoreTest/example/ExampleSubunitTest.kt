@@ -1,31 +1,20 @@
 package encoreTest.example
 
-import testHelper.CHANGE_ME_TEST_DB_NAME
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.context.FakeContextTracker
-import encore.context.PlayerContext
-import encore.context.PlayerSubunits
-import encore.context.ServerContext
-import encore.datastore.collection.PlayerAccount
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import encore.fancam.Fancam
-import encore.server.core.network.TestConnection
-import encore.server.handler.DefaultHandlerContext
-import encore.server.handler.HandlerContext
-import encore.server.messaging.socket.SocketMessage
 import encore.subunit.Subunit
 import encore.subunit.scope.PlayerScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.bson.Document
+import testHelper.CHANGE_ME_TEST_DB_NAME
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -336,36 +325,4 @@ class ExampleSubunit(private val exampleRepository: ExampleRepository) : Subunit
     }
 
     override suspend fun disband(scope: PlayerScope): Result<Unit> = Result.success(Unit)
-}
-
-/**
- * Utility to build state to test socket message handlers.
- */
-data class HandlerTestState<T : SocketMessage>(
-    val playerId: String = "testPlayerId123",
-    val playerName: String = "TestPlayerABC",
-    val message: T,
-    val account: PlayerAccount = PlayerAccount.fake(playerId, playerName),
-    val subunits: PlayerSubunits,
-    val connectionScope: CoroutineScope = CoroutineScope(StandardTestDispatcher())
-) {
-    val connection = TestConnection(
-        connectionScope = connectionScope,
-        playerId = playerId,
-        playerName = playerName
-    )
-
-    val contextTracker = FakeContextTracker()
-
-    val serverContext = ServerContext.fake(contextTracker = contextTracker)
-
-    val playerContext = PlayerContext(playerId, connection, account, subunits).also {
-        contextTracker.fakeContext(it)
-    }
-
-    val handlerContext: HandlerContext<T> = DefaultHandlerContext(
-        playerId = playerId,
-        message = message,
-        connection = connection
-    )
 }

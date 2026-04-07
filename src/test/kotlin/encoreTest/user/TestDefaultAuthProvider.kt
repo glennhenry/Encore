@@ -1,20 +1,20 @@
 package encoreTest.user
 
-import testHelper.CHANGE_ME_TEST_DB_NAME
-import encore.datastore.MongoDataStore
 import com.mongodb.assertions.Assertions.assertFalse
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.user.PlayerCreationSubunit
+import encore.datastore.MongoDataStore
 import encore.datastore.collection.PlayerAccount
 import encore.user.PlayerAccountRepository
 import encore.user.PlayerAccountRepositoryMongo
+import encore.user.PlayerCreationSubunit
+import encore.user.auth.DefaultAuthProvider
+import encore.user.auth.SessionManager
+import encore.user.model.ServerMetadata
 import kotlinx.coroutines.test.runTest
 import org.bson.Document
-import encore.user.auth.SessionManager
-import encore.user.auth.DefaultAuthProvider
-import encore.user.model.ServerMetadata
-import encore.user.model.UserProfile
+import testHelper.CHANGE_ME_TEST_DB_NAME
+import testHelper.createProfile
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -40,8 +40,10 @@ class TestDefaultAuthProvider {
 
         val account = PlayerAccount(
             playerId = "pid12345",
-            hashedPassword = "hashed123",
-            profile = UserProfile.default("pid12345", "name"),
+            username = "name",
+            email = "anyemail",
+            hashedPassword = "anypassword",
+            profile = createProfile("pid12345"),
             metadata = ServerMetadata()
         )
         collection.insertOne(account)

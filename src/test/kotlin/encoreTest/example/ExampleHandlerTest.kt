@@ -3,13 +3,15 @@ package encoreTest.example
 import encore.context.PlayerSubunits
 import encore.context.ServerContext
 import encore.datastore.collection.PlayerAccount
+import encore.server.core.network.TestConnection
+import encore.server.handler.HandlerContext
+import encore.server.handler.SocketMessageHandler
+import encore.server.messaging.socket.SocketMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import encore.server.core.network.TestConnection
-import encore.server.handler.HandlerContext
-import encore.server.messaging.socket.SocketMessage
-import encore.server.handler.SocketMessageHandler
+import testHelper.HandlerTestState
+import testHelper.createAccount
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -48,7 +50,7 @@ class ExampleHandlerTest {
             playerId = playerId,
             playerName = playerName,
             message = ExampleMessage2(payload = "MSG1.EX.hello.world.kotlin.ktor"),
-            account = PlayerAccount.fake(playerId, playerName),
+            account = createAccount(playerId, playerName, "anypassword"),
             subunits = PlayerSubunits(),
             connectionScope = CoroutineScope(StandardTestDispatcher())
         )
@@ -72,7 +74,7 @@ class ExampleHandlerTest {
             playerId = playerId,
             playerName = playerName,
             message = ExampleMessage2(payload = "MSG1.EX.hello.world.kotlin|ktor"),
-            account = PlayerAccount.fake(playerId, playerName),
+            account = createAccount(playerId, playerName, "anypassword"),
             subunits = PlayerSubunits(),
             connectionScope = CoroutineScope(StandardTestDispatcher())
         )
