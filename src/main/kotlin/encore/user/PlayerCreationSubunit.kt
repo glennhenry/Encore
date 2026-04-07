@@ -1,42 +1,47 @@
 package encore.user
 
-import com.toxicbakery.bcrypt.Bcrypt
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerObjects
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
+import encore.user.model.Profile
 import encore.user.model.ServerMetadata
-import encore.user.model.UserProfile
 import encore.utils.UUID
-import kotlin.io.encoding.Base64
+import encore.utils.hash
+import io.ktor.util.date.*
 
 /**
  * Server-scoped subunit responsible for player creation.
  *
- * Requires a [encore.datastore.DataStore] to persist the newly created players.
+ * Requires a [DataStore] to persist the newly created players.
  */
 class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerScope> {
     /**
-     * Create a player account with the specified [username] and [password].
+     * Create a player account with the specified [username], [password], and [email].
+     *
+     * Email is optional and will be defaulted to username@email.com
      *
      * @return playerId of the newly created player
      * @throws [Throwable] an exception type from the underlying datastore or
      *         [IllegalStateException] when the account creation failed without any exception passed.
-     *
      */
-    suspend fun createPlayer(username: String, password: String): String {
+    suspend fun createPlayer(
+        username: String, password: String,
+        email: String = "$username@email.com"
+    ): String {
         val playerId = UUID.new()
-        val profile = UserProfile.Companion.default(playerId, username)
 
         val account = PlayerAccount(
             playerId = playerId,
-            hashedPassword = hashPw(password),
-            profile = profile,
+            username = username,
+            email = email,
+            hashedPassword = hash(password),
+            profile = defaultProfile(playerId),
             metadata = ServerMetadata()
         )
-        val objects = PlayerObjects.Companion.newGame(playerId)
+        val objects = PlayerObjects.newGame(playerId)
 
         val result = dataStore.create(account, objects)
         if (result.isSuccess) {
@@ -62,7 +67,16 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             return
         }
 
-        val result = dataStore.create(PlayerAccount.Companion.admin(), PlayerObjects.Companion.admin())
+        val account = PlayerAccount(
+            playerId = AdminData.PLAYER_ID,
+            username = AdminData.USERNAME,
+            email = AdminData.EMAIL,
+            hashedPassword = AdminData.HASHED_PASSWORD,
+            profile = defaultProfile(AdminData.PLAYER_ID),
+            metadata = ServerMetadata()
+        )
+
+        val result = dataStore.create(account, PlayerObjects.admin())
 
         if (result.isSuccess) {
             Fancam.info { "New admin account created" }
@@ -73,8 +87,13 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         }
     }
 
-    private fun hashPw(password: String): String {
-        return Base64.Default.encode(Bcrypt.hash(password, 10))
+    private fun defaultProfile(playerId: String): Profile {
+        val now = getTimeMillis()
+        return Profile(
+            playerId = playerId,
+            createdAt = now,
+            lastActiveAt = now
+        )
     }
 
     // unused
