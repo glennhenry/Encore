@@ -116,7 +116,7 @@ suspend fun Application.module() {
             val message = if (this@module.developmentMode) {
                 cause.stackTrace.joinToString("\n")
             } else {
-                "Stage was sabotaged..."
+                "Stage was sabotaged... T_T"
             }
 
             call.respondText(

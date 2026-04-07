@@ -66,7 +66,7 @@ class FancamDisplayTest {
             .setThrowable(Exception("Example exception", RuntimeException("cause of the example")))
             .logToFileOnly("FancamDisplayTest")
 
-        Fancam.event(Level.Warn, "xiaoting")
+        Fancam.event(Level.Warn, "xiaoting xiaoting xiaoting xiaoting")
             .message { "Xiaoting is so attractive. I keep thinking about her. I think I have fallen?" }
             .logToFileOnly("FancamDisplayTest")
 
