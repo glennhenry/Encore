@@ -3,10 +3,12 @@ package encore.user.model
 import kotlinx.serialization.Serializable
 
 /**
- * Data owned by a specific player but is an extra and managed at the server level.
+ * Server-owned information associated with a specific player.
  *
- * This may include feature flags, progression milestones, or
- * temporary states that are not part of core player profile data.
+ * Contains non-gameplay data managed at server-level.
+ *
+ * Typically includes extra data like flags, ban, permissions, or
+ * any other metadata for temporary or administrative purposes.
  */
 @Serializable
 data class ServerMetadata(

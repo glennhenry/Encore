@@ -1,40 +1,27 @@
 package encore.datastore.collection
 
-import encore.user.AdminData
 import kotlinx.serialization.Serializable
 import encore.user.model.ServerMetadata
-import encore.user.model.UserProfile
+import encore.user.model.Profile
 
 /**
- * Database-level representation of a player's account data.
+ * Representation of a player's account.
+ *
+ * This model is used to represent a player account in the database.
+ *
+ * @property playerId Unique identifier of the player.
+ * @property username Display name of the player.
+ * @property email Email address associated with this account.
+ * @property hashedPassword Hashed version of the account's password.
+ * @property profile Representation of the player's profile.
+ * @property metadata Extra information of the player.
  */
 @Serializable
 data class PlayerAccount(
     val playerId: String,
+    val username: String,
+    val email: String,
     val hashedPassword: String,
-    val profile: UserProfile,
+    val profile: Profile,
     val metadata: ServerMetadata
-) {
-    companion object {
-        fun admin(): PlayerAccount {
-            return PlayerAccount(
-                playerId = AdminData.PLAYER_ID,
-                hashedPassword = AdminData.HASHED_PASSWORD,
-                profile = UserProfile.admin(),
-                metadata = ServerMetadata()
-            )
-        }
-
-        /**
-         * Create a fake account where password is [AdminData.PASSWORD].
-         */
-        fun fake(playerId: String, username: String): PlayerAccount {
-            return PlayerAccount(
-                playerId = playerId,
-                hashedPassword = AdminData.HASHED_PASSWORD,
-                profile = UserProfile.default(playerId, username),
-                metadata = ServerMetadata()
-            )
-        }
-    }
-}
+)
