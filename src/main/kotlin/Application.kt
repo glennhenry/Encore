@@ -8,7 +8,7 @@ import encore.backstage.command.ExampleCommand
 import encore.context.DefaultContextTracker
 import encore.context.ServerContext
 import encore.context.ServerSubunits
-import encore.datastore.MONGO_PLAYER_ACCOUNT_COLLECTION_NAME
+import encore.datastore.MongoCollectionName
 import encore.datastore.MongoDataStore
 import encore.user.PlayerCreationSubunit
 import encore.definition.GameReference
@@ -52,6 +52,12 @@ import org.bson.Document
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
+
+val MongoCollectionName = MongoCollectionName(
+    playerAccount = "player_account",
+    playerObjects = "player_objects",
+    serverObjects = "server_objects"
+)
 
 fun main() {
     Venue.prepare()
@@ -146,9 +152,9 @@ suspend fun Application.module() {
     }
 
     /* 8. Setup ServerContext */
-    val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd))
+    val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
     val playerCreationSubunit = PlayerCreationSubunit(dataStore)
-    val playerAccountRepository = PlayerAccountRepositoryMongo(db.getCollection(MONGO_PLAYER_ACCOUNT_COLLECTION_NAME))
+    val playerAccountRepository = PlayerAccountRepositoryMongo(db.getCollection(MongoCollectionName.playerAccount))
     val sessionManager = SessionManager()
     val authProvider = DefaultAuthProvider(playerCreationSubunit, playerAccountRepository, sessionManager)
     val onlinePlayerRegistry = OnlinePlayerRegistry()

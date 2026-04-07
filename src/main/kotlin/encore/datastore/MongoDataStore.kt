@@ -13,19 +13,21 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlin.time.measureTime
 
-const val MONGO_PLAYER_ACCOUNT_COLLECTION_NAME = "player_account"
-const val MONGO_PLAYER_OBJECTS_COLLECTION_NAME = "player_objects"
-const val MONGO_SERVER_OBJECTS_COLLECTION_NAME = "server_objects"
+data class MongoCollectionName(
+    val playerAccount: String,
+    val playerObjects: String,
+    val serverObjects: String
+)
 
 /**
  * Implementation of [DataStore] based on the MongoDB database.
  *
  * Uses Kotlin MongoDB coroutine driver.
  */
-class MongoDataStore(db: MongoDatabase) : DataStore {
-    private val accounts = db.getCollection<PlayerAccount>(MONGO_PLAYER_ACCOUNT_COLLECTION_NAME)
-    private val playerObjects = db.getCollection<PlayerObjects>(MONGO_PLAYER_OBJECTS_COLLECTION_NAME)
-    private val serverObjects = db.getCollection<ServerObjects>(MONGO_SERVER_OBJECTS_COLLECTION_NAME)
+class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : DataStore {
+    private val accounts = db.getCollection<PlayerAccount>(collectionName.playerAccount)
+    private val playerObjects = db.getCollection<PlayerObjects>(collectionName.playerObjects)
+    private val serverObjects = db.getCollection<ServerObjects>(collectionName.serverObjects)
 
     private val initJob = CoroutineScope(Dispatchers.IO).async { setupCollections() }
 
