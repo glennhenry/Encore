@@ -75,14 +75,8 @@ class VenuePreparerTest {
                     <admin enabled="true" />
                     <database>
                         <mongo>
-                            <prod>
-                                <dbname>CHANGE_ME-prod-DB</dbname>
-                                <dburl>mongodb://localhost:27017</dburl>
-                            </prod>
-                            <test>
-                                <dbname>heheDB</dbname>
-                                <dburl>mongodb://localhost:27017</dburl>
-                            </test>
+                            <dbname>CHANGE_ME-prod-DB</dbname>
+                            <dburl>mongodb://localhost:27017</dburl>
                         </mongo>
                     </database>
                     <fancam>
@@ -117,7 +111,7 @@ class VenuePreparerTest {
         assertEquals(true, config.devMode)
         assertEquals("localhost", config.server.host)
         assertEquals(21, config.fancam.fileNamePadding)
-        assertEquals("heheDB", config.database.dbNameTest)
+        assertEquals("CHANGE_ME-prod-DB", config.database.dbNameProd)
         assertEquals(5, config.fancam.maxFileRotation)
         assertEquals(123, custom.child)
     }
@@ -136,14 +130,8 @@ class VenuePreparerTest {
                     <admin enabled="true" />
                     <database>
                         <mongo>
-                            <prod>
-                                <dbname>CHANGE_ME-prod-DB</dbname>
-                                <dburl>mongodb://localhost:27017</dburl>
-                            </prod>
-                            <test>
-                                <dbname>heheDB</dbname>
-                                <dburl>mongodb://localhost:27017</dburl>
-                            </test>
+                            <dbname>CHANGE_ME-prod-DB</dbname>
+                            <dburl>mongodb://localhost:27017</dburl>
                         </mongo>
                     </database>
                     <fancam>
@@ -198,14 +186,8 @@ class VenuePreparerTest {
                     <admin enabled="true" />
                     <database>
                         <mongo>
-                            <prod>
-                                <dbname>CHANGE_ME-prod-DB</dbname>
-                                <dburl>mongodb://localhost:27017</dburl>
-                            </prod>
-                            <test>
-                                <dbname>heheDB</dbname>
-                                <dburl>mongodb://localhost:27017</dburl>
-                            </test>
+                            <dbname>CHANGE_ME-prod-DB</dbname>
+                            <dburl>mongodb://localhost:27017</dburl>
                         </mongo>
                     </database>
                     <fancam>
@@ -229,7 +211,7 @@ class VenuePreparerTest {
         val envProvider = FakeEnvProvider(
             mapOf(
                 "ENCORE_FANCAM_COLOR__ENABLED" to "false",
-                "ENCORE_DATABASE_MONGO_PROD_DBNAME" to "testdbname",
+                "ENCORE_DATABASE_MONGO_DBNAME" to "testdbname",
             )
         )
         val preparer = VenuePreparer(listOf(xml), envProvider)
