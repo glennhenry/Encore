@@ -2,7 +2,7 @@ package encore.api.routes
 
 import encore.context.ServerContext
 import encore.fancam.Fancam
-import encore.utils.UUID
+import encore.utils.Ids
 import encore.ws.WsMessage
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -101,7 +101,7 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
 
         // PASS: user has valid token
         val session = serverContext.sessionManager.create(
-            userId = UUID.new(), validFor = 6.hours, lifetime = 6.hours
+            userId = Ids.uuid(), validFor = 6.hours, lifetime = 6.hours
         )
         call.response.cookies.append("backstage-clientId", session.token, maxAge = 21600, path = "/backstage")
         Fancam.info { "Request to /backstage (passed): token correct and user is now logged in" }

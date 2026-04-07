@@ -8,7 +8,7 @@ import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.user.model.Profile
 import encore.user.model.ServerMetadata
-import encore.utils.UUID
+import encore.utils.Ids
 import encore.utils.hash
 import io.ktor.util.date.*
 
@@ -31,7 +31,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         username: String, password: String,
         email: String = "$username@email.com"
     ): String {
-        val playerId = UUID.new()
+        val playerId = Ids.uuid()
 
         val account = PlayerAccount(
             playerId = playerId,

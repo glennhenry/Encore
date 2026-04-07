@@ -3,7 +3,6 @@ package encore.user.auth
 import encore.user.model.UserSession
 import encore.user.AdminData
 import kotlinx.coroutines.CoroutineDispatcher
-import encore.utils.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -11,11 +10,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import encore.utils.Ids
 import encore.utils.SystemTime
 import encore.utils.TimeProvider
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Manages authentication sessions for online users.
@@ -38,7 +39,7 @@ class SessionManager(
         scope.launch {
             while (isActive) {
                 cleanupExpiredSessions()
-                delay(cleanUpInterval)
+                delay(cleanUpInterval.milliseconds)
             }
         }
     }
@@ -54,7 +55,7 @@ class SessionManager(
         val token = if (userId == AdminData.PLAYER_ID) {
             AdminData.TOKEN
         } else {
-            UUID.new()
+            Ids.uuid()
         }
 
         val session = UserSession(

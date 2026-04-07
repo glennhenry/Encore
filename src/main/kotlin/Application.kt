@@ -27,7 +27,7 @@ import encore.server.tasks.TaskName
 import encore.user.PlayerAccountRepositoryMongo
 import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager
-import encore.utils.UUID
+import encore.utils.Ids
 import encore.venue.Venue
 import encore.ws.WebSocketManager
 import game.GameIdentity
@@ -251,7 +251,7 @@ suspend fun Application.module() {
             if (clean.isNotBlank()) {
                 when (clean) {
                     "token" -> {
-                        val token = UUID.new()
+                        val token = Ids.uuid()
                         println(token)
                         backstageToken[token] = getTimeMillis()
                         val toRemove = mutableListOf<String>()
