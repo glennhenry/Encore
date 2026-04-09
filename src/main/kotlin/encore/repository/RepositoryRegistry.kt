@@ -41,7 +41,7 @@ class RepositoryRegistry {
             return
         }
         init(RepositoryInitContext(repos))
-        Fancam.trace { "${repos.size} repositories registered." }
+        Fancam.trace { "RepositoryRegistry initialized with ${repos.size} instances." }
     }
 
     /**
