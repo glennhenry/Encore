@@ -38,7 +38,7 @@ class LogEventFancamFormatter(
                 append("[$timestamp]$source$level[${event.tag.ifBlank { "_" }}] ${event.message()}")
                 if (event.level == Level.Error) {
                     appendLine()
-                    appendLine(event.throwable.toLimitedString())
+                    appendLine(event.throwable.toLimitedString(false))
                 }
             }
         }
@@ -53,19 +53,24 @@ class LogEventFancamFormatter(
                 }
             }
 
-        val tag = if (event.tag.length > config.tagPadding) {
-            event.tag.take(config.tagPadding - 3) + "..."
+        val tag = event.tag
+            .take(config.tagPadding)
+            .padEnd(config.tagPadding, '_')
+
+        val styledTag = if (config.colorEnabled) {
+            // misuse but efficient: use level off to color tag
+            colorizeText(Level.Off, "[$tag]")
         } else {
-            event.tag.padEnd(config.tagPadding, '_')
+            "[$tag]"
         }
 
         return buildString {
             // [14:21:54.221](      Application.kt:22)[D][Server    ] debug message
             // have truncation on tag and message, padding is preserved for source and tag
-            append("[$timestamp]$source$level[$tag] $message")
+            append("[$timestamp]$source$level$styledTag $message")
             if (event.level == Level.Error) {
                 appendLine()
-                appendLine(event.throwable.toLimitedString())
+                appendLine(event.throwable.toLimitedString(config.colorEnabled))
             }
         }
     }
@@ -106,7 +111,7 @@ class LogEventFancamFormatter(
                 Level.Info -> AnsiColors.InfoBg
                 Level.Warn -> AnsiColors.WarnBg
                 Level.Error -> AnsiColors.ErrorBg
-                Level.Off -> ""
+                Level.Off -> AnsiColors.TagBg
             }
         } else {
             bg = ""
@@ -116,7 +121,7 @@ class LogEventFancamFormatter(
                 Level.Info -> AnsiColors.InfoFg
                 Level.Warn -> AnsiColors.WarnFg
                 Level.Error -> AnsiColors.ErrorFg
-                Level.Off -> ""
+                Level.Off -> AnsiColors.TagFg
             }
         }
 
@@ -128,10 +133,19 @@ class LogEventFancamFormatter(
  * Format a throwable into a string with limits of [maxFrames] and [maxCauses].
  */
 fun Throwable?.toLimitedString(
+    colorEnabled: Boolean,
     maxFrames: Int = 8,
     maxCauses: Int = 3
 ): String {
-    if (this == null) return "  (!) Exception not passed"
+    fun redColor(text: String): String {
+        return if (colorEnabled) {
+            "${AnsiColors.fg(160)}$text${AnsiColors.Reset}"
+        } else {
+            text
+        }
+    }
+
+    if (this == null) return redColor("  (!) Exception not passed")
 
     fun Throwable.format(depth: Int): String {
         if (depth >= maxCauses) {
@@ -139,8 +153,8 @@ fun Throwable?.toLimitedString(
         }
 
         val header = buildString {
-            if (depth == 0) append("  (!) ")
-            append("${this@format::class.simpleName}: $message")
+            if (depth == 0) append(redColor("  (!) "))
+            append(redColor("${this@format::class.simpleName}: $message"))
         }
 
         val frames = stackTrace
@@ -155,7 +169,7 @@ fun Throwable?.toLimitedString(
         }
 
         val causePart = cause?.let {
-            "    Caused by: ${it.format(depth + 1)}"
+            redColor("    Caused by: ") + it.format(depth + 1)
         } ?: ""
 
         return buildString {
