@@ -4,10 +4,9 @@ import encore.annotation.source.RevisitLater
 import encore.EncoreFancamConfig
 import encore.fancam.Fancam
 import encore.fancam.events.Level
+import encore.fancam.impl.FancamTemplate
 import encore.fancam.impl.OfficialFancam
 import kotlinx.coroutines.test.runTest
-import testHelper.toTempFile
-import java.io.File
 import kotlin.test.Test
 
 /**
@@ -19,20 +18,26 @@ import kotlin.test.Test
 class FancamDisplayTest {
     @Test
     fun `fancam without color`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig(colorEnabled = false)))
-        logExample()
+        val fancam = OfficialFancam(EncoreFancamConfig(colorEnabled = false))
+        Fancam.initialize(fancam)
+        logExample(fancam)
+        fancam.flush()
     }
 
     @Test
     fun `fancam with foreground color`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig(useBackgroundColor = false)))
-        logExample()
+        val fancam = OfficialFancam(EncoreFancamConfig(useBackgroundColor = false))
+        Fancam.initialize(fancam)
+        logExample(fancam)
+        fancam.flush()
     }
 
     @Test
     fun `fancam with color`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
-        logExample()
+        val fancam = OfficialFancam(EncoreFancamConfig())
+        Fancam.initialize(fancam)
+        logExample(fancam)
+        fancam.flush()
     }
 
     @Test
@@ -90,19 +95,19 @@ class FancamDisplayTest {
         fancam.flush()
     }
 
-    private fun logExample() {
-        Fancam.trace("TestTag") { "This is an example of 'Fancam.trace' message with custom tag with custom tag (1)." }
-        Fancam.trace { "This is an example of 'Fancam.trace' message (1)." }
-        Fancam.debug("TestTag") { "This is an example of 'Fancam.debug' message with custom tag with custom tag (1)." }
-        Fancam.debug { "This is an example of 'Fancam.debug' message (1)." }
-        Fancam.info("TestTag") { "This is an example of 'Fancam.info' message with custom tag with custom tag (1)." }
-        Fancam.info { "This is an example of 'Fancam.info' message (1)." }
-        Fancam.warn("TestTag") { "This is an example of 'Fancam.warn' message with custom tag with custom tag (1)." }
-        Fancam.warn { "This is an example of 'Fancam.warn' message (1)." }
-        Fancam.error(
+    private fun logExample(fancam: FancamTemplate) {
+        fancam.trace("TestTag") { "This is an example of 'Fancam.trace' message with custom tag with custom tag (1)." }
+        fancam.trace { "This is an example of 'Fancam.trace' message (1)." }
+        fancam.debug("TestTag") { "This is an example of 'Fancam.debug' message with custom tag with custom tag (1)." }
+        fancam.debug { "This is an example of 'Fancam.debug' message (1)." }
+        fancam.info("TestLongLongLongTag") { "This is an example of 'Fancam.info' message with custom tag with custom tag (1)." }
+        fancam.info { "This is an example of 'Fancam.info' message (1)." }
+        fancam.warn("TestTag") { "This is an example of 'Fancam.warn' message with custom tag with custom tag (1)." }
+        fancam.warn { "This is an example of 'Fancam.warn' message (1)." }
+        fancam.error(
             Exception("Example exception", RuntimeException("cause of the example")),
             "TestTag"
         ) { "This is an example of 'Fancam.error' message with custom tag with custom tag (1)." }
-        Fancam.error { "This is an example of 'Fancam.error' message (1)." }
+        fancam.error { "This is an example of 'Fancam.error' message (1)." }
     }
 }
