@@ -21,7 +21,7 @@ class DocumentNotUpdatedException(message: String) : RuntimeException(message)
  *
  * Behavior:
  * - Returns [Result.success] if [block] returns a non-null value.
- * - Returns [Result.failure] with [NoSuchElementException] if the result is null.
+ * - Returns [Result.failure] with [DocumentNotFoundException] if the result is null.
  * - Returns [Result.failure] if [block] throws.
  *
  * @param message message used when the result is null
