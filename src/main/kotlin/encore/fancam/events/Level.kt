@@ -43,11 +43,11 @@ fun String.toLogLevel(): Level {
  */
 fun Level.label(): String {
     return when (this) {
-        Level.Trace -> "T"
-        Level.Debug -> "D"
-        Level.Info -> "I"
-        Level.Warn -> "W"
-        Level.Error -> "E"
+        Level.Trace -> "TRACE"
+        Level.Debug -> "DEBUG"
+        Level.Info -> "INFO "
+        Level.Warn -> "WARN "
+        Level.Error -> "ERROR"
         Level.Off -> "OFF"
     }
 }
