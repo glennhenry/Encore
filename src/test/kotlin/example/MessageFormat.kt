@@ -1,4 +1,4 @@
-package encoreTest.example
+package example
 
 import com.mongodb.assertions.Assertions.assertFalse
 import encore.server.messaging.format.DecodeResult
@@ -7,24 +7,26 @@ import encore.server.messaging.socket.SocketMessage
 import kotlin.test.*
 
 /**
- * Demonstrate an example to test message format.
+ * This file demonstrate a full example of message format implementation and serializer.
+ *
+ * This test gives an example of how to test a message format.
  */
-class ExampleFormatTest {
+class SpaceDelimitedStringFormatTest {
     @Test
     fun `test verify format success`() {
-        val format = ExampleFormat()
+        val format = SpaceSeparatedStringFormat()
         assertTrue(format.verify(byteArrayOf(3.toByte())))
     }
 
     @Test
     fun `test verify codec fail`() {
-        val format = ExampleFormat()
+        val format = SpaceSeparatedStringFormat()
         assertFalse(format.verify(byteArrayOf(14.toByte())))
     }
 
     @Test
     fun `test verify format success but invalid format (even-length)`() {
-        val format = ExampleFormat()
+        val format = SpaceSeparatedStringFormat()
         val bytes = byteArrayOf(3.toByte(), 3, 4, 4)
         val result = format.tryDecode(bytes)
         assertIs<DecodeResult.Failure>(result)
@@ -32,7 +34,7 @@ class ExampleFormatTest {
 
     @Test
     fun `test decode success`() {
-        val format = ExampleFormat()
+        val format = SpaceSeparatedStringFormat()
         val bytes = byteArrayOf(8.toByte(), 3, 4, 4, 5, 9, 127, 111, 100)
         val result = format.tryDecode(bytes)
         assertIs<DecodeResult.Success<List<String>>>(result)
@@ -45,25 +47,25 @@ class ExampleFormatTest {
     @Test
     fun `test encode fail invalid string (1 byte in a group)`() {
         val list = listOf("7", "34", "4-5", "9-127", "111-100")
-        assertNull(ExampleSerializer.serialize(list))
+        assertNull(SpaceSeparatedStringSerializer.serialize(list))
     }
 
     @Test
     fun `test encode fail invalid string (3 byte in a group)`() {
         val list = listOf("9", "34-43-22", "4-5", "9-127", "111-100")
-        assertNull(ExampleSerializer.serialize(list))
+        assertNull(SpaceSeparatedStringSerializer.serialize(list))
     }
 
     @Test
     fun `test encode fail one of the number is not a byte`() {
         val list = listOf("8", "343-1", "4-5", "9-127", "111-100")
-        assertNull(ExampleSerializer.serialize(list))
+        assertNull(SpaceSeparatedStringSerializer.serialize(list))
     }
 
     @Test
     fun `test encode success`() {
         val list = listOf("8", "3-4", "4-5", "9-127", "111-100")
-        assertContentEquals(byteArrayOf(8, 3, 4, 4, 5, 9, 127, 111, 100), ExampleSerializer.serialize(list))
+        assertContentEquals(byteArrayOf(8, 3, 4, 4, 5, 9, 127, 111, 100), SpaceSeparatedStringSerializer.serialize(list))
     }
 }
 
@@ -82,7 +84,7 @@ class ExampleFormatTest {
  * - **encoded**: `[3 124 94 9 23 51 32]` (assume byte representation)
  *
  * **Note**: the decoding logic is implemented on [tryDecode], while the
- * encoding, or the serialization process is on [ExampleSerializer].
+ * encoding, or the serialization process is on [SpaceSeparatedStringSerializer].
  *
  * **Decoding**:
  * - Drops the header number.
@@ -98,8 +100,8 @@ class ExampleFormatTest {
  *   is a valid byte. **FAIL: return null**.
  * - Add all bytes to the byte array.
  */
-class ExampleFormat : MessageFormat<List<String>> {
-    override val name: String = "ExampleFormat"
+class SpaceSeparatedStringFormat : MessageFormat<List<String>> {
+    override val name: String = "SpaceSeparatedStringFormat"
 
     override fun verify(data: ByteArray): Boolean {
         return data.first().toInt() in 0..9
@@ -131,14 +133,14 @@ class ExampleFormat : MessageFormat<List<String>> {
     }
 
     override fun materialize(decoded: List<String>): SocketMessage {
-        return ExampleMessage(decoded)
+        return SpaceSeparatedMessage(decoded)
     }
 }
 
 /**
- * Serializer implementation for the [ExampleFormat].
+ * Serializer implementation for the [SpaceSeparatedStringFormat].
  */
-object ExampleSerializer {
+object SpaceSeparatedStringSerializer {
     fun serialize(input: List<String>): ByteArray? {
         val header = ((input.size - 1) * 2) % 9
         val result = mutableListOf(header.toByte())
@@ -168,11 +170,9 @@ object ExampleSerializer {
 }
 
 /**
- * Example [SocketMessage] implementation based on [ExampleFormat].
- *
- * In this case, the decoded message is wrapped generically.
+ * Example [SocketMessage] implementation based on [SpaceSeparatedStringFormat].
  */
-class ExampleMessage(private val payload: List<String>): SocketMessage {
+class SpaceSeparatedMessage(private val payload: List<String>): SocketMessage {
     override fun type(): String = payload.first()
     override fun toString(): String = payload.joinToString()
 }
