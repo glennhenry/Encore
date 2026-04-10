@@ -7,16 +7,20 @@ import game.GameIdentity
 /**
  * Defines identity of the Encore framework.
  *
- * Provides cosmetic, code-level details such as product name,
- * version, slogan, and logo.
+ * Provides a mainly cosmetic, code-level details
+ * such as product name, version, slogan, and logo.
  *
  * This information is optional and used only for presentation,
  * for example in server startup banners or log messages.
+ *
+ * Though, the version can be modified when the framework receives update,
+ * ensuring noticeable difference on the server implementation.
  */
 object EncoreIdentity {
     const val Title = "Encore"
-    const val Version = "0.0.1"
-    const val Codename = "AfterLight"
+    const val Version = "0.0.0"
+    const val VersionDate = "2026.04.10"
+    const val Codename = "Training"
     const val Slogan = "Bring it back live."
     const val Logo = """
   _____ _   _  ____ ___  ____  _____ 
@@ -42,7 +46,7 @@ object EncoreIdentity {
             appendLine("_______________________________________________")
             appendLine(Logo.trim('\n'))
             appendLine("-----------------------------------------------")
-            appendLine("Era    : $Version ($Codename)")
+            appendLine("Era    : $Version at $VersionDate ($Codename)")
             appendLine("Stage  : $t ($v)")
             appendLine("         $gameDescription")
             if (gameDescription.isNotBlank()) {
