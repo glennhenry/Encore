@@ -86,5 +86,8 @@ object Fancam {
 /**
  * Blank spaces to include in the log message when you are logging with
  * multiple lines and wants the next line to align with the upper log call.
+ *
+ * This is hardcoded and should be modified manually when formatting changes
+ * (which includes changes like padding length).
  */
-const val LOG_INDENT_PREFIX = "                                             "
+const val LOG_INDENT_PREFIX = "                                                              "

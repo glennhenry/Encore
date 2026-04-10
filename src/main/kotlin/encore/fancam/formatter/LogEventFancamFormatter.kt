@@ -36,7 +36,7 @@ class LogEventFancamFormatter(
                 // [14:21:54.221](Application.kt:22)[D][InventorySubunit] debug message
                 // everything printed, no truncation, no padding
                 append("[$timestamp]$source$level[${event.tag.ifBlank { "_" }}] ${event.message()}")
-                if (event.level == Level.Error) {
+                if (event.level == Level.Error && event.throwable != null) {
                     appendLine()
                     appendLine(event.throwable.toLimitedString(false))
                 }
@@ -68,7 +68,7 @@ class LogEventFancamFormatter(
             // [14:21:54.221](      Application.kt:22)[D][Server    ] debug message
             // have truncation on tag and message, padding is preserved for source and tag
             append("[$timestamp]$source$level$styledTag $message")
-            if (event.level == Level.Error) {
+            if (event.level == Level.Error && event.throwable != null) {
                 appendLine()
                 appendLine(event.throwable.toLimitedString(config.colorEnabled))
             }
@@ -132,7 +132,7 @@ class LogEventFancamFormatter(
 /**
  * Format a throwable into a string with limits of [maxFrames] and [maxCauses].
  */
-fun Throwable?.toLimitedString(
+fun Throwable.toLimitedString(
     colorEnabled: Boolean,
     maxFrames: Int = 8,
     maxCauses: Int = 3
@@ -144,8 +144,6 @@ fun Throwable?.toLimitedString(
             text
         }
     }
-
-    if (this == null) return redColor("  (!) Exception not passed")
 
     fun Throwable.format(depth: Int): String {
         if (depth >= maxCauses) {
