@@ -40,9 +40,31 @@ fun <T> Report<T>.isOk(): Boolean = this is Report.Ok
 fun <T> Report<T>.isFail(): Boolean = this is Report.Fail
 
 /**
- * Returns the value of this report or null if it fails.
+ * Returns the value of this report or `null` if it fails.
  */
 fun <T> Report<T>.okOrNull(): T? = (this as? Report.Ok)?.value
+
+/**
+ * Returns the value if this is [Report.Ok], otherwise throws an error.
+ *
+ * This is intended for cases where failure is unexpected and should fail-fast.
+ *
+ * @param failMessage Additional context for the failure.
+ * @throws IllegalStateException if this is [Report.Fail]
+ */
+fun <T> Report<T>.require(failMessage: () -> String): T {
+    return when (this) {
+        is Report.Ok -> value
+        is Report.Fail -> {
+            error("Expected Report.Ok but was Fail: ${failMessage()}")
+        }
+    }
+}
+
+/**
+ * Returns [Report.Ok] when this value is not null, otherwise [Report.Fail] will be returned.
+ */
+fun <T> T?.toReportOkOrFail(): Report<T> = this?.let { Report.Ok(it) } ?: Report.Fail
 
 /**
  * Executes one of the provided lambdas depending on the outcome of this [Report].
@@ -69,4 +91,26 @@ inline fun <T, R> Report<T>.handles(onOk: (T) -> R, onFail: () -> R): R {
         is Report.Ok -> onOk(value)
         Report.Fail -> onFail()
     }
+}
+
+/**
+ * Converts a [Result] into a [Report].
+ *
+ * - Invokes [onSuccess] if the result is successful, then returns [Report.Ok].
+ * - Invokes [onFailure] if the result is a failure, then returns [Report.Fail].
+ */
+fun <T> Result<T>.toReport(
+    onSuccess: (T) -> Unit = {},
+    onFailure: (Throwable) -> Unit
+): Report<T> {
+    return fold(
+        onSuccess = {
+            onSuccess(it)
+            Report.Ok(it)
+        },
+        onFailure = {
+            onFailure(it)
+            Report.Fail
+        }
+    )
 }
