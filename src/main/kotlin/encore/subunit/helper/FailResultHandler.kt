@@ -5,7 +5,7 @@ import encore.datastore.DocumentNotUpdatedException
 import encore.fancam.Fancam
 
 /**
- * Handles a failed [Result] in the context of a subunit's **get/retrieval operations**.
+ * Handles a [Throwable] in the context of a subunit's **get/retrieval operations**.
  *
  * Subunits often call repository functions that return [Result] types. When a
  * repository operation fails, it wraps exceptions (e.g., [DocumentNotFoundException])
@@ -29,20 +29,18 @@ import encore.fancam.Fancam
  * @param notFoundMessage Message to log when a [DocumentNotFoundException] is thrown
  * @param unknownMessage Message to log when any other unknown exception is thrown
  */
-inline fun <T> Result<T>.failHandleGet(
-    crossinline notFoundMessage: () -> String,
-    crossinline unknownMessage: () -> String = { "Unknown error" }
+inline fun Throwable.failHandleGet(
+    crossinline notFoundMessage: () -> String = { "Get operation failed: document not found" },
+    crossinline unknownMessage: () -> String = { "Get operation failed with an unknown error" }
 ) {
-    this.exceptionOrNull()?.let { throwable ->
-        when (throwable) {
-            is DocumentNotFoundException -> Fancam.error { notFoundMessage() }
-            else -> Fancam.error(throwable) { unknownMessage() }
-        }
+    when (this) {
+        is DocumentNotFoundException -> Fancam.error(this) { notFoundMessage() }
+        else -> Fancam.error(this) { unknownMessage() }
     }
 }
 
 /**
- * Handles a failed [Result] in the context of a subunit's **update operations**.
+ * Handles a [Throwable] in the context of a subunit's **update operations**.
  *
  * Similar to [failHandleGet], but designed for update operations which adds
  * additional matching for [DocumentNotUpdatedException].
@@ -62,16 +60,14 @@ inline fun <T> Result<T>.failHandleGet(
  * @param notUpdatedMessage Message to log when a [DocumentNotUpdatedException] is thrown
  * @param unknownMessage Message to log when any other unknown exception is thrown
  */
-inline fun <T> Result<T>.failHandleUpdate(
-    crossinline notFoundMessage: () -> String,
-    crossinline notUpdatedMessage: () -> String,
-    crossinline unknownMessage: () -> String = { "Unknown error" }
+inline fun Throwable.failHandleUpdate(
+    crossinline notFoundMessage: () -> String = { "Update failed: document not found" },
+    crossinline notUpdatedMessage: () -> String = { "Update failed: no document affected" },
+    crossinline unknownMessage: () -> String = { "Update failed with unknown error" }
 ) {
-    this.exceptionOrNull()?.let { throwable ->
-        when (throwable) {
-            is DocumentNotFoundException -> Fancam.error { notFoundMessage() }
-            is DocumentNotUpdatedException -> Fancam.error { notUpdatedMessage() }
-            else -> Fancam.error(throwable) { unknownMessage() }
-        }
+    when (this) {
+        is DocumentNotFoundException -> Fancam.error(this) { notFoundMessage() }
+        is DocumentNotUpdatedException -> Fancam.error(this) { notUpdatedMessage() }
+        else -> Fancam.error(this) { unknownMessage() }
     }
 }
