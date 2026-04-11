@@ -3,137 +3,131 @@ package encore.security.screening
 import encore.fancam.Fancam
 
 /**
- * A DSL-style validator that executes a sequence of predicate checks on a target object.
+ * A DSL-style sequential validation pipeline (guard-chain).
  *
- * A [Screening] consists of ordered validation stages added via [check] or [checkSuspend].
- * Each stage must return `true` to pass. Evaluation stops at the first failure or error.
+ * `Screening` executes a series of ordered validation checks.
+ * Each check evaluates a predicate, and optionally executes a failure handler.
+ *
+ * Execution stops immediately on the first failed check and subsequent checks are skipped.
  *
  * Example:
  * ```kotlin
- * Screening("BuildingCreate resource check") { playerData }
- *     .checkFor(playerId)
- *     .check("Resource must be more than 100") { getResources() > 100 }
- *     .check("Require at least 20 XP") { getXP() >= 20 }
- *     .finish()
+ * val str = "user@email.com"
+ * var failedResponse: Response? = null
+ *
+ * Screening("EmailCheck")
+ *     .check("Contains @", { str.contains("@") }) {
+ *         failedResponse = Response("Email invalid without '@'")
+ *     }
+ *     .check("Minimum 10 length", { str.length >= 10 }) {
+ *         failedResponse = Response("Email too short")
+ *     }
+ *
+ * failedResponse?.let { return it }
  * ```
  *
  * Execution rules:
- * - Stages are executed sequentially in the order they are added.
- * - Evaluation stops at the first failed stage, returning [ScreeningResult.Failed]
- * - If a stage throws, execution stops and returns [ScreeningResult.Error].
- * - If any suspendable stage is added, [finishSuspend] must be used.
+ * - Checks are evaluated sequentially by call order.
+ * - Evaluation stops at the first failed predicate (`false` result).
+ * - When a predicate fails, its `onFail` block is executed.
+ * - If a check throws, execution aborted and error is re-thrown.
+ * - If a predicate throws an exception:
+ *     - it is treated as a runtime error (not a validation failure)
+ *     - execution is aborted immediately
+ *     - the exception is rethrown
+ *     - `onFail` will **not** be executed
  *
- * @param title Descriptive name of this screening (e.g., "BuildingCreate").
- * @param factory Provides the validation context for each stage.
+ * Note: if either [check] or `onFail` handler contains any suspendable call,
+ * the [checkSuspend] should be used instead.
+ *
+ * @param title Descriptive name of this screening (e.g., "BuildingCreate")
+ * @param target Logical target of this screening (e.g., `playerId`, `username`)
  */
-class Screening<T>(private val title: String, private val factory: () -> T) {
-    private var target: String = "<Undefined>"
-    private val stages = mutableListOf<ScreeningStage<T>>()
+class Screening(
+    private val title: String,
+    private val target: String = "",
+) {
+    private var stageIndex: Int = 1
+    private var failed = false
 
     /**
-     * Defines the logical target of this screening (e.g., player ID, username).
+     * Perform a non-suspendable validation check.
      *
-     * This is used for logging.
-     */
-    fun checkFor(target: String) = apply {
-        this.target = target
-    }
-
-    /**
-     * Adds a synchronous validation stage.
+     * Behavior:
+     * - If predicate returns `true`, the check passes and execution continues.
+     * - If predicate returns `false`, the check fails and `onFail` is executed.
+     * - If predicate throws an exception:
+     *     - treated as a runtime error
+     *     - execution is aborted immediately
+     *     - exception is rethrown
+     *     - `onFail` is **NOT** executed
      *
      * @param description Descriptive text of the condition being checked.
-     * @param predicate Must return `true` for the stage to pass.
+     * @param predicate Validation condition that must return `true` to pass.
+     * @param onFail Handler block that executes when predicate returns false.
      */
     fun check(
         description: String,
-        predicate: T.() -> Boolean
-    ) = apply {
-        stages += ScreeningStage(description, NonSuspendPredicate(predicate))
+        predicate: () -> Boolean,
+        onFail: () -> Unit
+    ): Screening {
+        if (failed) return this
+
+        val stageDescription = if (description.isBlank()) "stage-$stageIndex" else "stage-$stageIndex: $description"
+        val stageTarget = target.ifBlank { "Undefined" }
+
+        val passed = try {
+            predicate()
+        } catch (e: Throwable) {
+            Fancam.error(e) {
+                "Screening '$title' error at $stageDescription (target=$stageTarget): ${e.message}"
+            }
+            throw e
+        }
+
+        if (!passed) {
+            Fancam.info { "Screening '$title' failed at $stageDescription (target=$stageTarget)" }
+            failed = true
+            onFail()
+        }
+
+        Fancam.trace { "Screening '$title' passed $stageDescription (target=$stageTarget)" }
+
+        stageIndex += 1
+        return this
     }
 
     /**
-     * Adds a suspendable validation stage.
+     * Suspendable version of [check].
      */
-    fun checkSuspend(
+    suspend fun checkSuspend(
         description: String,
-        predicate: suspend T.() -> Boolean
-    ) = apply {
-        stages += ScreeningStage(description, SuspendPredicate(predicate))
-    }
+        predicate: suspend () -> Boolean,
+        onFail: suspend () -> Unit
+    ): Screening {
+        if (failed) return this
 
-    /**
-     * Executes all registered validation stages sequentially,
-     * stops immediately when the first validation fails.
-     *
-     * @return [ScreeningResult] describing the outcome.
-     */
-    fun finish(): ScreeningResult {
-        Fancam.trace { "Screening '$title' started (target=$target)" }
-        val instance = factory()
+        val stageDescription = if (description.isBlank()) "stage-$stageIndex" else "stage-$stageIndex: $description"
+        val stageTarget = target.ifBlank { "Undefined" }
 
-        for ((index, stage) in stages.withIndex()) {
-            val stageIndex = index + 1
-            val stageDesription = stage.label(stageIndex)
-
-            val passed = try {
-                stage.predicate.check(instance)
-            } catch (e: Throwable) {
-                Fancam.error {
-                    "Screening '$title' error at $stageDesription (target=$target): ${e.message}"
-                }
-                return ScreeningResult.Error(stageIndex, e)
+        val passed = try {
+            predicate()
+        } catch (e: Throwable) {
+            Fancam.error(e) {
+                "Screening '$title' error at $stageDescription (target=$stageTarget): ${e.message}"
             }
-
-            if (!passed) {
-                Fancam.info { "Screening '$title' failed at $stageDesription (target=$target)" }
-                return ScreeningResult.Failed(stageIndex)
-            }
-
-            Fancam.trace { "Screening '$title' passed $stageDesription (target=$target)" }
+            throw e
         }
 
-        Fancam.info { "Screening '$title' completed successfully (target=$target)" }
-        return ScreeningResult.Passed
-    }
-
-    /**
-     * Suspended version of [finish].
-     *
-     * This executes the predicate function in suspendable context.
-     */
-    suspend fun finishSuspend(): ScreeningResult {
-        Fancam.trace { "Screening '$title' started (target=$target)" }
-        val instance = factory()
-
-        for ((index, stage) in stages.withIndex()) {
-            val stageIndex = index + 1
-            val stageDesription = stage.label(stageIndex)
-
-            val passed = try {
-                stage.predicate.checkSuspend(instance)
-            } catch (e: Throwable) {
-                Fancam.error {
-                    "Screening '$title' error at $stageDesription (target=$target): ${e.message}"
-                }
-                return ScreeningResult.Error(stageIndex, e)
-            }
-
-            if (!passed) {
-                Fancam.trace { "Screening '$title' failed at $stageDesription (target=$target)" }
-                return ScreeningResult.Failed(stageIndex)
-            }
-
-            Fancam.trace { "Screening '$title' passed $stageDesription (target=$target)" }
+        if (!passed) {
+            Fancam.info { "Screening '$title' failed at $stageDescription (target=$stageTarget)" }
+            failed = true
+            onFail()
         }
 
-        return ScreeningResult.Passed
+        Fancam.trace { "Screening '$title' passed $stageDescription (target=$stageTarget)" }
+
+        stageIndex += 1
+        return this
     }
 }
-
-/**
- * Formats stage label for logging/debugging.
- */
-private fun <T> ScreeningStage<T>.label(index: Int): String =
-    if (description.isBlank()) "stage-$index"
-    else "stage-$index: $description"
