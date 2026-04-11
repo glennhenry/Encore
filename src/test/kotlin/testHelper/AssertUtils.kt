@@ -16,6 +16,19 @@ fun <T> assertDoesNotFail(block: () -> T): T {
     }
 }
 
+/**
+ * Assert that the called suspendable [block] does not fail.
+ *
+ * @throws AssertionError
+ */
+suspend fun <T> assertDoesNotFailSuspend(block: suspend () -> T): T {
+    try {
+        return block()
+    } catch (t: Throwable) {
+        throw AssertionError("Expected block to not throw, but got: ${t::class.simpleName}: ${t.message}", t)
+    }
+}
+
 class AssertUtilsTest {
     @Test
     fun doesNotFail() {
