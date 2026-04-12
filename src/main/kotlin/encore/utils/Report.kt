@@ -1,112 +1,94 @@
 package encore.utils
 
 /**
- * Represents the summary of an operation, capturing success or failure
- * without exposing exceptions.
+ * Represents the summary of an operation, capturing success or failure.
+ *
+ * Use [Report.Ok] when the operation succeeded and [Report.Fail] when it fails.
  *
  * This type shares the similar idea with [Result], but intentionally
- * does not carry a `Throwable`. It is designed for cases where:
+ * does not carry any value or a `Throwable`. It is designed for cases where:
  * - The caller requests an operation from another component.
  * - The caller only cares about whether the operation succeeded or failed.
- * - The caller does not need the underlying exception or error details.
- *
- * `Report` type supports safe handling of operations while avoiding
- * exception leakage or duplicate logging.
- *
- * @param T The type of value produced when the operation succeeds.
+ * - The caller does not expect a value and do not care about the underlying
+ *   exception or error details.
  */
-sealed interface Report<out T> {
+sealed interface Report {
     /**
      * Indicates that the operation succeeded.
-     *
-     * @property value The result of the successful operation.
      */
-    data class Ok<T>(val value: T) : Report<T>
+    data object Ok : Report
 
     /**
      * Indicates that the operation failed.
      */
-    data object Fail : Report<Nothing>
+    data object Fail : Report
 }
 
 /**
  * Returns whether this report is [Ok].
  */
-fun <T> Report<T>.isOk(): Boolean = this is Report.Ok
+fun Report.isOk(): Boolean = this is Report.Ok
 
 /**
  * Returns whether this report is [Fail].
  */
-fun <T> Report<T>.isFail(): Boolean = this is Report.Fail
+fun Report.isFail(): Boolean = this is Report.Fail
 
 /**
- * Returns the value of this report or `null` if it fails.
- */
-fun <T> Report<T>.okOrNull(): T? = (this as? Report.Ok)?.value
-
-/**
- * Returns the value if this is [Report.Ok], otherwise throws an error.
- *
- * This is intended for cases where failure is unexpected and should fail-fast.
- *
- * @param failMessage Additional context for the failure.
- * @throws IllegalStateException if this is [Report.Fail]
- */
-fun <T> Report<T>.require(failMessage: () -> String): T {
-    return when (this) {
-        is Report.Ok -> value
-        is Report.Fail -> {
-            error("Expected Report.Ok but was Fail: ${failMessage()}")
-        }
-    }
-}
-
-/**
- * Returns [Report.Ok] when this value is not null, otherwise [Report.Fail] will be returned.
- */
-fun <T> T?.toReportOkOrFail(): Report<T> = this?.let { Report.Ok(it) } ?: Report.Fail
-
-/**
- * Executes one of the provided lambdas depending on the outcome of this [Report].
- *
- * This is a convenient way to handle both success (`Ok`) and failure (`Fail`) cases
- * in a single expression, without needing explicit `when` statements.
+ * Executes one of the given functions depending on the type of this [Report]
+ * and returns its result.
  *
  * Example usage:
  * ```
- * val result: Report<Int> = service.getValue()
- * val message = result.handles(
- *     onOk = { value -> SuccessResponse("Success: $value") },
- *     onFail = { FailedResponse("Operation failed") }
+ * val report: Report = subunit.updateInventory()
+ * val message: Response = report.fold(
+ *     onOk = { SuccessResponse("Inventory updated") },
+ *     onFail = { FailedResponse("Inventory update failed") }
  * )
  * ```
  *
  * @param onOk Lambda to execute when the report is [Report.Ok].
- *             Receives a value as the parameter.
  * @param onFail Lambda to execute when the report is [Report.Fail].
- * @return The result of either `onOk` or `onFail`.
+ * @return The execution result of either `onOk` or `onFail`.
  */
-inline fun <T, R> Report<T>.handles(onOk: (T) -> R, onFail: () -> R): R {
+inline fun <R> Report.fold(onOk: () -> R, onFail: () -> R): R {
     return when (this) {
-        is Report.Ok -> onOk(value)
+        is Report.Ok -> onOk()
         Report.Fail -> onFail()
     }
 }
 
 /**
- * Converts a [Result] into a [Report].
- *
- * - Invokes [onSuccess] if the result is successful, then returns [Report.Ok].
- * - Invokes [onFailure] if the result is a failure, then returns [Report.Fail].
+ * Execute [action] only when the report is [Report.Ok].
+ * @return The same report object for DSL chaining.
+ */
+inline fun Report.onOk(action: () -> Unit): Report {
+    if (this is Report.Ok) action()
+    return this
+}
+
+/**
+ * Execute [action] only when the report is [Report.Fail].
+ * @return The same report object for DSL chaining.
+ */
+inline fun Report.onFail(action: () -> Unit): Report {
+    if (this is Report.Fail) action()
+    return this
+}
+
+/**
+ * Converts a [Result] into a [Report] by:
+ * - Invoking [onSuccess] if the result is successful, then returns [Report.Ok].
+ * - Invoking [onFailure] if the result is a failure, then returns [Report.Fail].
  */
 fun <T> Result<T>.toReport(
     onSuccess: (T) -> Unit = {},
     onFailure: (Throwable) -> Unit
-): Report<T> {
+): Report {
     return fold(
         onSuccess = {
             onSuccess(it)
-            Report.Ok(it)
+            Report.Ok
         },
         onFailure = {
             onFailure(it)
