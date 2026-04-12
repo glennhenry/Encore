@@ -1,4 +1,4 @@
-package encore.security.screening
+package encore.security
 
 import encore.fancam.Fancam
 

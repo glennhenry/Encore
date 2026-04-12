@@ -4,7 +4,7 @@ import com.mongodb.assertions.Assertions.assertFalse
 import encore.EncoreFancamConfig
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam
-import encore.security.screening.Screening
+import encore.security.Screening
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import testHelper.assertDoesNotFail
