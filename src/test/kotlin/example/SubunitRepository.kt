@@ -11,16 +11,11 @@ import encore.subunit.Subunit
 import encore.subunit.helper.failHandleGet
 import encore.subunit.helper.failHandleUpdate
 import encore.subunit.scope.PlayerScope
-import encore.utils.Report
-import encore.utils.isOk
-import encore.utils.okOrNull
-import encore.utils.toReport
-import encore.utils.toReportOkOrFail
+import encore.utils.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
 import testHelper.initMongo
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -30,7 +25,6 @@ import kotlin.test.assertTrue
  *
  * This test gives example of how to test a subunit.
  */
-@Ignore
 class ExampleSubunitTest {
     /**
      * Principle:
@@ -47,33 +41,22 @@ class ExampleSubunitTest {
     @Test
     fun testSubunits() = runTest {
         val mockRepo = object : PlayerRepository {
-            override suspend fun getRole(playerId: String) = Result.success("s1")
-            override suspend fun getDamage(playerId: String) = Result.success(1)
-            override suspend fun getItem(playerId: String, item: String) = Result.success("s2")
-            override suspend fun getAllItems(playerId: String) = Result.success(listOf("s3", "s4"))
-            override suspend fun updateRole(playerId: String, newRole: String): Result<Unit> {
-                TODO()
-            }
-
-            override suspend fun updateDamage(playerId: String, newDamage: Int) = Result.success(Unit)
-            override suspend fun updateItem(
-                playerId: String,
-                oldItem: String,
-                newItem: String
-            ) = TODO()
-
-            override suspend fun updateAllItems(playerId: String, newItems: List<String>) = TODO()
+            override suspend fun getHealth(playerId: String) = Result.success(10)
+            override suspend fun getItems(playerId: String) = Result.success(listOf("s3", "s4"))
+            override suspend fun updateHealth(playerId: String, newHealth: Int) = Result.success(Unit)
+            override suspend fun updateItems(playerId: String, newItems: List<String>) = TODO()
         }
 
-        val subunit = PlayerSubunit(mockRepo)
+        val subunit = PlayerSubunit(mockRepo).also { it.debut(PlayerScope("pid123")) }
 
         // ex. get methods work correctly (in complex scenario, this may involve processing)
-        assertEquals("s1", subunit.getRole().okOrNull())
+        assertEquals(10, subunit.getHealth())
 
         // ex. updating should work, and subunit own's data is also updated
-        val report = subunit.updateDamage(2)
-        assert(report.isOk())
-        assertEquals(2, subunit.getDamage().okOrNull())
+        val outcome = subunit.reduceHealth(2)
+        assert(outcome.isOk())
+        assertEquals(8, outcome.okOrNull())
+        assertEquals(8, subunit.getHealth())
     }
 
     /**
@@ -91,30 +74,29 @@ class ExampleSubunitTest {
         // insert base data
         val baseData = PlayerModel(
             playerId = "pid123",
-            role = "hello",
-            damage = 42,
+            health = 42,
             items = listOf("a", "b", "c")
         )
         collection.insertOne(baseData)
 
         val repo = MongoPlayerRepository(collection)
-        val subunit = PlayerSubunit(repo)
+        val subunit = PlayerSubunit(repo).also { it.debut(PlayerScope("pid123")) }
 
         // ex. ensure initialization
         val result = subunit.debut(PlayerScope("pid123"))
         assert(result.isSuccess)
 
         // ex. ensure get
-        assertEquals(42, subunit.getDamage().okOrNull())
+        assertEquals(42, subunit.getHealth())
 
         // ex. ensure update
-        val report = subunit.updateRole("updated")
-        assertTrue(report.isOk())
+        val outcome = subunit.reduceHealth(10)
+        assertTrue(outcome.isOk())
 
         // ex. ensure DB is updated and match the data in subunit
         val updated = collection.find().first()
-        assertEquals("updated", updated.role)
-        assertEquals("updated", subunit.getRole().okOrNull())
+        assertEquals(32, updated.health)
+        assertEquals(32, outcome.okOrNull())
 
         collection.drop()
     }
@@ -125,8 +107,7 @@ class ExampleSubunitTest {
  */
 data class PlayerModel(
     val playerId: String,
-    val role: String,
-    val damage: Int,
+    val health: Int,
     val items: List<String>
 )
 
@@ -142,22 +123,17 @@ data class PlayerModel(
  * A `Result<Unit>` can be used when it doesn't have a return type.
  */
 interface PlayerRepository {
-    suspend fun getRole(playerId: String): Result<String>
-    suspend fun getDamage(playerId: String): Result<Int>
-    suspend fun getItem(playerId: String, item: String): Result<String>
-    suspend fun getAllItems(playerId: String): Result<List<String>>
-
-    suspend fun updateRole(playerId: String, newRole: String): Result<Unit>
-    suspend fun updateDamage(playerId: String, newDamage: Int): Result<Unit>
-    suspend fun updateItem(playerId: String, oldItem: String, newItem: String): Result<Unit>
-    suspend fun updateAllItems(playerId: String, newItems: List<String>): Result<Unit>
+    suspend fun getHealth(playerId: String): Result<Int>
+    suspend fun getItems(playerId: String): Result<List<String>>
+    suspend fun updateHealth(playerId: String, newHealth: Int): Result<Unit>
+    suspend fun updateItems(playerId: String, newItems: List<String>): Result<Unit>
 }
 
 /**
  * Example of a repository implementation using MongoDB.
  *
  * **Note: Example here tries to introduces strictness. Actual code may slightly lower
- * the rigor when necessary.**
+ * rigority when necessary.**
  *
  * ### Constructor
  *
@@ -195,35 +171,16 @@ interface PlayerRepository {
  * This results in clear separation and no duplicate error logging.
  */
 class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepository {
-    override suspend fun getRole(playerId: String): Result<String> {
+    override suspend fun getHealth(playerId: String): Result<Int> {
         return runMongoCatching {
             val filter = Filters.eq("playerId", playerId)
             data.find(filter)
                 .firstOrNull()
-                ?.role
+                ?.health
         }
     }
 
-    override suspend fun getDamage(playerId: String): Result<Int> {
-        return runMongoCatching {
-            val filter = Filters.eq("playerId", playerId)
-            data.find(filter)
-                .firstOrNull()
-                ?.damage
-        }
-    }
-
-    override suspend fun getItem(playerId: String, item: String): Result<String> {
-        return runMongoCatching {
-            val filter = Filters.eq("playerId", playerId)
-            data.find(filter)
-                .firstOrNull()
-                ?.items
-                ?.find { it == item }
-        }
-    }
-
-    override suspend fun getAllItems(playerId: String): Result<List<String>> {
+    override suspend fun getItems(playerId: String): Result<List<String>> {
         return runMongoCatching {
             val filter = Filters.eq("playerId", playerId)
             data.find(filter)
@@ -232,40 +189,17 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
         }
     }
 
-    override suspend fun updateRole(playerId: String, newRole: String): Result<Unit> {
+    override suspend fun updateHealth(playerId: String, newHealth: Int): Result<Unit> {
         return runMongoCatching {
             val filter = Filters.eq("playerId", playerId)
-            val update = Updates.set("role", newRole)
+            val update = Updates.set("health", newHealth)
 
             data.updateOne(filter, update)
                 .throwIfNotModified(playerId)
         }
     }
 
-    override suspend fun updateDamage(playerId: String, newDamage: Int): Result<Unit> {
-        return runMongoCatching {
-            val filter = Filters.eq("playerId", playerId)
-            val update = Updates.set("damage", newDamage)
-
-            data.updateOne(filter, update)
-                .throwIfNotModified(playerId)
-        }
-    }
-
-    override suspend fun updateItem(playerId: String, oldItem: String, newItem: String): Result<Unit> {
-        return runMongoCatching {
-            val filter = Filters.and(
-                Filters.eq("playerId", playerId),
-                Filters.eq("items", oldItem)
-            )
-            val update = Updates.set("items.$", newItem)
-
-            data.updateOne(filter, update)
-                .throwIfNotModified(playerId)
-        }
-    }
-
-    override suspend fun updateAllItems(playerId: String, newItems: List<String>): Result<Unit> {
+    override suspend fun updateItems(playerId: String, newItems: List<String>): Result<Unit> {
         return runMongoCatching {
             val filter = Filters.eq("playerId", playerId)
             val update = Updates.set("items", newItems)
@@ -281,23 +215,26 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
  * Acts as a domain-level abstraction for higher-level components such as message handlers.
  *
  * **Note: Example here tries to introduces strictness. Actual code may slightly lower
- * the rigor when necessary.**
+ * rigority when necessary.**
  *
  * ### Local Data & Initialization
  *
- * Data is cached locally to minimize repeated get access to the repository.
+ * Data is cached locally to reduce repeated queries to the repository.
  * Update operations modify both the local cache and the repository.
  *
- * All fields are initialized as null or empty collections, and populated in [debut].
+ * All fields are initially `null` or empty collections and are populated in [debut].
  * Initialization failures are logged immediately but do not interrupt the subunit
  * or the player's connection (fail-late).
  *
- * Subsequent access to uninitialized or missing data will fail-fast at usage sites
- * (e.g., handlers may return early or ignore the request). Handlers are not responsible
- * for logging these failures, as they are already handled and logged within the subunit.
+ * Accessing data that failed to initialize or is missing will fail fast at the usage site.
+ * Depending on the context, handlers may require these values to be present or handle
+ * their absence gently.
  *
- * Example: if [items] fails to load during initialization, the error is logged at startup.
- * The player's session continues, but any access to [items] may fail at runtime.
+ * Example: [items] is essential for the session. If it fails to load during initialization,
+ * the error is logged, but the player's session continues. When [items] is later required,
+ * the handler may fail the operation (e.g., by throwing [error] inside the `get` methods
+ * or via a `requireNotNull`-style check in handler).
+ * In cases where the value is optional, the handler may instead provide a fallback.
  *
  * ### Subunit API
  *
@@ -307,132 +244,113 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
  * Example: the repository provides `getInventory()`, while the subunit may expose
  * higher-level queries such as `getEquipment()` or `getFood()` by filtering the data.
  *
+ * ### Return Types
+ *
+ * In a strict handling requirement, subunit's operations may:
+ * - Use [Report] type for operations that returns `Unit`.
+ * - Use [Outcome] type for operations that returns a value.
+ *
+ * Since initialization is fail-late and fields may remain null, all `get` operations
+ * are made to return non-null value by throwing [error]; unless when null values are acceptable.
+ *
  * ### Logging
  *
- * The subunit is responsible for handling [Result] from the repository.
- * Typically uses [toReport] along with helpers like [failHandleGet] and [failHandleUpdate].
+ * The subunit is responsible for logging operations in domain language, avoiding
+ * DB/repository details.
+ *
+ * This includes logging any errors on [Result] type obtained from the repository.
+ * Typically, the result is chained with [onSuccess] and [onFailure]
+ * for logging handler, then converting with [toReport] or [toOutcome] for the return value.
+ * Inside `onFailure`, the throwable can call helpers like [failHandleGet] and [failHandleUpdate].
  * Both fail handle helpers has a default message that can be used to avoid writing logging
  * boilerplate, in the case where context is clear enough.
  *
- * - On success: may log at trace level for detailed debugging.
- * - On failure: logs in domain language, avoiding repository/DB-specific details.
+ * It should also avoid logging request context as it is handler's responsibility.
  *
- * ### Return Types
- *
- * All public operations return [Report], representing domain-level outcomes:
- * - [Report.Ok] for success (with value)
- * - [Report.Fail] for failure (no exception exposed)
- *
- * Since initialization is fail-late and fields may remain null, all `get` operations
- * also return [Report]. Helpers like [toReportOkOrFail] can be used to convert nullable
- * values into [Report].
- *
- * Typically, no additional logging is needed in `get` methods, as initialization failures
- * are already logged during [debut].
+ * For instance:
+ * - Repository do not log, but may provide message in exception such as "Document not found"
+ * - Subunit logs domain, such as "Couldn't calculate resource with invalid timer object"
+ * - Handler logs request context and orchestration, such as
+ *   "Failed to collect resource from building=buildingName on calculateResource"
  *
  * ### Handler Example
  *
  * ```
  * // request remain unhandled
- * val role = playerSubunit.getRole().okOrNull() ?: return
+ * val items = playerSubunit.getItems().ifEmptyNull ?: return
  *
- * // runtime error thrown
- * val damage = playerSubunit.getDamage().require { "Damage was null" }
+ * // runtime error thrown by subunit
+ * val health = playerSubunit.getHealth()
  *
- * // manual handling of report
- * val items = playerSubunit.getItems()
- * val response = subunit.getItems().handles(
- *      onOk = { items -> ResponseSuccess(items) },
- *      onFail = {
- *          Fancam.trace { "Player data request fail during getItems()" }
- *          ResponseFailed()
- *      }
- *  )
- *  connection.send(response)
+ * // alternatively, subunit returns nullable value and handler throws
+ * val health = requireNotNull(playerSubunit.getHealth()) { "Health is null" }
+ *
+ * // handling of outcome
+ * val health = playerSubunit.getHealth()
+ * val response: Response = subunit.getItems().fold(
+ *     onOk = { newHp -> ResponseSuccess("HP reduced now: $newHp") },
+ *     onFail = {
+ *         Fancam.trace { "Failed to reduce HP by $reduceBy, currentHp=$health" }
+ *         ResponseFailed("Failed to reduce HP")
+ *     }
+ * )
+ * connection.send(response)
  * ```
  */
 class PlayerSubunit(private val playerRepository: PlayerRepository) : Subunit<PlayerScope> {
     private lateinit var playerId: String
-    private var role: String? = null
-    private var damage: Int? = null
-    private val items = mutableListOf<String>()
+    private var health: Int? = null
+    private var items = mutableListOf<String>()
 
-    fun getRole(): Report<String> = role.toReportOkOrFail()
-    fun getDamage(): Report<Int> = damage.toReportOkOrFail()
-    fun getItems(): Report<List<String>> = items.toReportOkOrFail()
-    fun getItem(item: String): Report<String> = items.find { it == item }.toReportOkOrFail()
+    // must not be null
+    fun getHealth(): Int = health ?: error("Health is null")
 
-    suspend fun updateRole(role: String): Report<Unit> {
-        val result = playerRepository.updateRole(playerId, role)
+    // empty acceptable
+    fun getItems(): List<String> = items
 
-        return result.toReport(
-            onSuccess = {
-                this.role = role
-                Fancam.trace { "OK updateRole with role=$role" }
-            },
-            onFailure = { it.failHandleUpdate() }
-        )
-    }
+    // returns Outcome, cares whether the operation succeed or fails, but also need value
+    suspend fun reduceHealth(reduceBy: Int): Outcome<Int> {
+        val newHealth = getHealth() - reduceBy
+        val result = playerRepository.updateHealth(playerId, newHealth)
 
-    suspend fun updateDamage(damage: Int): Report<Unit> {
-        val result = playerRepository.updateDamage(playerId, damage)
-
-        return result.toReport(
-            onSuccess = {
-                this.damage = damage
-                Fancam.trace { "OK updateDamage with damage=$damage" }
-            },
-            onFailure = { it.failHandleUpdate() }
-        )
-    }
-
-    suspend fun updateItem(oldItem: String, newItem: String): Report<Unit> {
-        val result = playerRepository.updateItem(playerId, oldItem, newItem)
-
-        return result.toReport(
-            onSuccess = {
-                this.items.removeIf { it == oldItem }
-                this.items.add(newItem)
-                Fancam.trace { "OK updateItem with $oldItem to $newItem" }
-            },
-            onFailure = {
+        return result
+            .onSuccess {
+                this.health = newHealth
+                Fancam.trace { "OK reduceHealth health now=$newHealth" }
+            }
+            .onFailure {
                 it.failHandleUpdate(
-                    notFoundMessage = { "Couldn't update $oldItem to $newItem because $oldItem wasn't found." },
-                    notUpdatedMessage = { "Couldn't update $oldItem to $newItem update didn't affected" },
-                    unknownMessage = { "Couldn't update $oldItem to $newItem with unknown error" },
+                    notFoundMessage = { "Health reduce failed: not found" },
+                    notUpdatedMessage = { "Health reduce failed: no document affected" },
+                    unknownMessage = { "Unknown error while reducing health" }
                 )
             }
-        )
+            .toOutcome { newHealth }
     }
 
-    suspend fun updateAllItems(newItems: List<String>): Report<Unit> {
-        val result = playerRepository.updateAllItems(playerId, newItems)
+    // returns Report, only cares whether the operation succeed or fails
+    suspend fun updateAllItems(newItems: List<String>): Report {
+        val result = playerRepository.updateItems(playerId, newItems)
 
-        return result.toReport(
-            onSuccess = {
+        return result
+            .onSuccess {
                 this.items.clear()
                 this.items.addAll(newItems)
                 Fancam.trace { "OK updateAllItems to ${newItems.joinToString()}" }
-            },
-            onFailure = { it.failHandleUpdate() }
-        )
+            }
+            .onFailure { it.failHandleUpdate() }
+            .toReport()
     }
 
     override suspend fun debut(scope: PlayerScope): Result<Unit> {
         return runCatching {
             this.playerId = scope.playerId
-            playerRepository.getRole(scope.playerId).fold(
-                onSuccess = { this.role = it },
-                onFailure = { it.failHandleGet() }
-            )
-            playerRepository.getDamage(scope.playerId).fold(
-                onSuccess = { this.damage = it },
-                onFailure = { it.failHandleGet() }
-            )
-            playerRepository.getAllItems(scope.playerId).fold(
-                onSuccess = { this.items.addAll(it) },
-                onFailure = { it.failHandleGet() }
-            )
+            playerRepository.getHealth(scope.playerId)
+                .onSuccess { this.health = it }
+                .onFailure { it.failHandleGet() }
+            playerRepository.getItems(scope.playerId)
+                .onSuccess { this.items.addAll(it) }
+                .onFailure { it.failHandleGet() }
         }
     }
 
