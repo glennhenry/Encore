@@ -29,8 +29,8 @@ import encore.utils.Report
  * externally (e.g., by handlers or controllers).
  *
  * Lifecycle:
- * - [debut] initializes the subunit.
- * - [disband] closes the subunit.
+ * - [debut] initializes the subunit. This should be called before usage.
+ * - [disband] closes the subunit. This should be called after usage is finished.
  *
  * ### Implementation
  *
@@ -49,6 +49,7 @@ interface Subunit<T : SubunitScope> {
      * Debut the subunit for the given [scope].
      *
      * This method should be used to prepare or load the required state.
+     * Must call this before any usage.
      *
      * @return A result type to denote success or failure.
      */
@@ -59,6 +60,7 @@ interface Subunit<T : SubunitScope> {
      *
      * This method is called when the subunit closes (e.g., server shutdown,
      * player logs off or disconnects).
+     * Must call this after usage is finished.
      *
      * It should do the necessary clean-up or persist any in-memory state
      * to storage to ensure no progress or transient data is lost.
