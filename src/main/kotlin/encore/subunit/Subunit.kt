@@ -3,17 +3,20 @@ package encore.subunit
 import encore.repository.Repository
 import encore.subunit.scope.SubunitScope
 import encore.subunit.scope.ServerScope
+import encore.utils.Outcome
 import encore.utils.Report
 
 /**
  * A `Subunit` is a scope-bound service responsible for managing
  * domain data and behavior within a specific [SubunitScope].
  *
+ * ### Overview
+ *
  * It acts as a domain-level abstraction that may:
  * - Encapsulate business logic for a specific domain.
+ * - Coordinate persistence through repositories when needed.
  * - Maintain an in-memory representation of scoped data
  *   to reduce repeated database access.
- * - Coordinate persistence through repositories when needed.
  *
  * A `Subunit` may also function as a "stateless subsystem",
  * providing domain-specific functionality without necessarily
@@ -35,11 +38,11 @@ import encore.utils.Report
  * - Subunit should not perform low-level database operations directly
  *   and instead provide abstraction to caller. DB operations should be
  *   directed to [Repository].
- * - Subunit should handles the [Result] type returned by each repository operations.
- *   This means handling both [Result.success] and [Result.failure].
- * - Each of the subunit's operation should return a [Report] type,
- *   using [Report.Ok] when the operation succeed and [Report.Fail] when
- *   the operation fails.
+ * - When operating with a repository, subunit should handles the [Result]
+ *   type returned by each repository operations.
+ * - In a strict handling requirement, subunit may:
+ *     - Use the [Report] type for operations that returns `Unit`.
+ *     - Use the [Outcome] type for operations that returns a value.
  */
 interface Subunit<T : SubunitScope> {
     /**
