@@ -113,21 +113,15 @@ inline fun <T> Outcome<T>.handles(onOk: (T) -> Unit, onFail: () -> Unit) {
 
 /**
  * Converts a [Result] into an [Outcome] by:
- * - Invoking [onSuccess] if the result is successful, then returns [Outcome.Ok].
- * - Invoking [onFailure] if the result is a failure, then returns [Outcome.Fail].
+ * - If [Result.isSuccess], executes [transform] on the result's value
+ *   and returns [Outcome.Ok] containing the output of `transform`.
+ * - If [Result.isFailure] returns [Outcome.Fail] immediately.
  */
-fun <T> Result<T>.toOutcome(
-    onSuccess: (T) -> Unit = {},
-    onFailure: (Throwable) -> Unit
-): Outcome<T> {
+inline fun <T, R> Result<T>.toOutcome(
+    transform: (T) -> R
+): Outcome<R> {
     return fold(
-        onSuccess = {
-            onSuccess(it)
-            Outcome.Ok(it)
-        },
-        onFailure = {
-            onFailure(it)
-            Outcome.Fail
-        }
+        onSuccess = { Outcome.Ok(transform(it)) },
+        onFailure = { Outcome.Fail }
     )
 }

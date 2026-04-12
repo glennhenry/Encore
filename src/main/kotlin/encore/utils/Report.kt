@@ -78,21 +78,12 @@ inline fun Report.onFail(action: () -> Unit): Report {
 
 /**
  * Converts a [Result] into a [Report] by:
- * - Invoking [onSuccess] if the result is successful, then returns [Report.Ok].
- * - Invoking [onFailure] if the result is a failure, then returns [Report.Fail].
+ * - If [Result.isSuccess] returns [Report.Ok].
+ * - If [Result.isFailure] returns [Report.Fail].
  */
-fun <T> Result<T>.toReport(
-    onSuccess: (T) -> Unit = {},
-    onFailure: (Throwable) -> Unit
-): Report {
+fun <T> Result<T>.toReport(): Report {
     return fold(
-        onSuccess = {
-            onSuccess(it)
-            Report.Ok
-        },
-        onFailure = {
-            onFailure(it)
-            Report.Fail
-        }
+        onSuccess = { Report.Ok },
+        onFailure = { Report.Fail }
     )
 }
