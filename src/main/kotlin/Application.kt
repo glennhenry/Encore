@@ -26,7 +26,7 @@ import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskName
 import encore.user.MongoAccountRepository
 import encore.user.auth.DefaultAuthProvider
-import encore.user.auth.SessionManager
+import encore.user.auth.SessionSubunit
 import encore.utils.Ids
 import encore.venue.Venue
 import encore.ws.WebSocketManager
@@ -157,8 +157,8 @@ suspend fun Application.module() {
     val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
     val playerCreationSubunit = PlayerCreationSubunit(dataStore)
     val playerAccountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
-    val sessionManager = SessionManager()
-    val authProvider = DefaultAuthProvider(playerCreationSubunit, playerAccountRepository, sessionManager)
+    val sessionSubunit = SessionSubunit(appScope)
+    val authProvider = DefaultAuthProvider(playerCreationSubunit, playerAccountRepository, sessionSubunit)
     val onlinePlayerRegistry = OnlinePlayerRegistry()
     val contextTracker = DefaultContextTracker()
     val codecDispatcher = MessageFormatRegistry()
@@ -169,7 +169,7 @@ suspend fun Application.module() {
     val serverContext = ServerContext(
         db = dataStore,
         accountRepository = playerAccountRepository,
-        sessionManager = sessionManager,                   // is not used unless auth is implemented
+        sessionSubunit = sessionSubunit,                   // is not used unless auth is implemented
         authProvider = authProvider,                       // is not used unless auth is implemented
         onlinePlayerRegistry = onlinePlayerRegistry,       // not much used typically
         contextTracker = contextTracker,

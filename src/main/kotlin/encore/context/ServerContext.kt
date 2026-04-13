@@ -13,15 +13,16 @@ import encore.user.BlankAccountRepository
 import encore.user.AccountRepository
 import encore.user.auth.AuthProvider
 import encore.user.auth.EmptyAuthProvider
-import encore.user.auth.SessionManager
+import encore.user.auth.SessionSubunit
 import encore.ws.WebSocketManager
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Represents the **global server-side context** which includes various server components.
  *
  * @property db [DataStore] instance of the server.
  * @property accountRepository Repository class that holds player accounts.
- * @property sessionManager Manages session of players.
+ * @property sessionSubunit Manages session of players.
  * @property authProvider Provides authentication functions.
  * @property onlinePlayerRegistry Keep tracks online status of each player.
  * @property contextTracker Tracks and manages each player's context.
@@ -35,7 +36,7 @@ import encore.ws.WebSocketManager
 data class ServerContext(
     val db: DataStore,
     val accountRepository: AccountRepository,
-    val sessionManager: SessionManager,
+    val sessionSubunit: SessionSubunit,
     val authProvider: AuthProvider,
     val onlinePlayerRegistry: OnlinePlayerRegistry,
     val contextTracker: ContextTracker,
@@ -53,10 +54,11 @@ data class ServerContext(
          * [AccountRepository], and [AuthProvider].
          *
          * By default, the [FakeContextTracker] is used, while all other components
-         * (e.g. [SessionManager], [OnlinePlayerRegistry], [MessageFormatRegistry], and
+         * (e.g. [SessionSubunit], [OnlinePlayerRegistry], [MessageFormatRegistry], and
          * [ServerTaskDispatcher]) are initialized with their default implementations.
          */
         fun fake(
+            parentScope: CoroutineScope,
             db: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
             authProvider: AuthProvider = EmptyAuthProvider(),
@@ -65,7 +67,7 @@ data class ServerContext(
             return ServerContext(
                 db = db,
                 accountRepository = accountRepository,
-                sessionManager = SessionManager(),
+                sessionSubunit = SessionSubunit(parentScope),
                 authProvider = authProvider,
                 onlinePlayerRegistry = OnlinePlayerRegistry(),
                 contextTracker = contextTracker,

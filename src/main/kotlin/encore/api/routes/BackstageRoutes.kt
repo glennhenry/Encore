@@ -62,14 +62,14 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
         val cookie = call.request.cookies["backstage-clientId"]
 
         // PASS: user with cookie already authenticated before
-        if (cookie != null && serverContext.sessionManager.verify(cookie)) {
+        if (cookie != null && serverContext.sessionSubunit.verify(cookie)) {
             Fancam.info { "Request to /backstage (passed): user has cookie and is valid" }
             call.respondFile(mainHtml)
             return@get
         }
 
         // WALL: user with cookie but expired
-        if (cookie != null && !serverContext.sessionManager.verify(cookie)) {
+        if (cookie != null && !serverContext.sessionSubunit.verify(cookie)) {
             Fancam.info { "Request to /backstage (wall): user has cookie but expired" }
             call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Cookie expired"), ContentType.Text.Html)
             return@get
@@ -100,7 +100,7 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
         }
 
         // PASS: user has valid token
-        val session = serverContext.sessionManager.create(
+        val session = serverContext.sessionSubunit.create(
             userId = Ids.uuid(), validFor = 6.hours, lifetime = 6.hours
         )
         call.response.cookies.append("backstage-clientId", session.token, maxAge = 21600, path = "/backstage")
@@ -109,13 +109,13 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
     }
 
     get("/backstage/server-status") {
-        if (!call.ensureSession { serverContext.sessionManager.verify(it) }) return@get
+        if (!call.ensureSession { serverContext.sessionSubunit.verify(it) }) return@get
 
         call.respond("Status received (work in progress).")
     }
 
     get("/backstage/cmd-help-text") {
-        if (!call.ensureSession { serverContext.sessionManager.verify(it) }) return@get
+        if (!call.ensureSession { serverContext.sessionSubunit.verify(it) }) return@get
 
         val commands = serverContext.commandDispatcher.getAllRegisteredCommands()
         val html = StringBuilder()
@@ -156,7 +156,7 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
             // websocket can't send cookie, token cookie for WS is included in the param instead
             // also verify the token
             call.request.queryParameters["token"]
-                ?.takeIf { serverContext.sessionManager.verify(it) }
+                ?.takeIf { serverContext.sessionSubunit.verify(it) }
         }
 
         if (token == null) {
