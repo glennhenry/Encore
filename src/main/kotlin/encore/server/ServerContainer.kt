@@ -3,10 +3,8 @@ package encore.server
 import encore.context.ServerContext
 import encore.server.core.Server
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.job
 
 /**
  * The main server that orchestrates all sub-servers.
@@ -14,10 +12,11 @@ import kotlinx.coroutines.launch
  * Provides a single entry point to initialize, start, and shut down all sub-servers.
  * Serves as the root coroutine context, shared by sub-servers and client connections.
  */
-class ServerContainer(private val servers: List<Server>, private val context: ServerContext) {
-    private val job = SupervisorJob()
-    private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default + job)
-
+class ServerContainer(
+    private val coroutineScope: CoroutineScope,
+    private val servers: List<Server>,
+    private val context: ServerContext
+) {
     suspend fun initializeAll() {
         servers.forEach { it.initialize(coroutineScope, context) }
     }
@@ -28,6 +27,6 @@ class ServerContainer(private val servers: List<Server>, private val context: Se
 
     suspend fun shutdownAll() {
         servers.forEach { it.shutdown() }
-        job.cancelAndJoin()
+        coroutineScope.coroutineContext.job.cancelAndJoin()
     }
 }

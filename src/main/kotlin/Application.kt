@@ -151,6 +151,8 @@ suspend fun Application.module() {
         masking = true
     }
 
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     /* 8. Setup ServerContext */
     val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
     val playerCreationSubunit = PlayerCreationSubunit(dataStore)
@@ -238,7 +240,7 @@ suspend fun Application.module() {
     }
 
     /* 12. Run all the servers */
-    val container = ServerContainer(servers, serverContext)
+    val container = ServerContainer(appScope, servers, serverContext)
     run {
         container.initializeAll()
         container.startAll()
