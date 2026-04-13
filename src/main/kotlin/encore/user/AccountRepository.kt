@@ -2,28 +2,93 @@ package encore.user
 
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
+import encore.user.model.Credentials
+import encore.user.model.Profile
 
 /**
- * Repository for [PlayerAccount].
+ * Repository template for [PlayerAccount].
+ *
+ * Implementation should abstract the data access to player's account.
+ * For instance:
+ * - Mongo implementation provides API to the underlying `MongoCollection`
+ * - SQL implementation provides API to the account table.
+ * - In-memory implementation provides API to the in-memory data representation.
+ *
+ * Each operation should return a [Result] type to denote the outcome.
+ * [Result.failure] is used when the operation fails due to an internal failure
+ * like DB errors and not business outcome.
  */
 interface AccountRepository {
-    suspend fun doesUsernameExist(username: String): Result<Boolean>
-    suspend fun isUsernameAvailable(username: String): Result<Boolean>
-    suspend fun doesEmailExist(email: String): Result<Boolean>
-    suspend fun isEmailAvailable(email: String): Result<Boolean>
-
-    suspend fun getPlayerAccountByName(username: String): Result<PlayerAccount>
-    suspend fun getPlayerAccountById(playerId: PlayerId): Result<PlayerAccount>
-    suspend fun getPlayerIdFromName(username: String): Result<String>
-
-    suspend fun updatePlayerAccount(playerId: PlayerId, account: PlayerAccount): Result<Unit>
-    suspend fun updateLastLogin(playerId: PlayerId, lastLogin: Long): Result<Unit>
 
     /**
-     * Confirm the player's password matches the stored credentials for the given username
+     * Returns [PlayerAccount] associated with the given [playerId], if it exists.
      *
-     * @return The associated `playerId` if correct.
-     *         Returns `null` if account don't exist or password is wrong.
+     * Returns [Result.success] with:
+     * - the [PlayerAccount] if found
+     * - `null` if no account exists for the given [playerId]
+     *
+     * Returns [Result.failure] if an error occurs while retrieving the data.
      */
-    suspend fun verifyCredentials(username: String, password: String): Result<String>
+    suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?>
+
+    /**
+     * Returns [PlayerAccount] associated with the given [username], if it exists.
+     *
+     * Returns [Result.success] with:
+     * - the [PlayerAccount] if found
+     * - `null` if no account exists for the given [username]
+     *
+     * Returns [Result.failure] if an error occurs while retrieving the data.
+     */
+    suspend fun getAccountByUsername(username: String): Result<PlayerAccount?>
+
+    /**
+     * Returns [PlayerId] associated with the given [username], if it exists.
+     *
+     * Returns [Result.success] with:
+     * - the [PlayerId] if found
+     * - `null` if no account exists for the given [username]
+     *
+     * Returns [Result.failure] if an error occurs while retrieving the data.
+     */
+    suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?>
+
+    /**
+     * Returns the [Credentials] of the provided [username].
+     */
+    suspend fun getCredentials(username: String): Result<Credentials?>
+
+    /**
+     * Update [PlayerAccount] of [playerId] with the new [account].
+     * @return [Result] type denoting success or failure.
+     */
+    suspend fun updatePlayerAccount(playerId: PlayerId, account: PlayerAccount): Result<Unit>
+
+    /**
+     * Update [Profile] of [playerId] with the new [profile].
+     * @return [Result] type denoting success or failure.
+     */
+    suspend fun updateProfile(playerId: PlayerId, profile: Profile): Result<Unit>
+
+    /**
+     * Returns whether the provided [username] already exists.
+     *
+     * Returns [Result.success] with:
+     * - [Result.value]` = true` if username exists
+     * - [Result.value]` = false` if username does not exist
+     *
+     * Returns [Result.failure] if an error occurs while retrieving the data.
+     */
+    suspend fun usernameExists(username: String): Result<Boolean>
+
+    /**
+     * Returns whether the provided [email] already exists.
+     *
+     * Returns [Result.success] with:
+     * - [Result.value]` = true` if email exists
+     * - [Result.value]` = false` if email does not exist
+     *
+     * Returns [Result.failure] if an error occurs while retrieving the data.
+     */
+    suspend fun emailExists(email: String): Result<Boolean>
 }

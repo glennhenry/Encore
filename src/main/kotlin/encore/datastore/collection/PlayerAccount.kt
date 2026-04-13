@@ -33,3 +33,11 @@ data class PlayerAccount(
  * if the underlying type needs to be changed (e.g., to `Long` or `UUID`).
  */
 typealias PlayerId = String
+
+/**
+ * Field identifier for the `playerId` field of [PlayerAccount].
+ *
+ * This is typically used in Mongo DB implementation where filtering
+ * requires a string of the field name, avoiding access with `KProperty`.
+ */
+const val FieldPlayerId = "playerId"
