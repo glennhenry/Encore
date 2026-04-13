@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import org.bson.Document
 import kotlin.io.encoding.Base64
 
-class PlayerAccountRepositoryMongo(val accountCollection: MongoCollection<PlayerAccount>) : PlayerAccountRepository {
+class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccount>) : AccountRepository {
     override suspend fun getPlayerAccountByName(username: String): Result<PlayerAccount> {
         return runMongoCatching {
             accountCollection

@@ -3,7 +3,7 @@ package encore.user.auth
 import encore.user.PlayerCreationSubunit
 import encore.fancam.Fancam
 import encore.user.AdminData
-import encore.user.PlayerAccountRepository
+import encore.user.AccountRepository
 import encore.user.model.UserSession
 
 /**
@@ -13,7 +13,7 @@ import encore.user.model.UserSession
  */
 class DefaultAuthProvider(
     private val creationSubunit: PlayerCreationSubunit,
-    private val playerAccountRepository: PlayerAccountRepository,
+    private val accountRepository: AccountRepository,
     private val sessionManager: SessionManager
 ) : AuthProvider {
     override suspend fun register(username: String, password: String): Result<UserSession> {
@@ -22,7 +22,7 @@ class DefaultAuthProvider(
     }
 
     override suspend fun login(username: String, password: String): Result<UserSession> {
-        val result = playerAccountRepository.verifyCredentials(username, password)
+        val result = accountRepository.verifyCredentials(username, password)
         result.onFailure {
             Fancam.error { "Failure on verifyCredentials for username=$username: ${it.message}" }
             return Result.failure(it)
@@ -35,7 +35,7 @@ class DefaultAuthProvider(
     }
 
     override suspend fun doesUsernameExist(username: String): Boolean {
-        val result = playerAccountRepository.doesUsernameExist(username)
+        val result = accountRepository.doesUsernameExist(username)
         return result.getOrElse {
             Fancam.error { "Failure on doesUsernameExist for username=$username: ${it.message}" }
             true // check error -> assume username exists
@@ -43,7 +43,7 @@ class DefaultAuthProvider(
     }
 
     override suspend fun isUsernameAvailable(username: String): Boolean {
-        val result = playerAccountRepository.isUsernameAvailable(username)
+        val result = accountRepository.isUsernameAvailable(username)
         return result.getOrElse {
             Fancam.error { "Failure on isUsernameAvailable for username=$username: ${it.message}" }
             false // check error -> assume username not available
@@ -51,7 +51,7 @@ class DefaultAuthProvider(
     }
 
     override suspend fun doesEmailExist(email: String): Boolean {
-        val result = playerAccountRepository.doesEmailExist(email)
+        val result = accountRepository.doesEmailExist(email)
         return result.getOrElse {
             Fancam.error { "Failure on doesEmailExist for email=$email: ${it.message}" }
             true // check error -> assume email exists
@@ -59,7 +59,7 @@ class DefaultAuthProvider(
     }
 
     override suspend fun isEmailAvailable(email: String): Boolean {
-        val result = playerAccountRepository.isEmailAvailable(email)
+        val result = accountRepository.isEmailAvailable(email)
         return result.getOrElse {
             Fancam.error { "Failure on isEmailAvailable for email=$email: ${it.message}" }
             false // check error -> assume email not available

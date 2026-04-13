@@ -9,8 +9,8 @@ import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.user.EmptyPlayerAccountRepository
-import encore.user.PlayerAccountRepository
+import encore.user.EmptyAccountRepository
+import encore.user.AccountRepository
 import encore.user.auth.AuthProvider
 import encore.user.auth.EmptyAuthProvider
 import encore.user.auth.SessionManager
@@ -20,7 +20,7 @@ import encore.ws.WebSocketManager
  * Represents the **global server-side context** which includes various server components.
  *
  * @property db [DataStore] instance of the server.
- * @property playerAccountRepository Repository class that holds player accounts.
+ * @property accountRepository Repository class that holds player accounts.
  * @property sessionManager Manages session of players.
  * @property authProvider Provides authentication functions.
  * @property onlinePlayerRegistry Keep tracks online status of each player.
@@ -34,7 +34,7 @@ import encore.ws.WebSocketManager
  */
 data class ServerContext(
     val db: DataStore,
-    val playerAccountRepository: PlayerAccountRepository,
+    val accountRepository: AccountRepository,
     val sessionManager: SessionManager,
     val authProvider: AuthProvider,
     val onlinePlayerRegistry: OnlinePlayerRegistry,
@@ -50,7 +50,7 @@ data class ServerContext(
          * Create a fake, simple to use [ServerContext] for testing purposes.
          *
          * It allows injection of interface-based dependencies such as [DataStore],
-         * [PlayerAccountRepository], and [AuthProvider].
+         * [AccountRepository], and [AuthProvider].
          *
          * By default, the [FakeContextTracker] is used, while all other components
          * (e.g. [SessionManager], [OnlinePlayerRegistry], [MessageFormatRegistry], and
@@ -58,13 +58,13 @@ data class ServerContext(
          */
         fun fake(
             db: DataStore = BlankDataStore(),
-            playerAccountRepository: PlayerAccountRepository = EmptyPlayerAccountRepository(),
+            accountRepository: AccountRepository = EmptyAccountRepository(),
             authProvider: AuthProvider = EmptyAuthProvider(),
             contextTracker: ContextTracker = FakeContextTracker()
         ): ServerContext {
             return ServerContext(
                 db = db,
-                playerAccountRepository = playerAccountRepository,
+                accountRepository = accountRepository,
                 sessionManager = SessionManager(),
                 authProvider = authProvider,
                 onlinePlayerRegistry = OnlinePlayerRegistry(),

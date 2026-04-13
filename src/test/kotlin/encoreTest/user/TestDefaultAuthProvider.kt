@@ -3,8 +3,8 @@ package encoreTest.user
 import com.mongodb.assertions.Assertions.assertFalse
 import encore.datastore.MongoDataStore
 import encore.datastore.collection.PlayerAccount
-import encore.user.PlayerAccountRepository
-import encore.user.PlayerAccountRepositoryMongo
+import encore.user.AccountRepository
+import encore.user.MongoAccountRepository
 import encore.user.PlayerCreationSubunit
 import encore.user.auth.DefaultAuthProvider
 import encore.user.auth.SessionManager
@@ -18,7 +18,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * Integration test for [DefaultAuthProvider] and [PlayerAccountRepository].
+ * Integration test for [DefaultAuthProvider] and [AccountRepository].
  *
  * Ensure MongoDB is running.
  */
@@ -32,7 +32,7 @@ class TestDefaultAuthProvider {
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionManager()
-        val repo = PlayerAccountRepositoryMongo(collection)
+        val repo = MongoAccountRepository(collection)
         val pcs = PlayerCreationSubunit(db)
         val provider = DefaultAuthProvider(pcs, repo, manager)
 
@@ -59,7 +59,7 @@ class TestDefaultAuthProvider {
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionManager()
-        val repo = PlayerAccountRepositoryMongo(collection)
+        val repo = MongoAccountRepository(collection)
         val pcs = PlayerCreationSubunit(db)
         val provider = DefaultAuthProvider(pcs, repo, manager)
 
@@ -76,7 +76,7 @@ class TestDefaultAuthProvider {
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionManager()
-        val repo = PlayerAccountRepositoryMongo(collection)
+        val repo = MongoAccountRepository(collection)
         val pcs = PlayerCreationSubunit(db)
         val provider = DefaultAuthProvider(pcs, repo, manager)
 
@@ -94,7 +94,7 @@ class TestDefaultAuthProvider {
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionManager()
-        val repo = PlayerAccountRepositoryMongo(collection)
+        val repo = MongoAccountRepository(collection)
         val pcs = PlayerCreationSubunit(db)
         val provider = DefaultAuthProvider(pcs, repo, manager)
 
@@ -111,7 +111,7 @@ class TestDefaultAuthProvider {
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionManager()
-        val repo = PlayerAccountRepositoryMongo(collection)
+        val repo = MongoAccountRepository(collection)
         val pcs = PlayerCreationSubunit(db)
         val provider = DefaultAuthProvider(pcs, repo, manager)
 
@@ -129,7 +129,7 @@ class TestDefaultAuthProvider {
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionManager()
-        val repo = PlayerAccountRepositoryMongo(collection)
+        val repo = MongoAccountRepository(collection)
         val pcs = PlayerCreationSubunit(db)
         val provider = DefaultAuthProvider(pcs, repo, manager)
 

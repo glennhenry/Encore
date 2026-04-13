@@ -6,7 +6,7 @@ import encore.datastore.collection.PlayerId
 /**
  * Repository for [PlayerAccount].
  */
-interface PlayerAccountRepository {
+interface AccountRepository {
     suspend fun doesUsernameExist(username: String): Result<Boolean>
     suspend fun isUsernameAvailable(username: String): Result<Boolean>
     suspend fun doesEmailExist(email: String): Result<Boolean>

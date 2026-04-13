@@ -4,9 +4,9 @@ import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 
 /**
- * Empty implementation (no operation) of [PlayerAccountRepository] only used for testing purposes.
+ * Empty implementation (no operation) of [AccountRepository] only used for testing purposes.
  */
-class EmptyPlayerAccountRepository : PlayerAccountRepository {
+class EmptyAccountRepository : AccountRepository {
     override suspend fun doesUsernameExist(username: String): Result<Boolean> = TODO("ONLY TEST")
     override suspend fun isUsernameAvailable(username: String): Result<Boolean> = TODO("ONLY TEST")
     override suspend fun doesEmailExist(email: String): Result<Boolean> = TODO("ONLY TEST")
