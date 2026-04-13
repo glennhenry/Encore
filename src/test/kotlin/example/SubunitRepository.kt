@@ -4,6 +4,7 @@ import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import encore.datastore.DocumentNotFoundException
+import encore.datastore.collection.FieldPlayerId
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import encore.fancam.Fancam
@@ -173,7 +174,7 @@ interface PlayerRepository {
 class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepository {
     override suspend fun getHealth(playerId: String): Result<Int> {
         return runMongoCatching {
-            val filter = Filters.eq("playerId", playerId)
+            val filter = Filters.eq(FieldPlayerId, playerId)
             data.find(filter)
                 .firstOrNull()
                 ?.health
@@ -182,7 +183,7 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
 
     override suspend fun getItems(playerId: String): Result<List<String>> {
         return runMongoCatching {
-            val filter = Filters.eq("playerId", playerId)
+            val filter = Filters.eq(FieldPlayerId, playerId)
             data.find(filter)
                 .firstOrNull()
                 ?.items
@@ -191,7 +192,7 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
 
     override suspend fun updateHealth(playerId: String, newHealth: Int): Result<Unit> {
         return runMongoCatching {
-            val filter = Filters.eq("playerId", playerId)
+            val filter = Filters.eq(FieldPlayerId, playerId)
             val update = Updates.set("health", newHealth)
 
             data.updateOne(filter, update)
@@ -201,7 +202,7 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
 
     override suspend fun updateItems(playerId: String, newItems: List<String>): Result<Unit> {
         return runMongoCatching {
-            val filter = Filters.eq("playerId", playerId)
+            val filter = Filters.eq(FieldPlayerId, playerId)
             val update = Updates.set("items", newItems)
 
             data.updateOne(filter, update)

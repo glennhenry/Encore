@@ -3,6 +3,7 @@ package encore.datastore
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import encore.datastore.collection.FieldPlayerId
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.datastore.collection.PlayerObjects
@@ -56,15 +57,15 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
     }
 
     override suspend fun playerExists(playerId: PlayerId): Boolean {
-        return accounts.find(Filters.eq("playerId", playerId)).firstOrNull() != null
+        return accounts.find(Filters.eq(FieldPlayerId, playerId)).firstOrNull() != null
     }
 
     override suspend fun getPlayerAccount(playerId: PlayerId): PlayerAccount? {
-        return accounts.find(Filters.eq("playerId", playerId)).firstOrNull()
+        return accounts.find(Filters.eq(FieldPlayerId, playerId)).firstOrNull()
     }
 
     override suspend fun getPlayerObjects(playerId: PlayerId): PlayerObjects? {
-        return playerObjects.find(Filters.eq("playerId", playerId)).firstOrNull()
+        return playerObjects.find(Filters.eq(FieldPlayerId, playerId)).firstOrNull()
     }
 
     override suspend fun getServerObjects(): ServerObjects {
@@ -95,7 +96,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
 
     override suspend fun delete(playerId: PlayerId): Result<Unit> {
         return try {
-            val deleteAck = accounts.deleteOne(Filters.eq("playerId", playerId)).wasAcknowledged()
+            val deleteAck = accounts.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
             if (deleteAck) {
                 Result.success(Unit)
             } else {

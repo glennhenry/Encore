@@ -9,7 +9,7 @@ import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.user.EmptyAccountRepository
+import encore.user.BlankAccountRepository
 import encore.user.AccountRepository
 import encore.user.auth.AuthProvider
 import encore.user.auth.EmptyAuthProvider
@@ -58,7 +58,7 @@ data class ServerContext(
          */
         fun fake(
             db: DataStore = BlankDataStore(),
-            accountRepository: AccountRepository = EmptyAccountRepository(),
+            accountRepository: AccountRepository = BlankAccountRepository(),
             authProvider: AuthProvider = EmptyAuthProvider(),
             contextTracker: ContextTracker = FakeContextTracker()
         ): ServerContext {
