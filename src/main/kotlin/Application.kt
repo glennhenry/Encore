@@ -181,6 +181,8 @@ suspend fun Application.module() {
     )
 
     // initialize components with circular dependency
+    // possible solution for dependency: pass servercontext on runtime action
+    // add ServerContext to parameter of ws handle or command dispatch handle
     wsManager.initialize(serverContext)
     commandDispatcher.initialize(serverContext)
 
