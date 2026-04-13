@@ -1,14 +1,13 @@
 package encore.user.model
 
-import encore.datastore.collection.PlayerAccount
 import kotlin.time.Duration
 
 /**
- * Representation of a user's authentication session.
+ * Representation of a user's session.
  *
- * @property userId User's ID to which this session belongs to,
- *                  can be used to link to anything (e.g., [PlayerAccount]).
+ * @property userId User's unique identifier to which this session belongs to.
  * @property token A unique prove for authentication.
+ * @property baseDuration The duration of a single session without any refresh.
  * @property issuedAt Epoch millis when this session was created.
  * @property expiresAt Epoch millis when this session is no longer valid.
  * @property lifetime Epoch millis of token's total validity if refreshed regularly.
@@ -16,8 +15,8 @@ import kotlin.time.Duration
 data class UserSession(
     val userId: String,
     val token: String,
+    val baseDuration: Duration,
     val issuedAt: Long,
-    val singleSessionDuration: Duration,
     var expiresAt: Long,
     var lifetime: Long,
 )

@@ -3,11 +3,12 @@ package encore.utils
 import io.ktor.util.date.getTimeMillis
 
 /**
- * Represent unit capable of supplying time.
+ * Represent a component capable of supplying time.
  *
- * Instead of using `System.currentTimeMillis()`, server components that may have
- * the potential to be unit tested are encouraged to depend on this instead.
- * This is to ensure components are testable.
+ * Server components that relies on time are encouraged to use this interface.
+ * This allows the ability to control time in unit tests.
+ *
+ * Use [SystemTime] for non-tests system.
  */
 fun interface TimeProvider {
     fun now(): Long
