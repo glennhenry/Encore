@@ -18,7 +18,6 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import encore.server.ServerContainer
 
 /**
  * Server-scoped subunit responsible to manages sessions of online users.
@@ -29,7 +28,7 @@ import encore.server.ServerContainer
  * - Use [verify] passing a token to verify the session's validity.
  * - Use [refresh] to extend the session's duration.
  *
- * @param parentScope The parent coroutine scope that holds the lifecycle (typically [ServerContainer]).
+ * @param parentScope The parent coroutine scope that holds the lifecycle.
  * @param time [TimeProvider] implementation, default is [SystemTime].
  */
 class SessionSubunit(
