@@ -1,5 +1,6 @@
 package encore.user
 
+import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
@@ -24,14 +25,14 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
      *
      * Email is optional and will be defaulted to username@email.com
      *
-     * @return playerId of the newly created player
+     * @return [PlayerId] of the newly created player
      * @throws [Throwable] an exception type from the underlying datastore or
      *         [IllegalStateException] when the account creation failed without any exception passed.
      */
     suspend fun createPlayer(
         username: String, password: String,
         email: String = "$username@email.com"
-    ): String {
+    ): PlayerId {
         val playerId = Ids.uuid()
 
         val account = PlayerAccount(
@@ -59,6 +60,8 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
      * Create a reserved admin account if it doesn't exist.
      *
      * @param alwaysRecreate Whether to always recreate the account.
+     * @throws [Throwable] an exception type from the underlying datastore or
+     *         [IllegalStateException] when the account creation failed without any exception passed.
      */
     suspend fun createAdmin(adminData: AdminData, alwaysRecreate: Boolean = false) {
         if (alwaysRecreate) {
@@ -85,6 +88,9 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             Fancam.error {
                 "Admin account creation failed, reason: ${result.exceptionOrNull()}"
             }
+
+            throw result.exceptionOrNull()
+                ?: IllegalStateException("Admin account creation failed with unknown error (exception was null)")
         }
     }
 
@@ -100,4 +106,16 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
     // unused
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
     override suspend fun disband(scope: ServerScope): Result<Unit> = Result.success(Unit)
+
+    companion object {
+        /**
+         * Creates a test instance of [PlayerCreationSubunit].
+         *
+         * @param dataStore dependency for persistence.
+         * Use [BlankDataStore] when the behavior is not relevant to the test.
+         */
+        fun createForTest(dataStore: DataStore = BlankDataStore()): PlayerCreationSubunit {
+            return PlayerCreationSubunit(dataStore)
+        }
+    }
 }

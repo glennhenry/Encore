@@ -5,11 +5,13 @@ import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.user.AdminData
 import encore.user.model.UserSession
+import encore.utils.FakeTimeProvider
 import encore.utils.Ids
 import encore.utils.SystemTime
 import encore.utils.TimeProvider
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -140,6 +142,21 @@ class SessionSubunit(
             cleanupJob.cancelAndJoin()
             sessions.clear()
             return Result.success(Unit)
+        }
+    }
+
+    companion object {
+        /**
+         * Creates a test instance of [SessionSubunit].
+         *
+         * @param parentScope scope used for lifecycle and cleanup job (e.g., `TestScope`).
+         * @param time time provider used to control session timing (e.g., [FakeTimeProvider]).
+         */
+        fun createForTest(
+            parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+            time: TimeProvider = FakeTimeProvider(0)
+        ): SessionSubunit {
+            return SessionSubunit(parentScope, time)
         }
     }
 }
