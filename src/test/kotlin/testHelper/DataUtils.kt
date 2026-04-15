@@ -1,8 +1,8 @@
 package testHelper
 
 import encore.datastore.collection.PlayerAccount
-import encore.user.model.Profile
-import encore.user.model.ServerMetadata
+import encore.account.model.Profile
+import encore.account.model.ServerMetadata
 import encore.utils.hash
 import io.ktor.util.date.*
 

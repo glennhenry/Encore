@@ -1,10 +1,11 @@
 package encoreTest.user
 
-import encore.user.auth.SessionManager
-import testHelper.FakeTimeProvider
+import encore.session.SessionSubunit
 import encore.utils.FakeTimeProvider
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -13,17 +14,21 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
-class TestSessionManager {
+class TestSessionSubunit {
+    private fun scope(): CoroutineScope {
+        return TestScope(StandardTestDispatcher())
+    }
+
     @Test
-    fun `test verify unknown token return false`() {
-        val manager = SessionManager()
+    fun `test verify unknown token return false`() = runTest {
+        val manager = SessionSubunit(scope())
         assertFalse(manager.verify("asdf"))
     }
 
     @Test
-    fun `test verify unexpired session return true`() {
+    fun `test verify unexpired session return true`() = runTest {
         val time = FakeTimeProvider(1)
-        val manager = SessionManager(time)
+        val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 1.hours)
         assertTrue(manager.verify(session.token))
 
@@ -33,20 +38,20 @@ class TestSessionManager {
     }
 
     @Test
-    fun `test verify expired session return false`() {
+    fun `test verify expired session return false`() = runTest {
         val time = FakeTimeProvider(1)
-        val manager = SessionManager(time)
+        val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 90.minutes)
 
-        // session max is 1.5 hr, this is invalid because it must be refreshed first
+        // session max is 1.5 hr, scope() is invalid because it must be refreshed first
         time.advance(2.hours)
         assertFalse(manager.verify(session.token))
     }
 
     @Test
-    fun `test verify session lifetime exceeded the session duration but refreshed in between return true`() {
+    fun `test verify session lifetime exceeded the session duration but refreshed in between return true`() = runTest {
         val time = FakeTimeProvider(1)
-        val manager = SessionManager(time)
+        val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 1.hours, lifetime = 6.hours)
 
         time.advance(40.minutes)
@@ -59,8 +64,7 @@ class TestSessionManager {
     @Test
     fun `test verify session refreshed after expired but before exceeding max lifetime return true`() = runTest {
         val time = FakeTimeProvider(1)
-        val dispatcher = StandardTestDispatcher()
-        val manager = SessionManager(time, dispatcher)
+        val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123")
 
         time.advance(2.hours)
@@ -76,8 +80,7 @@ class TestSessionManager {
     @Test
     fun `test verify session refreshed after expired but after exceeding max lifetime return false`() = runTest {
         val time = FakeTimeProvider(1)
-        val dispatcher = StandardTestDispatcher()
-        val manager = SessionManager(time, dispatcher)
+        val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 1.hours, lifetime = 6.hours)
 
         time.advance(7.hours)
