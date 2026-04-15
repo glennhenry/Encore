@@ -1,6 +1,7 @@
 package encore.utils
 
 import io.ktor.util.date.getTimeMillis
+import kotlin.time.Duration
 
 /**
  * Represent a component capable of supplying time.
@@ -19,4 +20,14 @@ fun interface TimeProvider {
  */
 object SystemTime : TimeProvider {
     override fun now() = getTimeMillis()
+}
+
+/**
+ * A test-focused implementation of [TimeProvider] which enables
+ * the control of time, allowing control to time-constrained system components.
+ */
+class FakeTimeProvider(var currentTime: Long) : TimeProvider {
+    override fun now(): Long = currentTime
+    fun advance(ms: Long) { currentTime += ms }
+    fun advance(duration: Duration) { currentTime += duration.inWholeMilliseconds }
 }

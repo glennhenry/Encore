@@ -9,7 +9,7 @@ import encore.server.tasks.TaskScheduler
 import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskConfig
 import encore.server.tasks.TaskName
-import testHelper.FakeTimeProvider
+import encore.utils.FakeTimeProvider
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Ignore
 import kotlin.test.Test
