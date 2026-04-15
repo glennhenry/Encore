@@ -1,6 +1,6 @@
-package encore.user.auth
+package encore.auth
 
-import encore.user.model.UserSession
+import encore.session.UserSession
 
 /**
  * Represents the result of a login attempt.

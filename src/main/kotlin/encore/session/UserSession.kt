@@ -1,4 +1,4 @@
-package encore.user.model
+package encore.session
 
 import kotlin.time.Duration
 

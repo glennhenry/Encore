@@ -1,8 +1,8 @@
 package encore.datastore.collection
 
 import kotlinx.serialization.Serializable
-import encore.user.model.ServerMetadata
-import encore.user.model.Profile
+import encore.account.model.ServerMetadata
+import encore.account.model.Profile
 
 /**
  * Representation of a player's account.

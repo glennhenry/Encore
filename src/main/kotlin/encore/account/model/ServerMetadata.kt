@@ -1,4 +1,4 @@
-package encore.user.model
+package encore.account.model
 
 import kotlinx.serialization.Serializable
 

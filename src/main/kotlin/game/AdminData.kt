@@ -1,4 +1,4 @@
-package encore.user
+package game
 
 /**
  * Dummy data ready to use, typically for admin account.

@@ -1,9 +1,9 @@
-package encore.user
+package encore.account
 
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
-import encore.user.model.Credentials
-import encore.user.model.Profile
+import encore.account.model.Credentials
+import encore.account.model.Profile
 
 /**
  * Repository template for [PlayerAccount].

@@ -9,10 +9,10 @@ import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.user.BlankAccountRepository
-import encore.user.AccountRepository
-import encore.user.auth.AuthSubunit
-import encore.user.auth.SessionSubunit
+import encore.account.BlankAccountRepository
+import encore.account.AccountRepository
+import encore.auth.AuthSubunit
+import encore.session.SessionSubunit
 import encore.ws.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
 

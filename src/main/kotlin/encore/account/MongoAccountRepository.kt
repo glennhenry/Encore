@@ -1,4 +1,4 @@
-package encore.user
+package encore.account
 
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
@@ -9,8 +9,8 @@ import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
-import encore.user.model.Credentials
-import encore.user.model.Profile
+import encore.account.model.Credentials
+import encore.account.model.Profile
 import encore.utils.then
 import kotlinx.coroutines.flow.firstOrNull
 import org.bson.Document

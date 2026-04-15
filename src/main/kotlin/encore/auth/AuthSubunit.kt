@@ -1,14 +1,15 @@
-package encore.user.auth
+package encore.auth
 
 import com.toxicbakery.bcrypt.Bcrypt
 import encore.fancam.Fancam
+import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.user.AccountRepository
-import encore.user.AdminData
-import encore.user.BlankAccountRepository
-import encore.user.PlayerCreationSubunit
-import encore.user.model.UserSession
+import encore.account.AccountRepository
+import game.AdminData
+import encore.account.BlankAccountRepository
+import encore.account.PlayerCreationSubunit
+import encore.session.UserSession
 import encore.utils.Outcome
 import encore.utils.toOutcome
 import kotlin.io.encoding.Base64

@@ -1,6 +1,6 @@
 package encore.datastore.collection
 
-import encore.user.AdminData
+import game.AdminData
 
 /**
  * Root representation of all persistent game data for a player.

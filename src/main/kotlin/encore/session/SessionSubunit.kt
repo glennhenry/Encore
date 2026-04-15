@@ -1,20 +1,24 @@
-package encore.user.auth
+package encore.session
 
-import encore.server.ServerContainer
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.user.AdminData
-import encore.user.model.UserSession
+import game.AdminData
 import encore.utils.FakeTimeProvider
 import encore.utils.Ids
 import encore.utils.SystemTime
 import encore.utils.TimeProvider
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import encore.server.ServerContainer
 
 /**
  * Server-scoped subunit responsible to manages sessions of online users.
