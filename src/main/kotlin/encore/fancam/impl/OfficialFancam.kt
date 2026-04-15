@@ -13,6 +13,7 @@ import encore.fancam.utils.StackTraceResolver
 import io.ktor.util.date.*
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -127,6 +128,16 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     // TrackEvent producers
     // consoleTrackProducer reuses consoleLogProducer
     private val fileTrackProducer = FileFancamProducer(config, fileTrackFormatter)
+
+    init {
+        Runtime.getRuntime().addShutdownHook(Thread {
+            executor.shutdown()
+            while (pendingEvents.get() > 0) {
+                Thread.sleep(1)
+            }
+            executor.awaitTermination(1, TimeUnit.SECONDS)
+        })
+    }
 
     override fun trace(tag: String, msg: () -> String) {
         if (Level.Trace < config.level.toLogLevel()) return
