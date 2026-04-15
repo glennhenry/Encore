@@ -1,10 +1,8 @@
 package encore.server
 
 import encore.context.ServerContext
-import io.ktor.network.selector.*
-import io.ktor.network.sockets.*
-import io.ktor.util.date.*
-import kotlinx.coroutines.*
+import encore.fancam.Fancam
+import encore.fancam.LOG_INDENT_PREFIX
 import encore.server.core.Server
 import encore.server.core.network.Connection
 import encore.server.core.network.DefaultConnection
@@ -12,10 +10,13 @@ import encore.server.handler.DefaultHandlerContext
 import encore.server.messaging.format.DecodeResult
 import encore.server.messaging.socket.SocketMessage
 import encore.server.messaging.socket.SocketMessageDispatcher
+import encore.subunit.scope.ServerScope
 import encore.utils.hexString
 import encore.utils.safeAsciiString
-import encore.fancam.Fancam
-import encore.fancam.LOG_INDENT_PREFIX
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
+import io.ktor.util.date.*
+import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
 data class GameServerConfig(
@@ -44,7 +45,7 @@ class GameServer(
     override fun isRunning(): Boolean = running
 
     override suspend fun initialize(scope: CoroutineScope, context: ServerContext) {
-        this.gameServerScope = CoroutineScope(scope.coroutineContext + SupervisorJob() + Dispatchers.IO)
+        this.gameServerScope = scope
         this.serverContext = context
         setup(socketDispatcher, context)
     }
@@ -59,20 +60,25 @@ class GameServer(
         Fancam.info { "Socket server listening on ${config.host}:${config.port}" }
 
         val selectorManager = SelectorManager(Dispatchers.IO)
-        gameServerScope.launch {
+        gameServerScope.launch(Dispatchers.IO) {
             try {
                 val serverSocket = aSocket(selectorManager).tcp().bind(config.host, config.port)
 
                 while (isActive) {
                     val socket = serverSocket.accept()
+
+                    val connectionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
                     val connection = DefaultConnection(
                         inputChannel = socket.openReadChannel(),
                         outputChannel = socket.openWriteChannel(autoFlush = true),
                         remoteAddress = socket.remoteAddress.toString(),
-                        connectionScope = CoroutineScope(gameServerScope.coroutineContext + SupervisorJob() + Dispatchers.Default),
+                        connectionScope = connectionScope
                     )
                     Fancam.info { "New client: ${connection.remoteAddress}" }
-                    handleClient(connection)
+
+                    connectionScope.launch {
+                        handleClient(connection)
+                    }
                 }
             } catch (e: CancellationException) {
                 Fancam.debug { "Game server coroutine cancelled (shutdown)" }
@@ -87,50 +93,51 @@ class GameServer(
     /**
      * Handle client [Connection] in suspending manner until data is available.
      */
-    fun handleClient(connection: Connection) {
-        connection.connectionScope.launch {
-            try {
-                loop@ while (isActive) {
-                    val (bytesRead, data) = connection.read()
-                    if (bytesRead <= 0) break@loop
+    suspend fun handleClient(connection: Connection) {
+        try {
+            loop@ while (connection.connectionScope.isActive) {
+                val (bytesRead, data) = connection.read()
+                if (bytesRead <= 0) break@loop
 
-                    serverContext.onlinePlayerRegistry.updateLastActivity(connection.playerId)
+                serverContext.onlinePlayerRegistry.updateLastActivity(connection.playerId)
 
-                    // start handle
-                    var msgType = "[Undetermined]"
-                    val elapsed = measureTimeMillis {
-                        msgType = handleMessage(connection, data)
-                    }
+                // start handle
+                var msgType = "[Undetermined]"
+                val elapsed = measureTimeMillis {
+                    msgType = handleMessage(connection, data)
+                }
 
-                    // end handle
-                    Fancam.debug {
-                        buildString {
-                            appendLine("<===== [SOCKET END]")
-                            appendLine("$LOG_INDENT_PREFIX type      : $msgType")
-                            appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
-                            if (connection.playerId == "[Undetermined]") {
-                                appendLine("$LOG_INDENT_PREFIX address   : ${connection.remoteAddress}")
-                            }
-                            appendLine("$LOG_INDENT_PREFIX duration  : ${elapsed}ms")
-                            append("====================================================================================================")
+                // end handle
+                Fancam.debug {
+                    buildString {
+                        appendLine("<===== [SOCKET END]")
+                        appendLine("$LOG_INDENT_PREFIX type      : $msgType")
+                        appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
+                        if (connection.playerId == "[Undetermined]") {
+                            appendLine("$LOG_INDENT_PREFIX address   : ${connection.remoteAddress}")
                         }
+                        appendLine("$LOG_INDENT_PREFIX duration  : ${elapsed}ms")
+                        append("====================================================================================================")
                     }
                 }
-            } catch (e: Exception) {
-                Fancam.error { "Exception in client socket $connection: $e" }
-            } finally {
-                Fancam.info { "Cleaning up for $connection" }
-
-                // Only perform cleanup if playerId is set (client was authenticated)
-                if (connection.playerId != "[Undetermined]") {
-                    serverContext.onlinePlayerRegistry.markOffline(connection.playerId)
-                    serverContext.accountRepository.updateLastLogin(connection.playerId, getTimeMillis())
-                    serverContext.contextTracker.removeContext(connection.playerId)
-                    serverContext.taskDispatcher.stopAllTasksForPlayer(connection.playerId)
-                }
-
-                connection.shutdown()
             }
+        } catch (e: Exception) {
+            Fancam.error { "Exception in client socket $connection: $e" }
+        } finally {
+            Fancam.info { "Cleaning up for $connection" }
+
+            // Only perform cleanup if playerId is set (client was authenticated)
+            if (connection.playerId != "[Undetermined]") {
+                serverContext.onlinePlayerRegistry.markOffline(connection.playerId)
+                serverContext.accountRepository.getAccountByPlayerId(connection.playerId)
+                    .getOrNull()?.profile?.copy(lastActiveAt = getTimeMillis())?.let {
+                        serverContext.accountRepository.updateProfile(connection.playerId, it)
+                    }
+                serverContext.contextTracker.removeContext(connection.playerId)
+                serverContext.taskDispatcher.stopAllTasksForPlayer(connection.playerId)
+            }
+
+            connection.shutdown()
         }
     }
 
@@ -243,7 +250,7 @@ class GameServer(
         running = false
         serverContext.contextTracker.shutdown()
         serverContext.onlinePlayerRegistry.shutdown()
-        serverContext.sessionManager.shutdown()
+        serverContext.sessionSubunit.disband(ServerScope)
         serverContext.taskDispatcher.shutdown()
         gameServerScope.cancel()
     }
