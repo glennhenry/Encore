@@ -19,7 +19,6 @@ import encore.user.model.Profile
  * like DB errors and not business outcome.
  */
 interface AccountRepository {
-
     /**
      * Returns [PlayerAccount] associated with the given [playerId], if it exists.
      *
