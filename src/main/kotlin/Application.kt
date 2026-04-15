@@ -45,6 +45,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.date.*
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -282,7 +283,9 @@ suspend fun Application.module() {
 
     Runtime.getRuntime().addShutdownHook(Thread {
         runBlocking {
-            container.shutdownAll()
+            try {
+                container.shutdownAll()
+            } catch (_: CancellationException) {}
         }
         Fancam.info { "Server shutdown complete." }
     })
