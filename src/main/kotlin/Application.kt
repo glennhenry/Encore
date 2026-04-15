@@ -10,7 +10,7 @@ import encore.context.ServerContext
 import encore.context.ServerSubunits
 import encore.datastore.MongoCollectionName
 import encore.datastore.MongoDataStore
-import encore.user.PlayerCreationSubunit
+import encore.account.PlayerCreationSubunit
 import encore.definition.GameReference
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam
@@ -24,12 +24,13 @@ import encore.server.messaging.format.MessageFormat
 import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskName
-import encore.user.MongoAccountRepository
-import encore.user.auth.AuthSubunit
-import encore.user.auth.SessionSubunit
+import encore.account.MongoAccountRepository
+import encore.auth.AuthSubunit
+import encore.session.SessionSubunit
 import encore.utils.Ids
 import encore.venue.Venue
 import encore.ws.WebSocketManager
+import game.AdminData
 import game.GameIdentity
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -187,6 +188,8 @@ suspend fun Application.module() {
     commandDispatcher.initialize(serverContext)
 
     commandDispatcher.register(ExampleCommand())
+
+    playerCreationSubunit.createAdmin(AdminData, false)
 
     /* 9. Initialize GameDefinition */
     GameReference.initialize {}
