@@ -8,6 +8,7 @@ import encore.server.core.network.Connection
 import encore.server.core.network.DefaultConnection
 import encore.server.handler.DefaultHandlerContext
 import encore.server.messaging.format.DecodeResult
+import encore.server.messaging.format.DefaultFormat
 import encore.server.messaging.socket.SocketMessage
 import encore.server.messaging.socket.SocketMessageDispatcher
 import encore.subunit.scope.ServerScope
@@ -122,7 +123,7 @@ class GameServer(
             } catch (_: CancellationException) {
                 Fancam.info { "Coroutine cancalled for $connection" }
             } catch (e: Exception) {
-                Fancam.error { "Exception in client socket $connection: $e" }
+                Fancam.error(e) { "Exception in client socket $connection" }
             } finally {
                 Fancam.info { "Cleaning up for $connection" }
 
@@ -216,8 +217,7 @@ class GameServer(
         }
 
         // Allow only one interpretation of the message, if there is multiple
-        val (chosenFormat, message) = matched.first()
-
+        val (chosenFormat, message) = matched.firstOrNull() ?: (defaultFormat to defaultMessage(data))
         if (matched.size > 1) {
             Fancam.warn {
                 buildString {
@@ -242,6 +242,17 @@ class GameServer(
         }
 
         return message.type()
+    }
+
+    // when no other format matches, uses DefaultFormat
+    private val defaultFormat = DefaultFormat()
+
+    // which also produces default message from its tryDecode and materializeAny implementation
+    private fun defaultMessage(data: ByteArray): SocketMessage {
+        return defaultFormat.materializeAny(
+            (defaultFormat.tryDecode(data) as DecodeResult.Success)
+                .value
+        )
     }
 
     override suspend fun shutdown() {

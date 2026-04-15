@@ -15,7 +15,6 @@ import encore.fancam.Fancam
  */
 class MessageFormatRegistry {
     private val formats = mutableListOf<MessageFormat<*>>()
-    private val default = DefaultFormat()
 
     /**
      * Registers a new [MessageFormat] to be considered during format detection.
@@ -53,6 +52,6 @@ class MessageFormatRegistry {
             }
         }
 
-        return matched.ifEmpty { listOf(default) }
+        return matched
     }
 }
