@@ -5,10 +5,6 @@ import encore.context.ServerContext
 import encore.server.GameServer
 import encore.server.GameServerConfig
 import encore.server.ServerContainer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.test.runTest
 import encore.server.core.network.TestConnection
 import encore.server.handler.HandlerContext
 import encore.server.handler.SocketMessageHandler
@@ -16,9 +12,10 @@ import encore.server.messaging.format.DecodeResult
 import encore.server.messaging.format.MessageFormat
 import encore.server.messaging.socket.SocketMessage
 import encore.utils.safeAsciiString
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlin.reflect.KClass
 import kotlin.test.*
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Integration test of game server components.
@@ -44,6 +41,7 @@ class GameServerTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `success handling with casual packet`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<MessageFormat<*>>(
                 ExFormat3(), ExFormat4(), ExFormat5()
@@ -56,11 +54,11 @@ class GameServerTest {
             socketDispatcher.register(Handler7())
             socketDispatcher.register(Handler6())
         }
-        val container = ServerContainer(listOf(gameServer), ServerContext.fake())
+        val container = ServerContainer(scope, listOf(gameServer), ServerContext.fake())
         container.initializeAll()
         container.startAll()
 
-        val connection = createConnection(this.backgroundScope)
+        val connection = createConnection(scope)
         gameServer.handleClient(connection)
         // ExFormat3 ExMsg3 type1 handled by Handler5
         // must have 'a' to be considered as ExFormat3
@@ -73,6 +71,7 @@ class GameServerTest {
         val result = connection.getOutgoing()
         assertEquals(1, result.size)
         assertContentEquals(byteArrayOf(5, 5, 5), result.first())
+        container.shutdownAll()
     }
 
     /**
@@ -82,7 +81,6 @@ class GameServerTest {
      * - all decode fails (junk message)
      */
     @Test
-    @Ignore("slow test, real timer 5 seconds")
     @RevisitLater("Test failed")
     fun `failed handling with junk packet`() = runTest {
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
@@ -97,20 +95,20 @@ class GameServerTest {
             socketDispatcher.register(Handler7())
             socketDispatcher.register(Handler6())
         }
-        val container = ServerContainer(listOf(gameServer), ServerContext.fake())
+        val container = ServerContainer(this, listOf(gameServer), ServerContext.fake())
         container.initializeAll()
         container.startAll()
 
         val connection = createConnection(this.backgroundScope)
         gameServer.handleClient(connection)
         // nobody can handle this (decode fails)
-        val packet = "awioenyrv😍😂80au803uvr💀".toByteArray()
+        val packet = "wioenyrv😍😂80u803uvr💀".toByteArray()
         connection.enqueueIncoming(packet)
 
         // can't use awaitOutgoing since it waits until getOutgoing is non empty
-        delay(5.seconds)
 
         assertTrue(connection.getOutgoing().isEmpty())
+        container.shutdownAll()
     }
 
     /**
@@ -122,6 +120,7 @@ class GameServerTest {
      */
     @Test
     fun `success handling with casual packet, but warned`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<MessageFormat<*>>(
                 ExFormat3(), ExFormat4(), ExFormat5(), ExFormat6()
@@ -134,11 +133,11 @@ class GameServerTest {
             socketDispatcher.register(Handler7())
             socketDispatcher.register(Handler8())
         }
-        val container = ServerContainer(listOf(gameServer), ServerContext.fake())
+        val container = ServerContainer(scope, listOf(gameServer), ServerContext.fake())
         container.initializeAll()
         container.startAll()
 
-        val connection = createConnection(this.backgroundScope)
+        val connection = createConnection(scope)
         gameServer.handleClient(connection)
         // ExFormat5 and ExFormat6 has same decoding process
         // but decode to ExMsg5 and ExMsg4 respectively
@@ -153,6 +152,8 @@ class GameServerTest {
         assertEquals(1, result.size)
         assertContentEquals(byteArrayOf(6, 6, 6), result.first())
         // not asserted but you should see warning in logger
+
+        container.shutdownAll()
     }
 
     /**
