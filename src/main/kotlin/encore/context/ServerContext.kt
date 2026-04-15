@@ -15,6 +15,7 @@ import encore.auth.AuthSubunit
 import encore.session.SessionSubunit
 import encore.ws.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Represents the **global server-side context** which includes various server components.
@@ -57,7 +58,7 @@ data class ServerContext(
          * [ServerTaskDispatcher]) are initialized with their default implementations.
          */
         fun fake(
-            parentScope: CoroutineScope,
+            parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
             db: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
             authProvider: AuthSubunit = AuthSubunit.createForTest(),
