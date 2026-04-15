@@ -15,6 +15,7 @@ class BlankAccountRepository : AccountRepository {
     override suspend fun getCredentials(username: String): Result<Credentials?> = TODO("NO OPERATION")
     override suspend fun updatePlayerAccount(playerId: PlayerId, account: PlayerAccount): Result<Unit> = TODO("NO OPERATION")
     override suspend fun updateProfile(playerId: PlayerId, profile: Profile): Result<Unit> = TODO("NO OPERATION")
+    override suspend fun updateLastActivity(playerId: PlayerId, lastActivity: Long): Result<Unit> { TODO("NO OPERATION") }
     override suspend fun usernameExists(username: String): Result<Boolean> = TODO("NO OPERATION")
     override suspend fun emailExists(email: String): Result<Boolean> = TODO("NO OPERATION")
 }

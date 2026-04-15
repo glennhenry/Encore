@@ -11,6 +11,7 @@ import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import encore.user.model.Credentials
 import encore.user.model.Profile
+import encore.utils.then
 import kotlinx.coroutines.flow.firstOrNull
 import org.bson.Document
 
@@ -83,6 +84,23 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
                     Updates.set(PlayerAccount::profile.name, profile)
                 )
                 .throwIfNotModified("updateProfile not updated for $playerId")
+        }
+    }
+
+    override suspend fun updateLastActivity(
+        playerId: PlayerId,
+        lastActivity: Long
+    ): Result<Unit> {
+        return runMongoCatching {
+            accountCollection
+                .updateOne(
+                    Filters.eq(FieldPlayerId, playerId),
+                    Updates.set(
+                        PlayerAccount::profile.name.then(Profile::lastActiveAt.name),
+                        lastActivity
+                    )
+                )
+                .throwIfNotModified("updateLastActivity not updated for $playerId")
         }
     }
 

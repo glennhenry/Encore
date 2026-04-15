@@ -70,6 +70,12 @@ interface AccountRepository {
     suspend fun updateProfile(playerId: PlayerId, profile: Profile): Result<Unit>
 
     /**
+     * Update [Profile.lastActiveAt] of [playerId] with [lastActivity].
+     * @return [Result] type denoting success or failure.
+     */
+    suspend fun updateLastActivity(playerId: PlayerId, lastActivity: Long): Result<Unit>
+
+    /**
      * Returns whether the provided [username] already exists.
      *
      * Returns [Result.success] with:
