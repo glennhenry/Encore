@@ -12,6 +12,7 @@ import encore.utils.safeAsciiString
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
 import encore.fancam.events.Level
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Default implementation of [Connection] which is based on a real socket.
@@ -77,7 +78,7 @@ class DefaultConnection(
      */
     override suspend fun shutdown() {
         try {
-            connectionScope.cancel()
+            connectionScope.cancel(CancellationException("Connection closed"))
         } catch (e: Exception) {
             Fancam.warn { "Exception during connection shutdown: ${e.message}" }
         }
