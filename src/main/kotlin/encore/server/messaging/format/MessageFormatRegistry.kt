@@ -46,9 +46,9 @@ class MessageFormatRegistry {
                     matched.add(format)
                 }
             } catch (e: Exception) {
-                Fancam.trace {
+                Fancam.warn {
                     val peek = data.copyOfRange(0, minOf(20, data.size))
-                    "${format.name} verify failed; peek=$peek; error=$e"
+                    "${format.name} verify failed; peek=${peek.contentToString()}; error=$e"
                 }
             }
         }
