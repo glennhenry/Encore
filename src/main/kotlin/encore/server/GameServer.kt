@@ -76,13 +76,10 @@ class GameServer(
                     )
                     Fancam.info { "New client: ${connection.remoteAddress}" }
 
-                    connectionScope.launch {
-                        handleClient(connection)
-                    }
+                    handleClient(connection)
                 }
-            } catch (e: CancellationException) {
-                Fancam.debug { "Game server coroutine cancelled (shutdown)" }
-                throw e
+            } catch (_: CancellationException) {
+                Fancam.info { "Game server coroutine cancelled (shutdown)" }
             } catch (e: Exception) {
                 Fancam.error { "ERROR on server: $e" }
                 shutdown()
@@ -93,48 +90,52 @@ class GameServer(
     /**
      * Handle client [Connection] in suspending manner until data is available.
      */
-    suspend fun handleClient(connection: Connection) {
-        try {
-            loop@ while (connection.connectionScope.isActive) {
-                val (bytesRead, data) = connection.read()
-                if (bytesRead <= 0) break@loop
+    fun handleClient(connection: Connection) {
+        connection.connectionScope.launch {
+            try {
+                loop@ while (isActive) {
+                    val (bytesRead, data) = connection.read()
+                    if (bytesRead <= 0) break@loop
 
-                serverContext.onlinePlayerRegistry.updateLastActivity(connection.playerId)
+                    serverContext.onlinePlayerRegistry.updateLastActivity(connection.playerId)
 
-                // start handle
-                var msgType = "[Undetermined]"
-                val elapsed = measureTimeMillis {
-                    msgType = handleMessage(connection, data)
-                }
+                    // start handle
+                    var msgType = "[Undetermined]"
+                    val elapsed = measureTimeMillis {
+                        msgType = handleMessage(connection, data)
+                    }
 
-                // end handle
-                Fancam.debug {
-                    buildString {
-                        appendLine("<===== [SOCKET END]")
-                        appendLine("$LOG_INDENT_PREFIX type      : $msgType")
-                        appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
-                        if (connection.playerId == "[Undetermined]") {
-                            appendLine("$LOG_INDENT_PREFIX address   : ${connection.remoteAddress}")
+                    // end handle
+                    Fancam.debug {
+                        buildString {
+                            appendLine("<===== [SOCKET END]")
+                            appendLine("$LOG_INDENT_PREFIX type      : $msgType")
+                            appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
+                            if (connection.playerId == "[Undetermined]") {
+                                appendLine("$LOG_INDENT_PREFIX address   : ${connection.remoteAddress}")
+                            }
+                            appendLine("$LOG_INDENT_PREFIX duration  : ${elapsed}ms")
+                            append("====================================================================================================")
                         }
-                        appendLine("$LOG_INDENT_PREFIX duration  : ${elapsed}ms")
-                        append("====================================================================================================")
                     }
                 }
-            }
-        } catch (e: Exception) {
-            Fancam.error { "Exception in client socket $connection: $e" }
-        } finally {
-            Fancam.info { "Cleaning up for $connection" }
+            } catch (_: CancellationException) {
+                Fancam.info { "Coroutine cancalled for $connection" }
+            } catch (e: Exception) {
+                Fancam.error { "Exception in client socket $connection: $e" }
+            } finally {
+                Fancam.info { "Cleaning up for $connection" }
 
-            // Only perform cleanup if playerId is set (client was authenticated)
-            if (connection.playerId != "[Undetermined]") {
-                serverContext.onlinePlayerRegistry.markOffline(connection.playerId)
-                serverContext.accountRepository.updateLastActivity(connection.playerId, getTimeMillis())
-                serverContext.contextTracker.removeContext(connection.playerId)
-                serverContext.taskDispatcher.stopAllTasksForPlayer(connection.playerId)
-            }
+                // Only perform cleanup if playerId is set (client was authenticated)
+                if (connection.playerId != "[Undetermined]") {
+                    serverContext.onlinePlayerRegistry.markOffline(connection.playerId)
+                    serverContext.accountRepository.updateLastActivity(connection.playerId, getTimeMillis())
+                    serverContext.contextTracker.removeContext(connection.playerId)
+                    serverContext.taskDispatcher.stopAllTasksForPlayer(connection.playerId)
+                }
 
-            connection.shutdown()
+                connection.shutdown()
+            }
         }
     }
 
