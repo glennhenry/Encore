@@ -81,22 +81,35 @@ class LogEventFancamFormatter(
 
     private fun formatSourceHint(source: TraceElement?, fileNamePadding: Int, noTruncation: Boolean): String {
         if (source == null) return "(UnknownSource)"
-        val file = source.filename
+        val file = source.filename ?: return "(UnknownFilename)"
         val line = source.lineNumber
 
-        if (file == null) return "(UnknownFilename)"
+        val suffix = ":$line"
 
-        if (noTruncation) {
-            return "($file:$line)"
+        // available space for file name
+        val availableSpace = fileNamePadding - suffix.length
+        if (availableSpace <= 0) {
+            return "(${file.take(1)}...$suffix)"
         }
 
-        if (file.length > fileNamePadding) {
-            val truncated = file.take(fileNamePadding - 2) + "..."
-            return "($truncated)"
-        } else {
-            val padded = file.padStart(fileNamePadding - line.toString().length, ' ')
-            return "($padded:$line)"
+        val formattedFile = when {
+            noTruncation -> file
+            file.length <= availableSpace -> file.padStart(availableSpace, ' ')
+            else -> middleTruncate(file, availableSpace)
         }
+
+        return "($formattedFile$suffix)"
+    }
+
+    private fun middleTruncate(text: String, max: Int): String {
+        if (text.length <= max) return text
+        if (max <= 3) return ".".repeat(max)
+
+        val keep = max - 3
+        val left = keep / 2
+        val right = keep - left
+
+        return text.take(left) + "..." + text.takeLast(right)
     }
 
     private fun colorizeText(level: Level, text: String): String {
