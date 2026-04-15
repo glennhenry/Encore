@@ -25,7 +25,7 @@ import encore.server.messaging.format.MessageFormatRegistry
 import encore.server.tasks.ServerTaskDispatcher
 import encore.server.tasks.TaskName
 import encore.user.MongoAccountRepository
-import encore.user.auth.DefaultAuthProvider
+import encore.user.auth.AuthSubunit
 import encore.user.auth.SessionSubunit
 import encore.utils.Ids
 import encore.venue.Venue
@@ -158,7 +158,7 @@ suspend fun Application.module() {
     val playerCreationSubunit = PlayerCreationSubunit(dataStore)
     val playerAccountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
     val sessionSubunit = SessionSubunit(appScope)
-    val authProvider = DefaultAuthProvider(playerCreationSubunit, playerAccountRepository, sessionSubunit)
+    val authProvider = AuthSubunit(playerAccountRepository, playerCreationSubunit, sessionSubunit)
     val onlinePlayerRegistry = OnlinePlayerRegistry()
     val contextTracker = DefaultContextTracker()
     val codecDispatcher = MessageFormatRegistry()

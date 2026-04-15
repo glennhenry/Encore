@@ -11,8 +11,7 @@ import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.user.BlankAccountRepository
 import encore.user.AccountRepository
-import encore.user.auth.AuthProvider
-import encore.user.auth.EmptyAuthProvider
+import encore.user.auth.AuthSubunit
 import encore.user.auth.SessionSubunit
 import encore.ws.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +36,7 @@ data class ServerContext(
     val db: DataStore,
     val accountRepository: AccountRepository,
     val sessionSubunit: SessionSubunit,
-    val authProvider: AuthProvider,
+    val authProvider: AuthSubunit,
     val onlinePlayerRegistry: OnlinePlayerRegistry,
     val contextTracker: ContextTracker,
     val formatRegistry: MessageFormatRegistry,
@@ -61,7 +60,7 @@ data class ServerContext(
             parentScope: CoroutineScope,
             db: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
-            authProvider: AuthProvider = EmptyAuthProvider(),
+            authProvider: AuthSubunit = AuthSubunit.createForTest(),
             contextTracker: ContextTracker = FakeContextTracker()
         ): ServerContext {
             return ServerContext(
