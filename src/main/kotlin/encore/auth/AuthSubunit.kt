@@ -39,11 +39,11 @@ class AuthSubunit(
     suspend fun register(username: String, password: String): Outcome<UserSession> {
         try {
             val playerId = creationSubunit.createPlayer(username, password)
-            Fancam.trace { "Registration success for $username" }
+            Fancam.trace { "Registration success for '$username'" }
             val session = sessionSubunit.create(playerId)
             return Outcome.Ok(session)
         } catch (e: Throwable) {
-            Fancam.error(e) { "Registration failed for $username" }
+            Fancam.error(e) { "Registration failed for '$username'" }
             return Outcome.Fail
         }
     }
@@ -66,22 +66,22 @@ class AuthSubunit(
         val result = accountRepository.getCredentials(username)
         return result
             .onFailure {
-                Fancam.error(it) { "Login failed: internal repository error for $username" }
+                Fancam.error(it) { "Login failed: internal repository error for '$username'" }
                 return Outcome.Fail
             }
             .toOutcome { credentials ->
                 if (credentials == null) {
-                    Fancam.warn { "Login failed: account not found for $username: " }
-                    return Outcome.Ok(LoginResult.AccountNotFound("Account not found for $username"))
+                    Fancam.warn { "Login failed: account not found for '$username'" }
+                    return Outcome.Ok(LoginResult.AccountNotFound("Account not found for '$username'"))
                 }
 
                 if (verifyPassword(password, credentials.hashedPassword)) {
-                    Fancam.trace { "Login success for $username" }
+                    Fancam.trace { "Login success for '$username'" }
                     val session = sessionSubunit.create(credentials.playerId)
                     return Outcome.Ok(LoginResult.Success(session))
                 } else {
-                    Fancam.trace { "Login failed: wrong password for $username" }
-                    return Outcome.Ok(LoginResult.InvalidCredentials("Wrong password for $username"))
+                    Fancam.trace { "Login failed: wrong password for '$username'" }
+                    return Outcome.Ok(LoginResult.InvalidCredentials("Wrong password for '$username'"))
                 }
             }
     }
@@ -113,13 +113,13 @@ class AuthSubunit(
     suspend fun isUsernameAvailable(username: String): Boolean {
         val exists = accountRepository.usernameExists(username).getOrElse {
             Fancam.error(it) {
-                "Username check failed: internal repository error for $username"
+                "Username check failed: internal repository error for '$username'"
             }
             return false
         }
 
         if (exists) {
-            Fancam.trace { "Username $username is already taken" }
+            Fancam.trace { "Username '$username' is already taken" }
             return false
         }
 
@@ -131,12 +131,12 @@ class AuthSubunit(
 
         if (triggeredWord != null) {
             Fancam.trace {
-                "Prohibited words triggered on $username by word $triggeredWord"
+                "Prohibited words triggered on '$username' by word $triggeredWord"
             }
             return false
         }
 
-        Fancam.trace { "Username $username is available" }
+        Fancam.trace { "Username '$username' is available" }
         return true
     }
 
@@ -161,7 +161,7 @@ class AuthSubunit(
 
         // depending on the context, duplicate email may be allowed
         if (exists) {
-            Fancam.trace { "Email $email is already taken" }
+            Fancam.trace { "Email '$email' is already taken" }
             return false
         }
 
@@ -169,11 +169,11 @@ class AuthSubunit(
         val isEmailValid = email.contains("@")
 
         if (!isEmailValid) {
-            Fancam.trace { "Invalid email: $email" }
+            Fancam.trace { "Invalid email '$email'" }
             return false
         }
 
-        Fancam.trace { "Email $email is available" }
+        Fancam.trace { "Email '$email' is available" }
         return true
     }
 
