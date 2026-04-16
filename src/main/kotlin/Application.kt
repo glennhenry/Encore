@@ -1,5 +1,6 @@
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import encore.EncoreIdentity
+import encore.account.AccountSubunit
 import encore.api.routes.backstageRoutes
 import encore.api.routes.fileRoutes
 import encore.api.routes.timeUnderMinutes
@@ -144,8 +145,6 @@ suspend fun Application.module() {
     val commandResult = db.runCommand(Document("ping", 1))
     Fancam.info { "MongoDB connection successful: $commandResult" }
 
-
-
     /* 7. Install websockets */
     install(WebSockets) {
         pingPeriod = 15.seconds
@@ -157,35 +156,40 @@ suspend fun Application.module() {
 
     /* 8. Setup ServerContext */
     val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
-    val playerCreationSubunit = PlayerCreationSubunit(dataStore)
-    val playerAccountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
-    val sessionSubunit = SessionSubunit(appScope)
-    val authProvider = AuthSubunit(playerAccountRepository, playerCreationSubunit, sessionSubunit)
+    val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
     val onlinePlayerRegistry = OnlinePlayerRegistry()
     val contextTracker = DefaultContextTracker()
-    val codecDispatcher = MessageFormatRegistry()
-    val taskDispatcher = ServerTaskDispatcher()
+    val messageFormatRegistry = MessageFormatRegistry()
+    val serverTaskDispatcher = ServerTaskDispatcher()
     val commandDispatcher = CommandDispatcher()
-    val wsManager = WebSocketManager()
-    val subunits = ServerSubunits()
+    val webSocketManager = WebSocketManager()
+
+    val accountSubunit = AccountSubunit(accountRepository)
+    val sessionSubunit = SessionSubunit(appScope)
+    val playerCreationSubunit = PlayerCreationSubunit(dataStore)
+    val authSubunit = AuthSubunit(accountSubunit, playerCreationSubunit, sessionSubunit)
+
+    val subunits = ServerSubunits(
+        account = accountSubunit,
+        auth = authSubunit,
+        session = sessionSubunit,
+        creation = playerCreationSubunit
+    )
     val serverContext = ServerContext(
-        db = dataStore,
-        accountRepository = playerAccountRepository,
-        sessionSubunit = sessionSubunit,                   // is not used unless auth is implemented
-        authProvider = authProvider,                       // is not used unless auth is implemented
-        onlinePlayerRegistry = onlinePlayerRegistry,       // not much used typically
+        dataStore = dataStore,
+        onlinePlayerRegistry = onlinePlayerRegistry,
         contextTracker = contextTracker,
-        formatRegistry = codecDispatcher,
-        taskDispatcher = taskDispatcher,
+        formatRegistry = messageFormatRegistry,
+        taskDispatcher = serverTaskDispatcher,
         commandDispatcher = commandDispatcher,
-        wsManager = wsManager,
+        wsManager = webSocketManager,
         subunits = subunits
     )
 
     // initialize components with circular dependency
     // possible solution for dependency: pass servercontext on runtime action
     // add ServerContext to parameter of ws handle or command dispatch handle
-    wsManager.initialize(serverContext)
+    webSocketManager.initialize(serverContext)
     commandDispatcher.initialize(serverContext)
 
     commandDispatcher.register(ExampleCommand())

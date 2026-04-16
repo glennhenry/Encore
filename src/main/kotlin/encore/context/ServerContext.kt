@@ -11,6 +11,8 @@ import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.account.BlankAccountRepository
 import encore.account.AccountRepository
+import encore.account.AccountSubunit
+import encore.account.PlayerCreationSubunit
 import encore.auth.AuthSubunit
 import encore.session.SessionSubunit
 import encore.ws.WebSocketManager
@@ -20,10 +22,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 /**
  * Represents the **global server-side context** which includes various server components.
  *
- * @property db [DataStore] instance of the server.
- * @property accountRepository Repository class that holds player accounts.
- * @property sessionSubunit Manages session of players.
- * @property authProvider Provides authentication functions.
+ * @property dataStore [DataStore] instance of the server.
  * @property onlinePlayerRegistry Keep tracks online status of each player.
  * @property contextTracker Tracks and manages each player's context.
  * @property formatRegistry Track the known message format and registered codecs
@@ -34,10 +33,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @property subunits Container for server subunit instances.
  */
 data class ServerContext(
-    val db: DataStore,
-    val accountRepository: AccountRepository,
-    val sessionSubunit: SessionSubunit,
-    val authProvider: AuthSubunit,
+    val dataStore: DataStore,
     val onlinePlayerRegistry: OnlinePlayerRegistry,
     val contextTracker: ContextTracker,
     val formatRegistry: MessageFormatRegistry,
@@ -59,23 +55,28 @@ data class ServerContext(
          */
         fun fake(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-            db: DataStore = BlankDataStore(),
+            dataStore: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
-            authProvider: AuthSubunit = AuthSubunit.createForTest(),
             contextTracker: ContextTracker = FakeContextTracker()
         ): ServerContext {
+            val account = AccountSubunit(accountRepository)
+            val session = SessionSubunit.createForTest(parentScope)
+            val creation = PlayerCreationSubunit.createForTest(dataStore)
+
             return ServerContext(
-                db = db,
-                accountRepository = accountRepository,
-                sessionSubunit = SessionSubunit(parentScope),
-                authProvider = authProvider,
+                dataStore = dataStore,
                 onlinePlayerRegistry = OnlinePlayerRegistry(),
                 contextTracker = contextTracker,
                 formatRegistry = MessageFormatRegistry(),
                 taskDispatcher = ServerTaskDispatcher(),
                 commandDispatcher = CommandDispatcher(),
                 wsManager = WebSocketManager(),
-                subunits = ServerSubunits()
+                subunits = ServerSubunits(
+                    account = account,
+                    auth = AuthSubunit(account, creation, session),
+                    session = session,
+                    creation = creation
+                )
             )
         }
     }
@@ -108,11 +109,20 @@ fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext =
  * Server subunits are typically bound to [ServerScope].
  *
  * Examples:
+ * - An infra-related component providing session creation and verification.
  * - A leaderboard representing global state is not owned by any single player.
  *   A `LeaderboardSubunit` may expose operations to query or update rankings.
  * - A matchmaking system may not persist data, but can maintain in-memory
  *   state and provide matchmaking-specific functionality.
+ *
+ * @property account Provides API related to accounts.
+ * @property auth Provides authentication functions.
+ * @property session Manages session of players.
+ * @property creation Provides player creation mechanism.
  */
 data class ServerSubunits(
-    val example: String = ""
+    val account: AccountSubunit,
+    val auth: AuthSubunit,
+    val session: SessionSubunit,
+    val creation: PlayerCreationSubunit,
 )

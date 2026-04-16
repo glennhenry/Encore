@@ -130,7 +130,7 @@ class GameServer(
                 // Only perform cleanup if playerId is set (client was authenticated)
                 if (connection.playerId != "[Undetermined]") {
                     serverContext.onlinePlayerRegistry.markOffline(connection.playerId)
-                    serverContext.accountRepository.updateLastActivity(connection.playerId, getTimeMillis())
+                    serverContext.subunits.account.updateLastActivity(connection.playerId, getTimeMillis())
                     serverContext.contextTracker.removeContext(connection.playerId)
                     serverContext.taskDispatcher.stopAllTasksForPlayer(connection.playerId)
                 }
@@ -259,7 +259,7 @@ class GameServer(
         running = false
         serverContext.contextTracker.shutdown()
         serverContext.onlinePlayerRegistry.shutdown()
-        serverContext.sessionSubunit.disband(ServerScope)
+        serverContext.subunits.session.disband(ServerScope)
         serverContext.taskDispatcher.shutdown()
         gameServerScope.cancel()
     }
