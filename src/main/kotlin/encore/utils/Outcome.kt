@@ -47,6 +47,11 @@ fun <T> Outcome<T>.isFail(): Boolean = this is Outcome.Fail
 fun <T> Outcome<T>.okOrNull(): T? = (this as? Outcome.Ok)?.value
 
 /**
+ * Returns the value of this outcome or throw an [IllegalStateException] if it fails.
+ */
+fun <T> Outcome<T>.okOrThrow(): T = (this as? Outcome.Ok)?.value ?: error("Expected Outcome.Ok but got Outcome.Fail")
+
+/**
  * Returns the value if this is [Outcome.Ok], otherwise throws an error.
  *
  * This is intended for cases where failure is unexpected and should fail-fast.
