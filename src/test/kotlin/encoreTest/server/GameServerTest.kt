@@ -47,14 +47,14 @@ class GameServerTest {
                 ExFormat3(), ExFormat4(), ExFormat5()
             )
             possibleFormats.forEach {
-                serverContext.formatRegistry.register(it)
+                serverContext.messageFormatRegistry.register(it)
             }
             socketDispatcher.register(Handler5())
             socketDispatcher.register(Handler6())
             socketDispatcher.register(Handler7())
             socketDispatcher.register(Handler6())
         }
-        val container = ServerContainer(scope, listOf(gameServer), ServerContext.fake())
+        val container = ServerContainer(scope, listOf(gameServer), ServerContext.createForTest())
         container.initializeAll()
         container.startAll()
 
@@ -88,14 +88,14 @@ class GameServerTest {
                 ExFormat3(), ExFormat4(), ExFormat5()
             )
             possibleFormats.forEach {
-                serverContext.formatRegistry.register(it)
+                serverContext.messageFormatRegistry.register(it)
             }
             socketDispatcher.register(Handler5())
             socketDispatcher.register(Handler6())
             socketDispatcher.register(Handler7())
             socketDispatcher.register(Handler6())
         }
-        val container = ServerContainer(this, listOf(gameServer), ServerContext.fake())
+        val container = ServerContainer(this, listOf(gameServer), ServerContext.createForTest())
         container.initializeAll()
         container.startAll()
 
@@ -126,14 +126,14 @@ class GameServerTest {
                 ExFormat3(), ExFormat4(), ExFormat5(), ExFormat6()
             )
             possibleFormats.forEach {
-                serverContext.formatRegistry.register(it)
+                serverContext.messageFormatRegistry.register(it)
             }
             socketDispatcher.register(Handler5())
             socketDispatcher.register(Handler6())
             socketDispatcher.register(Handler7())
             socketDispatcher.register(Handler8())
         }
-        val container = ServerContainer(scope, listOf(gameServer), ServerContext.fake())
+        val container = ServerContainer(scope, listOf(gameServer), ServerContext.createForTest())
         container.initializeAll()
         container.startAll()
 

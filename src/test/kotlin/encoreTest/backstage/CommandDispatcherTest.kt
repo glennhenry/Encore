@@ -25,7 +25,7 @@ import kotlin.test.assertTrue
  * Does not need to test invalid request since parser already validates that.
  */
 class CommandDispatcherTest {
-    private val context = ServerContext.fake()
+    private val context = ServerContext.createForTest()
 
     @BeforeTest
     fun setup() {

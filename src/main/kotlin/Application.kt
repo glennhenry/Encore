@@ -179,10 +179,10 @@ suspend fun Application.module() {
         dataStore = dataStore,
         onlinePlayerRegistry = onlinePlayerRegistry,
         contextTracker = contextTracker,
-        formatRegistry = messageFormatRegistry,
-        taskDispatcher = serverTaskDispatcher,
+        messageFormatRegistry = messageFormatRegistry,
+        serverTaskDispatcher = serverTaskDispatcher,
         commandDispatcher = commandDispatcher,
-        wsManager = webSocketManager,
+        webSocketManager = webSocketManager,
         subunits = subunits
     )
 
@@ -228,7 +228,7 @@ suspend fun Application.module() {
 
     val gameServer = GameServer(gameServerConfig) { socketDispatcher, serverContext ->
         // REPLACE
-        serverContext.taskDispatcher.registerTask(
+        serverContext.serverTaskDispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = {},
             deriveTaskId = { playerId, name, _ ->
@@ -241,7 +241,7 @@ suspend fun Application.module() {
 
         )
         possibleFormats.forEach {
-            serverContext.formatRegistry.register(it)
+            serverContext.messageFormatRegistry.register(it)
         }
     }
 

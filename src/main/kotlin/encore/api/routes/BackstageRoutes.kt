@@ -166,7 +166,7 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
         }
         Fancam.info { "WebSocket request for /backstage: success with $token" }
 
-        serverContext.wsManager.addClient(token, this)
+        serverContext.webSocketManager.addClient(token, this)
 
         try {
             for (frame in incoming) {
@@ -175,10 +175,10 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
                     try {
                         val wsMessage = Json.decodeFromString<WsMessage>(msg)
                         if (wsMessage.type == "close") {
-                            serverContext.wsManager.removeClient(token)
+                            serverContext.webSocketManager.removeClient(token)
                             break
                         }
-                        serverContext.wsManager.handleMessage(this, wsMessage)
+                        serverContext.webSocketManager.handleMessage(this, wsMessage)
                     } catch (e: Exception) {
                         Fancam.error { "Failed to parse WS message: $msg\n$e" }
                     }
@@ -187,7 +187,7 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
         } catch (e: Exception) {
             Fancam.error { "Error in websocket for client $this: $e" }
         } finally {
-            serverContext.wsManager.removeClient(token)
+            serverContext.webSocketManager.removeClient(token)
             Fancam.info { "Client $this disconnected from websocket" }
         }
     }

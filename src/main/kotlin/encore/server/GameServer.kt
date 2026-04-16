@@ -132,7 +132,7 @@ class GameServer(
                     serverContext.onlinePlayerRegistry.markOffline(connection.playerId)
                     serverContext.subunits.account.updateLastActivity(connection.playerId, getTimeMillis())
                     serverContext.contextTracker.removeContext(connection.playerId)
-                    serverContext.taskDispatcher.stopAllTasksForPlayer(connection.playerId)
+                    serverContext.serverTaskDispatcher.stopAllTasksForPlayer(connection.playerId)
                 }
 
                 connection.shutdown()
@@ -189,7 +189,7 @@ class GameServer(
         }
 
         val matched = mutableListOf<Pair<String, SocketMessage>>()
-        val possibleFormats = serverContext.formatRegistry.identifyFormat(data)
+        val possibleFormats = serverContext.messageFormatRegistry.identifyFormat(data)
 
         // Find possible format for this message
         for (format in possibleFormats) {
@@ -260,7 +260,7 @@ class GameServer(
         serverContext.contextTracker.shutdown()
         serverContext.onlinePlayerRegistry.shutdown()
         serverContext.subunits.session.disband(ServerScope)
-        serverContext.taskDispatcher.shutdown()
+        serverContext.serverTaskDispatcher.shutdown()
         gameServerScope.cancel()
     }
 }

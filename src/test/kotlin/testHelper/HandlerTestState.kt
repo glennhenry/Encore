@@ -31,7 +31,7 @@ data class HandlerTestState<T : SocketMessage>(
 
     val contextTracker = FakeContextTracker()
 
-    val serverContext = ServerContext.fake(contextTracker = contextTracker)
+    val serverContext = ServerContext.createForTest(contextTracker = contextTracker)
 
     val playerContext = PlayerContext(playerId, connection, account, subunits).also {
         contextTracker.fakeContext(it)

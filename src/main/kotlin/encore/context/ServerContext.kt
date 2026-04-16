@@ -25,35 +25,33 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @property dataStore [DataStore] instance of the server.
  * @property onlinePlayerRegistry Keep tracks online status of each player.
  * @property contextTracker Tracks and manages each player's context.
- * @property formatRegistry Track the known message format and registered codecs
+ * @property messageFormatRegistry Track the known message format and registered codecs
  *                           for network messages.
- * @property taskDispatcher Provide API to start and stop server-sided task.
+ * @property serverTaskDispatcher Provide API to start and stop server-sided task.
  * @property commandDispatcher Tracks and executes server commands.
- * @property wsManager Manages client websocket connections.
+ * @property webSocketManager Manages client websocket connections.
  * @property subunits Container for server subunit instances.
  */
 data class ServerContext(
     val dataStore: DataStore,
     val onlinePlayerRegistry: OnlinePlayerRegistry,
     val contextTracker: ContextTracker,
-    val formatRegistry: MessageFormatRegistry,
-    val taskDispatcher: ServerTaskDispatcher,
+    val messageFormatRegistry: MessageFormatRegistry,
+    val serverTaskDispatcher: ServerTaskDispatcher,
     val commandDispatcher: CommandDispatcher,
-    val wsManager: WebSocketManager,
+    val webSocketManager: WebSocketManager,
     val subunits: ServerSubunits
 ) {
     companion object {
         /**
-         * Create a fake, simple to use [ServerContext] for testing purposes.
+         * Creates a test instance of [ServerContext].
          *
-         * It allows injection of interface-based dependencies such as [DataStore],
-         * [AccountRepository], and [AuthProvider].
-         *
-         * By default, the [FakeContextTracker] is used, while all other components
-         * (e.g. [SessionSubunit], [OnlinePlayerRegistry], [MessageFormatRegistry], and
-         * [ServerTaskDispatcher]) are initialized with their default implementations.
+         * @param parentScope `CoroutineScope` for [SessionSubunit].
+         * @param dataStore Also used to build [PlayerCreationSubunit].
+         * @param accountRepository Used to build [AccountSubunit].
+         * @param contextTracker Use [FakeContextTracker] by default.
          */
-        fun fake(
+        fun createForTest(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
             dataStore: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
@@ -67,10 +65,10 @@ data class ServerContext(
                 dataStore = dataStore,
                 onlinePlayerRegistry = OnlinePlayerRegistry(),
                 contextTracker = contextTracker,
-                formatRegistry = MessageFormatRegistry(),
-                taskDispatcher = ServerTaskDispatcher(),
+                messageFormatRegistry = MessageFormatRegistry(),
+                serverTaskDispatcher = ServerTaskDispatcher(),
                 commandDispatcher = CommandDispatcher(),
-                wsManager = WebSocketManager(),
+                webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(
                     account = account,
                     auth = AuthSubunit(account, creation, session),
