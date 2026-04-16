@@ -2,6 +2,7 @@ package encoreTest.user
 
 import com.mongodb.assertions.Assertions.assertFalse
 import encore.account.AccountRepository
+import encore.account.AccountSubunit
 import encore.account.MongoAccountRepository
 import encore.account.PlayerCreationSubunit
 import encore.account.model.Credentials
@@ -14,6 +15,8 @@ import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.session.SessionSubunit
 import encore.utils.Outcome
+import encore.utils.okOrNull
+import encore.utils.okOrThrow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -47,8 +50,9 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope())
         val repo = MongoAccountRepository(collection)
+        val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
-        val provider = AuthSubunit(repo, pcs, manager)
+        val auth = AuthSubunit(accountSubunit, pcs, manager)
 
         val account = PlayerAccount(
             playerId = "pid12345",
@@ -60,7 +64,7 @@ class TestAuthSubunit {
         )
         collection.insertOne(account)
 
-        assertFalse(provider.isUsernameAvailable("name"))
+        assertFalse(auth.isUsernameAvailable("name").okOrThrow())
         assertTrue(repo.usernameExists("name").getOrThrow())
     }
 
@@ -74,10 +78,11 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope())
         val repo = MongoAccountRepository(collection)
+        val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
-        val provider = AuthSubunit(repo, pcs, manager)
+        val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        assertTrue(provider.isUsernameAvailable("xyz"))
+        assertTrue(auth.isUsernameAvailable("xyz").okOrThrow())
         assertFalse(repo.usernameExists("xyz").getOrThrow())
     }
 
@@ -91,11 +96,12 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope())
         val repo = MongoAccountRepository(collection)
+        val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
-        val provider = AuthSubunit(repo, pcs, manager)
+        val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        provider.register("helloworld", "kotlinktor")
-        assertFalse(provider.isUsernameAvailable("helloworld"))
+        auth.register("helloworld", "kotlinktor")
+        assertFalse(auth.isUsernameAvailable("helloworld").okOrThrow())
         assertTrue(repo.usernameExists("helloworld").getOrThrow())
     }
 
@@ -109,10 +115,11 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope())
         val repo = MongoAccountRepository(collection)
+        val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
-        val provider = AuthSubunit(repo, pcs, manager)
+        val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        val session = provider.login("asdf", "fdsa")
+        val session = auth.login("asdf", "fdsa")
         // Ok = no internal error
         assertTrue((session as Outcome.Ok).value is LoginResult.AccountNotFound)
     }
@@ -127,11 +134,12 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope())
         val repo = MongoAccountRepository(collection)
+        val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
-        val provider = AuthSubunit(repo, pcs, manager)
+        val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        provider.register("helloworld", "kotlinktor")
-        val session = provider.login("helloworld", "ktor")
+        auth.register("helloworld", "kotlinktor")
+        val session = auth.login("helloworld", "ktor")
         assertTrue((session as Outcome.Ok).value is LoginResult.InvalidCredentials)
     }
 
@@ -155,11 +163,12 @@ class TestAuthSubunit {
             override suspend fun usernameExists(username: String): Result<Boolean> = TODO()
             override suspend fun emailExists(email: String): Result<Boolean> = TODO()
         }
+        val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
-        val provider = AuthSubunit(repo, pcs, manager)
+        val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        provider.register("helloworld", "kotlinktor")
-        val session = provider.login("helloworld", "ktor")
+        auth.register("helloworld", "kotlinktor")
+        val session = auth.login("helloworld", "ktor")
         // should error on first call to repository in getCredentials
         assertTrue(session is Outcome.Fail)
     }
@@ -174,11 +183,12 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope())
         val repo = MongoAccountRepository(collection)
+        val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
-        val provider = AuthSubunit(repo, pcs, manager)
+        val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        provider.register("helloworld", "kotlinktor")
-        val session = provider.login("helloworld", "kotlinktor")
+        auth.register("helloworld", "kotlinktor")
+        val session = auth.login("helloworld", "kotlinktor")
         assertTrue(((session as Outcome.Ok).value is LoginResult.Success))
     }
 }
