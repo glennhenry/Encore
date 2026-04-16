@@ -1,32 +1,31 @@
 package encore.auth
 
 import com.toxicbakery.bcrypt.Bcrypt
+import encore.account.AccountSubunit
+import encore.account.PlayerCreationSubunit
 import encore.fancam.Fancam
 import encore.session.SessionSubunit
+import encore.session.UserSession
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.account.AccountRepository
-import game.AdminData
-import encore.account.BlankAccountRepository
-import encore.account.PlayerCreationSubunit
-import encore.session.UserSession
 import encore.utils.Outcome
-import encore.utils.toOutcome
+import encore.utils.fold
+import game.AdminData
 import kotlin.io.encoding.Base64
 
 /**
  * Represent a server-scoped subunit that handles authentication.
  *
- * Dependency:
- * - [AccountRepository] for access to the account store.
+ * `AuthSubunit` is high-level subunit that requires other subunits to function:
+ * - [AccountSubunit] to get account information for registration or login.
  * - [PlayerCreationSubunit] to create account during registration.
  * - [SessionSubunit] to create session after successful registration or login.
  */
 class AuthSubunit(
-    private val accountRepository: AccountRepository,
+    private val accountSubunit: AccountSubunit,
     private val creationSubunit: PlayerCreationSubunit,
     private val sessionSubunit: SessionSubunit
-): Subunit<ServerScope> {
+) : Subunit<ServerScope> {
     /**
      * Register an account with [username] and [password].
      *
@@ -63,13 +62,9 @@ class AuthSubunit(
      * - Otherwise [Outcome.Ok] with [UserSession].
      */
     suspend fun login(username: String, password: String): Outcome<LoginResult> {
-        val result = accountRepository.getCredentials(username)
-        return result
-            .onFailure {
-                Fancam.error(it) { "Login failed: internal repository error for '$username'" }
-                return Outcome.Fail
-            }
-            .toOutcome { credentials ->
+        val outcome = accountSubunit.getCredentials(username)
+        return outcome.fold(
+            onOk = { credentials ->
                 if (credentials == null) {
                     Fancam.warn { "Login failed: account not found for '$username'" }
                     return Outcome.Ok(LoginResult.AccountNotFound("Account not found for '$username'"))
@@ -78,12 +73,17 @@ class AuthSubunit(
                 if (verifyPassword(password, credentials.hashedPassword)) {
                     Fancam.trace { "Login success for '$username'" }
                     val session = sessionSubunit.create(credentials.playerId)
-                    return Outcome.Ok(LoginResult.Success(session))
+                    Outcome.Ok(LoginResult.Success(session))
                 } else {
                     Fancam.trace { "Login failed: wrong password for '$username'" }
-                    return Outcome.Ok(LoginResult.InvalidCredentials("Wrong password for '$username'"))
+                    Outcome.Ok(LoginResult.InvalidCredentials("Wrong password for '$username'"))
                 }
+            },
+            onFail = {
+                Fancam.error { "Login failed for '$username'" }
+                Outcome.Fail
             }
+        )
     }
 
     /**
@@ -105,76 +105,74 @@ class AuthSubunit(
      * Check whether the [username] is available.
      *
      * Returns:
-     * - `false` if there is an internal repository error.
-     * - `false` if it is already taken.
-     * - `false` if it contains some prohibited words.
-     * - Otherwise `true`.
+     * - [Outcome.Fail] if there is an internal repository error.
+     * - [Outcome.Ok]` = false` if it is already taken.
+     * - [Outcome.Ok]` = false` if it contains some prohibited words.
+     * - Otherwise [Outcome.Ok]` = true`.
      */
-    suspend fun isUsernameAvailable(username: String): Boolean {
-        val exists = accountRepository.usernameExists(username).getOrElse {
-            Fancam.error(it) {
-                "Username check failed: internal repository error for '$username'"
-            }
-            return false
-        }
+    suspend fun isUsernameAvailable(username: String): Outcome<Boolean> {
+        val outcome = accountSubunit.usernameExists(username)
+        return outcome.fold(
+            onOk = { exists ->
+                if (exists) {
+                    Fancam.trace { "Username '$username' is already taken" }
+                    return Outcome.Ok(false)
+                }
 
-        if (exists) {
-            Fancam.trace { "Username '$username' is already taken" }
-            return false
-        }
+                // username does not exist, check prohibited words
+                val prohibitedWords = emptySet<String>()
+                val triggeredWord = prohibitedWords.firstOrNull { word ->
+                    username.contains(word, ignoreCase = true)
+                }
 
-        // username does not exist, check prohibited words
-        val prohibitedWords = emptySet<String>()
-        val triggeredWord = prohibitedWords.firstOrNull { word ->
-            username.contains(word, ignoreCase = true)
-        }
+                if (triggeredWord != null) {
+                    Fancam.trace {
+                        "Prohibited words triggered on '$username' by word $triggeredWord"
+                    }
+                    return Outcome.Ok(false)
+                }
 
-        if (triggeredWord != null) {
-            Fancam.trace {
-                "Prohibited words triggered on '$username' by word $triggeredWord"
-            }
-            return false
-        }
-
-        Fancam.trace { "Username '$username' is available" }
-        return true
+                Fancam.trace { "Username '$username' is available" }
+                Outcome.Ok(true)
+            },
+            onFail = { Outcome.Fail }
+        )
     }
 
     /**
      * Check whether the [email] is available.
      *
      * Returns:
-     * - `false` if there is an internal repository error.
-     * - `false` if it is already taken.
-     * - `false` if it isn't a valid email.
-     * - Otherwise `true`.
+     * - [Outcome.Fail] if there is an internal repository error.
+     * - [Outcome.Ok]` = false` if it is already taken.
+     * - [Outcome.Ok]` = false` if it contains some prohibited words.
+     * - Otherwise [Outcome.Ok]` = true`.
      *
      * Note: depending on the context, duplicate email may be allowed.
      */
-    suspend fun isEmailAvailable(email: String): Boolean {
-        val exists = accountRepository.emailExists(email).getOrElse {
-            Fancam.error(it) {
-                "Email check failed: internal repository error for $email"
-            }
-            return false
-        }
+    suspend fun isEmailAvailable(email: String): Outcome<Boolean> {
+        val outcome = accountSubunit.emailExists(email)
+        return outcome.fold(
+            onOk = { exists ->
+                // depending on the context, duplicate email may be allowed
+                if (exists) {
+                    Fancam.trace { "Email '$email' is already taken" }
+                    return Outcome.Ok(false)
+                }
 
-        // depending on the context, duplicate email may be allowed
-        if (exists) {
-            Fancam.trace { "Email '$email' is already taken" }
-            return false
-        }
+                // email does not exist, check email validity
+                val isEmailValid = email.contains("@")
 
-        // email does not exist, check email validity
-        val isEmailValid = email.contains("@")
+                if (!isEmailValid) {
+                    Fancam.trace { "Invalid email '$email'" }
+                    return Outcome.Ok(false)
+                }
 
-        if (!isEmailValid) {
-            Fancam.trace { "Invalid email '$email'" }
-            return false
-        }
-
-        Fancam.trace { "Email '$email' is available" }
-        return true
+                Fancam.trace { "Email '$email' is available" }
+                Outcome.Ok(true)
+            },
+            onFail = { Outcome.Fail }
+        )
     }
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
@@ -184,16 +182,16 @@ class AuthSubunit(
         /**
          * Creates a test instance of [AuthSubunit].
          *
-         * @param accountRepository use [BlankAccountRepository] when not under test.
+         * @param accountSubunit created via [AccountSubunit.createForTest].
          * @param creationSubunit created via [PlayerCreationSubunit.createForTest].
          * @param sessionSubunit created via [SessionSubunit.createForTest].
          */
         fun createForTest(
-            accountRepository: AccountRepository = BlankAccountRepository(),
+            accountSubunit: AccountSubunit = AccountSubunit.createForTest(),
             creationSubunit: PlayerCreationSubunit = PlayerCreationSubunit.createForTest(),
             sessionSubunit: SessionSubunit = SessionSubunit.createForTest()
         ): AuthSubunit {
-            return AuthSubunit(accountRepository, creationSubunit, sessionSubunit)
+            return AuthSubunit(accountSubunit, creationSubunit, sessionSubunit)
         }
     }
 }
