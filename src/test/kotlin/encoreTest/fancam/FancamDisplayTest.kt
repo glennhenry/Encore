@@ -17,31 +17,28 @@ import kotlin.test.Test
  */
 class FancamDisplayTest {
     @Test
-    fun `fancam without color`() = runTest {
+    fun `fancam without color`() {
         val fancam = OfficialFancam(EncoreFancamConfig(colorEnabled = false))
         Fancam.initialize(fancam)
         logExample(fancam)
-        fancam.flush()
     }
 
     @Test
-    fun `fancam with foreground color`() = runTest {
+    fun `fancam with foreground color`() {
         val fancam = OfficialFancam(EncoreFancamConfig(useBackgroundColor = false))
         Fancam.initialize(fancam)
         logExample(fancam)
-        fancam.flush()
     }
 
     @Test
-    fun `fancam with color`() = runTest {
+    fun `fancam with color`() {
         val fancam = OfficialFancam(EncoreFancamConfig())
         Fancam.initialize(fancam)
         logExample(fancam)
-        fancam.flush()
     }
 
     @Test
-    fun `fancam route to file`() = runTest {
+    fun `fancam route to file`() {
         // expected file: FancamDisplayTest-1.log
         // this will kept appending to the file
         // file rotation is enabled automatically
@@ -75,12 +72,11 @@ class FancamDisplayTest {
             .message { "Xiaoting is so attractive. I keep thinking about her. I think I have fallen?" }
             .logToFileOnly("FancamDisplayTest")
 
-        fancam.flush()
     }
 
     @RevisitLater("Unit tests could never produce any text to file. Track event formatter always return empty text")
     @Test
-    fun `fancam track event`() = runTest {
+    fun `fancam track event`() {
         val fancam = OfficialFancam(EncoreFancamConfig())
         Fancam.initialize(fancam)
         Fancam.track("TrackEventTest")
@@ -92,7 +88,6 @@ class FancamDisplayTest {
             .note { "This is a test track" }
             .route("TrackEventTest")
             .log(level = Level.Info)
-        fancam.flush()
     }
 
     private fun logExample(fancam: FancamTemplate) {

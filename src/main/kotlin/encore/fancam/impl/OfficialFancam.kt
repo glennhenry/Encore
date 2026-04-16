@@ -73,9 +73,6 @@ import java.util.concurrent.atomic.AtomicInteger
  *       .log(Level.Info, full = false)
  * ```
  *
- * **Important:** during tests, make sure to use [OfficialFancam.flush] to
- * force the tests to wait the thread to finish.
- *
  * ## Features
  *
  * ### Beautiful log
@@ -99,7 +96,10 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * ## Implementation Details
  *
- * Uses a separate thread to manage the order and execution of logging calls.
+ * Process log calls with a blocking queue to ensure order. The blocking mechanism does not
+ * disturb the main thread because it is done on separate thread.
+ * Log calls should be processed completely before the app is terminated with the shutdown
+ * hook enabled. See [eventQueue] and the following code for details.
  *
  * Below is the spec of [FancamFormatter] and [FancamProducer] used for
  * log or track event and console or file output.
@@ -128,16 +128,6 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     // TrackEvent producers
     // consoleTrackProducer reuses consoleLogProducer
     private val fileTrackProducer = FileFancamProducer(config, fileTrackFormatter)
-
-    init {
-        Runtime.getRuntime().addShutdownHook(Thread {
-            executor.shutdown()
-            while (pendingEvents.get() > 0) {
-                Thread.sleep(1)
-            }
-            executor.awaitTermination(1, TimeUnit.SECONDS)
-        })
-    }
 
     override fun trace(tag: String, msg: () -> String) {
         if (Level.Trace < config.level.toLogLevel()) return
@@ -222,14 +212,24 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
         )
     }
 
-    // blocking queue of log calls processed by a separate thread
-    // ensuring proper log call ordering while not blocking main thread
+    // log calls (e.g., Fancam.info) creates a log event, increment a counter (pendingEvents),
+    // and add the event to a blocking queue.
+    // The queue is processed continuously in sync which calls the log producers and formatters.
+    // On app shutdown, the logger is given time to finish the pending events, ensuring
+    // no log gets cut off.
     private val eventQueue = LinkedBlockingQueue<QueueEvent>()
     private val executor = Executors.newSingleThreadExecutor()
     private val pendingEvents = AtomicInteger(0)
 
     init {
         startConsumer()
+        Runtime.getRuntime().addShutdownHook(Thread {
+            executor.shutdown()
+            while (pendingEvents.get() > 0) {
+                Thread.sleep(10)
+            }
+            executor.awaitTermination(1, TimeUnit.SECONDS)
+        })
     }
 
     private fun startConsumer() {
@@ -270,23 +270,6 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
             e.printStackTrace()
         } finally {
             pendingEvents.decrementAndGet()
-        }
-    }
-
-    /**
-     * Force caller to wait for a maximum of [timeoutMs] for pending
-     * log events to be processed.
-     *
-     * **This should be used during tests.**
-     */
-    fun flush(timeoutMs: Long = 3000) {
-        val start = getTimeMillis()
-
-        while (pendingEvents.get() > 0) {
-            if (getTimeMillis() - start > timeoutMs) {
-                throw RuntimeException("Flush timeout")
-            }
-            Thread.sleep(100)
         }
     }
 }
