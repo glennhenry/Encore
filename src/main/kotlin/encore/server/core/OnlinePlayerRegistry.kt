@@ -11,6 +11,13 @@ class OnlinePlayerRegistry {
     private val players = ConcurrentHashMap<String, PlayerStatus>()
 
     /**
+     * Returns whether player with [playerId] is currently online.
+     */
+    fun isOnline(playerId: PlayerId): Boolean {
+        return players.contains(playerId)
+    }
+
+    /**
      * Mark a player of [playerId] as online. Does nothing if the player is already online.
      */
     fun markOnline(playerId: PlayerId) {
