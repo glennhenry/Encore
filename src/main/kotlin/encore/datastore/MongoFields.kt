@@ -29,10 +29,10 @@ val FieldProfile = PlayerAccount::profile.name
 val FieldProfileLastActive = "$FieldProfile.${Profile::lastActiveAt.name}"
 
 /** `acts`*/
-val FieldActs = ServerObjects::acts.name
+//val FieldActs = ServerObjects::acts.name
 
 /** `acts.playerId`*/
-val FieldActsPlayerId = "$FieldActs.$FieldPlayerId"
+//val FieldActsPlayerId = "$FieldActs.$FieldPlayerId"
 
 /** `dbId`*/
 val ServerObjectsDbId = ServerObjects::dbId.name
