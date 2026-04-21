@@ -4,7 +4,7 @@ import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import encore.datastore.DocumentNotFoundException
-import encore.datastore.collection.FieldPlayerId
+import encore.datastore.FieldPlayerId
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import encore.fancam.Fancam
