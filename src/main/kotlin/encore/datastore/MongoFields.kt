@@ -19,7 +19,7 @@ val FieldUsername = PlayerAccount::username.name
 /** `email`*/
 val FieldEmail = PlayerAccount::email.name
 
-/** `password`*/
+/** `hashedPassword`*/
 val FieldPassword = PlayerAccount::hashedPassword.name
 
 /** `profile`*/
