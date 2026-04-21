@@ -4,20 +4,13 @@ import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
-import encore.datastore.collection.PlayerAccount
-import encore.datastore.collection.PlayerId
-import encore.datastore.runMongoCatching
-import encore.datastore.throwIfNotModified
 import encore.account.model.Credentials
 import encore.account.model.Profile
-import encore.datastore.FieldEmail
-import encore.datastore.FieldPassword
-import encore.datastore.FieldPlayerId
-import encore.datastore.FieldProfile
-import encore.datastore.FieldProfileLastActive
-import encore.datastore.FieldUsername
+import encore.datastore.*
+import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.flow.firstOrNull
-import org.bson.Document
+import org.bson.codecs.pojo.annotations.BsonId
 
 /**
  * MongoDB implementation of [AccountRepository].
@@ -42,7 +35,14 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
     override suspend fun getPlayerIdByUsername(username: String): Result<PlayerId> {
         return runMongoCatching {
             accountCollection
+                .withDocumentClass<QueryPlayerId>()
                 .find(Filters.eq(FieldUsername, username))
+                .projection(
+                    Projections.fields(
+                        Projections.include(FieldPlayerId),
+                        Projections.excludeId()
+                    )
+                )
                 .firstOrNull()
                 ?.playerId
         }
@@ -51,7 +51,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
     override suspend fun getCredentials(username: String): Result<Credentials?> {
         return runMongoCatching {
             val account = accountCollection
-                .withDocumentClass<Document>()
+                .withDocumentClass<QueryCredentials>()
                 .find(Filters.eq(FieldUsername, username))
                 .projection(Projections.include(FieldPassword, FieldPlayerId))
                 .firstOrNull()
@@ -60,8 +60,8 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
                 return Result.success(null)
             }
 
-            val playerId = account.getString(FieldPlayerId)
-            val hashedPassword = account.getString(FieldPassword)
+            val playerId = account.playerId
+            val hashedPassword = account.hashedPassword
             return Result.success(Credentials(playerId, hashedPassword))
         }
     }
@@ -123,3 +123,20 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
         }
     }
 }
+
+/**
+ * Mongo projection class to query the `playerId` of [PlayerAccount].
+ */
+data class QueryPlayerId(
+    @field:BsonId val id: String? = null,
+    val playerId: String
+)
+
+/**
+ * Mongo projection class to query the `playerId` and `hashedPassword` of [PlayerAccount].
+ */
+data class QueryCredentials(
+    @field:BsonId val id: String? = null,
+    val playerId: String,
+    val hashedPassword: String
+)
