@@ -1,5 +1,8 @@
 package encore.datastore.collection
 
+import encore.server.tasks.SavedAct
+import kotlinx.serialization.Serializable
+
 /**
  * Represents server-wide data.
  *
@@ -12,6 +15,10 @@ package encore.datastore.collection
  * @property dbId Unique identifier. Since only one instance of `ServerObjects`
  *                exists, this acts as a fixed key.
  */
+@Serializable
 data class ServerObjects(
-    val dbId: String = "sobjs",
+    val dbId: String = ServerObjectsId,
+    val acts: List<SavedAct>
 )
+
+const val ServerObjectsId = "sobjs"

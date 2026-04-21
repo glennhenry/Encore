@@ -3,7 +3,6 @@ package encore.datastore
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.datastore.collection.FieldPlayerId
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.datastore.collection.PlayerObjects
@@ -52,8 +51,8 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
     }
 
     suspend fun setupIndexes() {
-        accounts.createIndex(Indexes.text("profile.displayName"))
-        Fancam.info { "Indexes created" }
+        serverObjects.createIndex(Indexes.text())
+        Fancam.info { "Mongo index set up" }
     }
 
     override suspend fun playerExists(playerId: PlayerId): Boolean {
