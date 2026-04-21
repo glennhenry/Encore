@@ -4,14 +4,18 @@ import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Projections
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
-import encore.datastore.collection.FieldPlayerId
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import encore.account.model.Credentials
 import encore.account.model.Profile
-import encore.utils.then
+import encore.datastore.FieldEmail
+import encore.datastore.FieldPassword
+import encore.datastore.FieldPlayerId
+import encore.datastore.FieldProfile
+import encore.datastore.FieldProfileLastActive
+import encore.datastore.FieldUsername
 import kotlinx.coroutines.flow.firstOrNull
 import org.bson.Document
 
@@ -30,7 +34,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
     override suspend fun getAccountByUsername(username: String): Result<PlayerAccount> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq(PlayerAccount::username.name, username))
+                .find(Filters.eq(FieldUsername, username))
                 .firstOrNull()
         }
     }
@@ -38,7 +42,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
     override suspend fun getPlayerIdByUsername(username: String): Result<PlayerId> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq(PlayerAccount::username.name, username))
+                .find(Filters.eq(FieldUsername, username))
                 .firstOrNull()
                 ?.playerId
         }
@@ -48,8 +52,8 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
         return runMongoCatching {
             val account = accountCollection
                 .withDocumentClass<Document>()
-                .find(Filters.eq(PlayerAccount::username.name, username))
-                .projection(Projections.include(PlayerAccount::hashedPassword.name, FieldPlayerId))
+                .find(Filters.eq(FieldUsername, username))
+                .projection(Projections.include(FieldPassword, FieldPlayerId))
                 .firstOrNull()
 
             if (account == null) {
@@ -57,7 +61,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
             }
 
             val playerId = account.getString(FieldPlayerId)
-            val hashedPassword = account.getString(PlayerAccount::hashedPassword.name)
+            val hashedPassword = account.getString(FieldPassword)
             return Result.success(Credentials(playerId, hashedPassword))
         }
     }
@@ -81,7 +85,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
             accountCollection
                 .updateOne(
                     Filters.eq(FieldPlayerId, playerId),
-                    Updates.set(PlayerAccount::profile.name, profile)
+                    Updates.set(FieldProfile, profile)
                 )
                 .throwIfNotModified("updateProfile not updated for $playerId")
         }
@@ -95,10 +99,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
             accountCollection
                 .updateOne(
                     Filters.eq(FieldPlayerId, playerId),
-                    Updates.set(
-                        PlayerAccount::profile.name.then(Profile::lastActiveAt.name),
-                        lastActivity
-                    )
+                    Updates.set(FieldProfileLastActive, lastActivity)
                 )
                 .throwIfNotModified("updateLastActivity not updated for $playerId")
         }
@@ -107,7 +108,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
     override suspend fun usernameExists(username: String): Result<Boolean> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq(PlayerAccount::username.name, username))
+                .find(Filters.eq(FieldUsername, username))
                 .projection(null)
                 .firstOrNull() != null
         }
@@ -116,7 +117,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
     override suspend fun emailExists(email: String): Result<Boolean> {
         return runMongoCatching {
             accountCollection
-                .find(Filters.eq(PlayerAccount::email.name, email))
+                .find(Filters.eq(FieldEmail, email))
                 .projection(null)
                 .firstOrNull() != null
         }
