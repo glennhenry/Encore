@@ -1,12 +1,10 @@
 package encoreTest.fancam
 
-import encore.annotation.source.RevisitLater
 import encore.EncoreFancamConfig
 import encore.fancam.Fancam
 import encore.fancam.events.Level
 import encore.fancam.impl.FancamTemplate
 import encore.fancam.impl.OfficialFancam
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
 /**
@@ -74,7 +72,6 @@ class FancamDisplayTest {
 
     }
 
-    @RevisitLater("Unit tests could never produce any text to file. Track event formatter always return empty text")
     @Test
     fun `fancam track event`() {
         val fancam = OfficialFancam(EncoreFancamConfig())
@@ -87,6 +84,7 @@ class FancamDisplayTest {
             .data("Complex data", EncoreFancamConfig())
             .note { "This is a test track" }
             .route("TrackEventTest")
+            .record()
             .log(level = Level.Info)
     }
 
