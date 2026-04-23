@@ -1,4 +1,4 @@
-package encoreTest.server
+package encoreTest.network.server
 
 import encore.annotation.source.RevisitLater
 import encore.context.ServerContext

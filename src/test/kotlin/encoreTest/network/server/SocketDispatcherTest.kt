@@ -1,4 +1,4 @@
-package encoreTest.server
+package encoreTest.network.server
 
 import encore.network.handler.HandlerContext
 import encore.network.handler.SocketMessageHandler

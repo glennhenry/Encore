@@ -1,14 +1,14 @@
-package encoreTest.network
+package encoreTest.network.transport
 
+import encore.network.transport.TestConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import encore.network.transport.TestConnection
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * To test the [TestConnection] class.
+ * To test the [encore.network.transport.TestConnection] class.
  */
 class TestTestConnection {
     @Test

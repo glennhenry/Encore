@@ -1,4 +1,4 @@
-package encoreTest.server
+package encoreTest.network.server
 
 /**
  * Manual testing in server (ktor, routing, non-sockets)
