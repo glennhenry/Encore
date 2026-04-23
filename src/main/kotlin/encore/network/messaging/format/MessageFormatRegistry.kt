@@ -1,4 +1,4 @@
-package encore.server.messaging.format
+package encore.network.messaging.format
 
 import encore.fancam.Fancam
 

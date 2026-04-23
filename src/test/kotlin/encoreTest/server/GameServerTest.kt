@@ -2,22 +2,20 @@ package encoreTest.server
 
 import encore.annotation.source.RevisitLater
 import encore.context.ServerContext
-import encore.server.GameServer
-import encore.server.GameServerConfig
-import encore.server.ServerContainer
-import encore.server.core.network.DefaultConnection
-import encore.server.core.network.TestConnection
-import encore.server.handler.HandlerContext
-import encore.server.handler.SocketMessageHandler
-import encore.server.messaging.format.DecodeResult
-import encore.server.messaging.format.MessageFormat
-import encore.server.messaging.socket.SocketMessage
+import encore.network.server.GameServer
+import encore.network.server.GameServerConfig
+import encore.network.server.ServerContainer
+import encore.network.transport.TestConnection
+import encore.network.handler.HandlerContext
+import encore.network.handler.SocketMessageHandler
+import encore.network.messaging.format.DecodeResult
+import encore.network.messaging.format.MessageFormat
+import encore.network.messaging.socket.SocketMessage
 import encore.utils.safeAsciiString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlin.reflect.KClass
 import kotlin.test.*
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**

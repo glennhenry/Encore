@@ -1,9 +1,9 @@
 package encoreTest.server
 
-import encore.server.handler.HandlerContext
-import encore.server.handler.SocketMessageHandler
-import encore.server.messaging.socket.SocketMessage
-import encore.server.messaging.socket.SocketMessageDispatcher
+import encore.network.handler.HandlerContext
+import encore.network.handler.SocketMessageHandler
+import encore.network.messaging.socket.SocketMessage
+import encore.network.messaging.socket.SocketMessageDispatcher
 import testHelper.assertDoesNotFail
 import kotlin.reflect.KClass
 import kotlin.test.Test

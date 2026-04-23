@@ -1,8 +1,8 @@
-package encore.server.handler
+package encore.network.handler
 
 import encore.datastore.collection.PlayerId
-import encore.server.core.network.Connection
-import encore.server.messaging.socket.SocketMessage
+import encore.network.transport.Connection
+import encore.network.messaging.socket.SocketMessage
 
 /**
  * Encapsulate objects and data needed by handlers to handle message.

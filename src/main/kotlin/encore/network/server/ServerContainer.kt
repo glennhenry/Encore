@@ -1,7 +1,6 @@
-package encore.server
+package encore.network.server
 
 import encore.context.ServerContext
-import encore.server.core.Server
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob

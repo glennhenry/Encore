@@ -1,8 +1,8 @@
-package encore.server.messaging.format
+package encore.network.messaging.format
 
-import encore.server.messaging.socket.SocketMessage
+import encore.network.messaging.socket.SocketMessage
 import encore.utils.safeAsciiString
-import encore.server.messaging.socket.DefaultMessage
+import encore.network.messaging.socket.DefaultMessage
 
 /**
  * Default [MessageFormat] that decodes any incoming message as a UTF-8 [String].

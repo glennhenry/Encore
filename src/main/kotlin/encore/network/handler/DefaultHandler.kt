@@ -1,9 +1,7 @@
-package encore.server.handler.impl
+package encore.network.handler
 
-import encore.server.handler.HandlerContext
-import encore.server.handler.SocketMessageHandler
-import encore.server.messaging.socket.SocketMessage
 import encore.fancam.Fancam
+import encore.network.messaging.socket.SocketMessage
 import kotlin.reflect.KClass
 
 /**

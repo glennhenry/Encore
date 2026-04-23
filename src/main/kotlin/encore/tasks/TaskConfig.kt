@@ -1,4 +1,4 @@
-package encore.server.tasks
+package encore.tasks
 
 import kotlin.time.Duration
 

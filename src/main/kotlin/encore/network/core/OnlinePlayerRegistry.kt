@@ -1,4 +1,4 @@
-package encore.server.core
+package encore.network.core
 
 import encore.datastore.collection.PlayerId
 import io.ktor.util.date.*

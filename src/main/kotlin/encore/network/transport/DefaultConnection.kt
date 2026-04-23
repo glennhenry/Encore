@@ -1,4 +1,4 @@
-package encore.server.core.network
+package encore.network.transport
 
 import encore.datastore.collection.PlayerId
 import io.ktor.utils.io.ByteReadChannel

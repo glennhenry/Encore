@@ -1,6 +1,6 @@
-package encore.server.messaging.socket
+package encore.network.messaging.socket
 
-import encore.server.messaging.format.DefaultFormat
+import encore.network.messaging.format.DefaultFormat
 
 /**
  * Default fallback implementation of [SocketMessage].

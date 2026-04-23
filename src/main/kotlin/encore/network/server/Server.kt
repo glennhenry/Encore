@@ -1,4 +1,4 @@
-package encore.server.core
+package encore.network.server
 
 import encore.context.ServerContext
 import kotlinx.coroutines.CoroutineScope
@@ -10,7 +10,7 @@ interface Server {
     val name: String
 
     /**
-     * Initialize the server with the given coroutine scope and [ServerContext].
+     * Initialize the server with the given coroutine scope and [encore.context.ServerContext].
      */
     suspend fun initialize(scope: CoroutineScope, context: ServerContext)
 

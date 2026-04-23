@@ -1,16 +1,15 @@
-package encore.server
+package encore.network.server
 
 import encore.context.ServerContext
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
-import encore.server.core.Server
-import encore.server.core.network.Connection
-import encore.server.core.network.DefaultConnection
-import encore.server.handler.DefaultHandlerContext
-import encore.server.messaging.format.DecodeResult
-import encore.server.messaging.format.DefaultFormat
-import encore.server.messaging.socket.SocketMessage
-import encore.server.messaging.socket.SocketMessageDispatcher
+import encore.network.transport.Connection
+import encore.network.transport.DefaultConnection
+import encore.network.handler.DefaultHandlerContext
+import encore.network.messaging.format.DecodeResult
+import encore.network.messaging.format.DefaultFormat
+import encore.network.messaging.socket.SocketMessage
+import encore.network.messaging.socket.SocketMessageDispatcher
 import encore.subunit.scope.ServerScope
 import encore.utils.hexString
 import encore.utils.safeAsciiString

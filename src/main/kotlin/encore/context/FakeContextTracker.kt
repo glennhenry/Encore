@@ -2,7 +2,7 @@ package encore.context
 
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerId
-import encore.server.core.network.Connection
+import encore.network.transport.Connection
 import java.util.concurrent.ConcurrentHashMap
 
 /**

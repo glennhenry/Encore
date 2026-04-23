@@ -1,4 +1,4 @@
-package encore.server.messaging.socket
+package encore.network.messaging.socket
 
 /**
  * Represents a high-level network message ready for processing by message handlers.

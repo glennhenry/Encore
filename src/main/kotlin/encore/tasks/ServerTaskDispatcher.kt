@@ -1,8 +1,8 @@
-package encore.server.tasks
+package encore.tasks
 
 import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.*
-import encore.server.core.network.Connection
+import encore.network.transport.Connection
 import encore.utils.SystemTime
 import encore.utils.TimeProvider
 import encore.fancam.Fancam

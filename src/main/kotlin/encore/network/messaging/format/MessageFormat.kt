@@ -1,6 +1,6 @@
-package encore.server.messaging.format
+package encore.network.messaging.format
 
-import encore.server.messaging.socket.SocketMessage
+import encore.network.messaging.socket.SocketMessage
 
 /**
  * Describes a network message format recognized by the server.

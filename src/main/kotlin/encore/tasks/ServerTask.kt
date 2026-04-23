@@ -1,6 +1,6 @@
-package encore.server.tasks
+package encore.tasks
 
-import encore.server.core.network.Connection
+import encore.network.transport.Connection
 
 /**
  * Represents a server-side task with a well-defined lifecycle.

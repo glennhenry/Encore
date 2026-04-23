@@ -3,7 +3,7 @@ package encoreTest.network
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import encore.server.core.network.TestConnection
+import encore.network.transport.TestConnection
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -2,7 +2,7 @@ package encore.context
 
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
-import encore.server.core.network.Connection
+import encore.network.transport.Connection
 import encore.subunit.Subunit
 import encore.subunit.scope.PlayerScope
 

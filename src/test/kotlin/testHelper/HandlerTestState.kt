@@ -5,10 +5,10 @@ import encore.context.PlayerContext
 import encore.context.PlayerSubunits
 import encore.context.ServerContext
 import encore.datastore.collection.PlayerAccount
-import encore.server.core.network.TestConnection
-import encore.server.handler.DefaultHandlerContext
-import encore.server.handler.HandlerContext
-import encore.server.messaging.socket.SocketMessage
+import encore.network.transport.TestConnection
+import encore.network.handler.DefaultHandlerContext
+import encore.network.handler.HandlerContext
+import encore.network.messaging.socket.SocketMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 

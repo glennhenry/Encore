@@ -1,7 +1,7 @@
-package encore.server.handler
+package encore.network.handler
 
-import encore.server.messaging.socket.SocketMessage
-import encore.server.messaging.format.MessageFormat
+import encore.network.messaging.socket.SocketMessage
+import encore.network.messaging.format.MessageFormat
 import kotlin.reflect.KClass
 
 /**

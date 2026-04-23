@@ -1,7 +1,7 @@
-package encore.server.messaging.socket
+package encore.network.messaging.socket
 
-import encore.server.handler.SocketMessageHandler
-import encore.server.handler.impl.DefaultHandler
+import encore.network.handler.SocketMessageHandler
+import encore.network.handler.DefaultHandler
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
 

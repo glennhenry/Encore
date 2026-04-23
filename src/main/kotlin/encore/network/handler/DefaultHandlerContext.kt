@@ -1,8 +1,8 @@
-package encore.server.handler
+package encore.network.handler
 
 import encore.datastore.collection.PlayerId
-import encore.server.core.network.Connection
-import encore.server.messaging.socket.SocketMessage
+import encore.network.transport.Connection
+import encore.network.messaging.socket.SocketMessage
 
 /**
  * Default handler context where send implementation is based on [Connection] object.

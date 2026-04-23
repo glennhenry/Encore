@@ -1,4 +1,4 @@
-package encore.server.tasks
+package encore.tasks
 
 /**
  * Identifier for tasks implementation, typically a short code.

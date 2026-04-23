@@ -1,12 +1,12 @@
 package encoreTest.tasks
 
-import encore.server.core.network.Connection
-import encore.server.tasks.CancellationReason
-import encore.server.tasks.InternalTaskAPI
-import encore.server.tasks.ServerTask
-import encore.server.tasks.TaskConfig
-import encore.server.tasks.TaskName
-import encore.server.tasks.TaskScheduler
+import encore.network.transport.Connection
+import encore.tasks.CancellationReason
+import encore.tasks.InternalTaskAPI
+import encore.tasks.ServerTask
+import encore.tasks.TaskConfig
+import encore.tasks.TaskName
+import encore.tasks.TaskScheduler
 import encore.fancam.Fancam
 import kotlin.time.Duration.Companion.seconds
 

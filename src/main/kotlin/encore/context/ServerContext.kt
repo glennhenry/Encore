@@ -4,9 +4,9 @@ import encore.datastore.DataStore
 import encore.datastore.BlankDataStore
 import encore.backstage.command.CommandDispatcher
 import encore.datastore.collection.PlayerId
-import encore.server.core.OnlinePlayerRegistry
-import encore.server.messaging.format.MessageFormatRegistry
-import encore.server.tasks.ServerTaskDispatcher
+import encore.network.core.OnlinePlayerRegistry
+import encore.network.messaging.format.MessageFormatRegistry
+import encore.tasks.ServerTaskDispatcher
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.account.BlankAccountRepository

@@ -1,9 +1,9 @@
 package example
 
 import com.mongodb.assertions.Assertions.assertFalse
-import encore.server.messaging.format.DecodeResult
-import encore.server.messaging.format.MessageFormat
-import encore.server.messaging.socket.SocketMessage
+import encore.network.messaging.format.DecodeResult
+import encore.network.messaging.format.MessageFormat
+import encore.network.messaging.socket.SocketMessage
 import kotlin.test.*
 
 /**
