@@ -19,7 +19,7 @@ import encore.serialization.JSON
 import encore.network.server.GameServer
 import encore.network.server.GameServerConfig
 import encore.network.server.ServerContainer
-import encore.network.core.OnlinePlayerRegistry
+import encore.activity.PlayerActivitySubunit
 import encore.network.server.Server
 import encore.network.messaging.format.MessageFormat
 import encore.network.messaging.format.MessageFormatRegistry
@@ -157,7 +157,7 @@ suspend fun Application.module() {
     /* 8. Setup ServerContext */
     val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
     val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
-    val onlinePlayerRegistry = OnlinePlayerRegistry()
+    val playerActivitySubunit = PlayerActivitySubunit()
     val contextTracker = DefaultContextTracker()
     val messageFormatRegistry = MessageFormatRegistry()
     val serverTaskDispatcher = ServerTaskDispatcher()
@@ -171,13 +171,13 @@ suspend fun Application.module() {
 
     val subunits = ServerSubunits(
         account = accountSubunit,
+        activity = playerActivitySubunit,
         auth = authSubunit,
         session = sessionSubunit,
         creation = playerCreationSubunit
     )
     val serverContext = ServerContext(
         dataStore = dataStore,
-        onlinePlayerRegistry = onlinePlayerRegistry,
         contextTracker = contextTracker,
         messageFormatRegistry = messageFormatRegistry,
         serverTaskDispatcher = serverTaskDispatcher,

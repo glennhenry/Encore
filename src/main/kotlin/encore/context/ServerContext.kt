@@ -4,7 +4,7 @@ import encore.datastore.DataStore
 import encore.datastore.BlankDataStore
 import encore.backstage.command.CommandDispatcher
 import encore.datastore.collection.PlayerId
-import encore.network.core.OnlinePlayerRegistry
+import encore.activity.PlayerActivitySubunit
 import encore.network.messaging.format.MessageFormatRegistry
 import encore.tasks.ServerTaskDispatcher
 import encore.subunit.Subunit
@@ -23,7 +23,6 @@ import kotlin.coroutines.EmptyCoroutineContext
  * Represents the **global server-side context** which includes various server components.
  *
  * @property dataStore [DataStore] instance of the server.
- * @property onlinePlayerRegistry Keep tracks online status of each player.
  * @property contextTracker Tracks and manages each player's context.
  * @property messageFormatRegistry Track the known message format and registered codecs
  *                           for network messages.
@@ -34,7 +33,6 @@ import kotlin.coroutines.EmptyCoroutineContext
  */
 data class ServerContext(
     val dataStore: DataStore,
-    val onlinePlayerRegistry: OnlinePlayerRegistry,
     val contextTracker: ContextTracker,
     val messageFormatRegistry: MessageFormatRegistry,
     val serverTaskDispatcher: ServerTaskDispatcher,
@@ -63,7 +61,6 @@ data class ServerContext(
 
             return ServerContext(
                 dataStore = dataStore,
-                onlinePlayerRegistry = OnlinePlayerRegistry(),
                 contextTracker = contextTracker,
                 messageFormatRegistry = MessageFormatRegistry(),
                 serverTaskDispatcher = ServerTaskDispatcher(),
@@ -71,6 +68,7 @@ data class ServerContext(
                 webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(
                     account = account,
+                    activity = PlayerActivitySubunit(),
                     auth = AuthSubunit(account, creation, session),
                     session = session,
                     creation = creation
@@ -114,12 +112,14 @@ fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext =
  *   state and provide matchmaking-specific functionality.
  *
  * @property account Provides API related to accounts.
+ * @property activity Tracks player's activity status.
  * @property auth Provides authentication functions.
  * @property session Manages session of players.
  * @property creation Provides player creation mechanism.
  */
 data class ServerSubunits(
     val account: AccountSubunit,
+    val activity: PlayerActivitySubunit,
     val auth: AuthSubunit,
     val session: SessionSubunit,
     val creation: PlayerCreationSubunit,
