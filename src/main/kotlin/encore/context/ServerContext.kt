@@ -14,6 +14,7 @@ import encore.account.AccountRepository
 import encore.account.AccountSubunit
 import encore.account.PlayerCreationSubunit
 import encore.auth.AuthSubunit
+import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.session.SessionSubunit
 import encore.ws.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  *
  * @property dataStore [DataStore] instance of the server.
  * @property contextTracker Tracks and manages each player's context.
+ * @property playerLifecycleHandler Handles players lifecycle events.
  * @property messageFormatRegistry Track the known message format and registered codecs
  *                           for network messages.
  * @property serverTaskDispatcher Provide API to start and stop server-sided task.
@@ -34,6 +36,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 data class ServerContext(
     val dataStore: DataStore,
     val contextTracker: ContextTracker,
+    val playerLifecycleHandler: PlayerLifecycleHandler,
     val messageFormatRegistry: MessageFormatRegistry,
     val serverTaskDispatcher: ServerTaskDispatcher,
     val commandDispatcher: CommandDispatcher,
@@ -62,6 +65,7 @@ data class ServerContext(
             return ServerContext(
                 dataStore = dataStore,
                 contextTracker = contextTracker,
+                playerLifecycleHandler = PlayerLifecycleHandler(),
                 messageFormatRegistry = MessageFormatRegistry(),
                 serverTaskDispatcher = ServerTaskDispatcher(),
                 commandDispatcher = CommandDispatcher(),
