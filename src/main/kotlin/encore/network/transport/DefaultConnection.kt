@@ -1,17 +1,15 @@
 package encore.network.transport
 
 import encore.datastore.collection.PlayerId
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.readAvailable
-import io.ktor.utils.io.writeFully
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import encore.utils.hexString
-import encore.utils.safeAsciiString
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
 import encore.fancam.events.Level
+import encore.network.lifecycle.PlayerLifecycleHandler
+import encore.utils.hexString
+import encore.utils.safeAsciiString
+import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -27,6 +25,7 @@ class DefaultConnection(
 ) : Connection {
     override var playerId: PlayerId = "[Undetermined]"
     override var playerName: String = "[Undetermined]"
+    private var onSendHook: () -> Unit = {}
 
     /**
      * Suspends until data becomes available on the input channel,
@@ -63,6 +62,7 @@ class DefaultConnection(
                     .log(full = logFull)
             }
             outputChannel.writeFully(input)
+            onSendHook()
         } catch (e: Exception) {
             Fancam.error { "Failed to send raw message to $remoteAddress: ${e.message}" }
             throw e
@@ -71,6 +71,14 @@ class DefaultConnection(
 
     override fun updatePlayerId(playerId: PlayerId) {
         this.playerId = playerId
+    }
+
+    /**
+     * Used to attach the [PlayerLifecycleHandler]'s `onSend` hook
+     * within the connection transport internal.
+     */
+    fun registerOnSendHook(hook: () -> Unit) {
+        onSendHook = hook
     }
 
     /**

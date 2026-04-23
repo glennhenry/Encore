@@ -74,7 +74,12 @@ class GameServer(
                         remoteAddress = socket.remoteAddress.toString(),
                         connectionScope = connectionScope
                     )
+                    connection.registerOnSendHook {
+                        serverContext.playerLifecycleHandler.onSend(serverContext, connection)
+                    }
+
                     Fancam.info { "New client: ${connection.remoteAddress}" }
+                    serverContext.playerLifecycleHandler.onConnect(serverContext, connection)
 
                     handleClient(connection)
                 }
@@ -97,6 +102,7 @@ class GameServer(
                     val (bytesRead, data) = connection.read()
                     if (bytesRead <= 0) break@loop
 
+                    serverContext.playerLifecycleHandler.onReceive(serverContext, connection)
                     serverContext.subunits.activity.updateLastActivity(connection.playerId)
 
                     // start handle
@@ -125,6 +131,7 @@ class GameServer(
                 Fancam.error(e) { "Exception in client socket $connection" }
             } finally {
                 Fancam.info { "Cleaning up for $connection" }
+                serverContext.playerLifecycleHandler.onDisconnect(serverContext, connection)
 
                 // Only perform cleanup if playerId is set (client was authenticated)
                 if (connection.playerId != "[Undetermined]") {
