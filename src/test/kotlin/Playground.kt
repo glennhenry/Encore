@@ -20,6 +20,11 @@ import encore.datastore.collection.ServerObjects
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.tasks.ServerTaskDispatcher
+import io.ktor.util.date.getTimeMillis
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import kotlin.math.floor
+import kotlin.math.min
 
 /**
  * Playground for quick testing and code run
@@ -36,6 +41,120 @@ class Playground {
     }
 }
 
+/*
+Time model and illustration
+
+initialDelay = 5s
+interval     = 10s
+times        = 3
+
+0      5    9      15         25    30    35
+S -----!----T------!----------!-----N-----!
+    5  ! 4     6   !    10    !  5     5  !
+
+startedAt        : S = 0
+accumulatedDelay : T = 9
+performCount     : C = 1
+now              : N = 30
+lastActiveAt     : T = 9
+
+This task already performs 1 time, where lastActive was at tick 9.
+Now in tick 30.
+
+expectedPerformCountNow = (now - firstPerformAt) / interval + 1          (3  = floor((30 - 5) / 10 + 1))
+missedPerformCount      = expectedPerformCountNow - performCount         (2  = 3 - 1)
+remainingPerformCount   = times - performCount                           (2  = 3 - 1)
+performsTodo            = min(missedperformCount, remainingPerformCount) (2  = min(2, 2))
+
+This means that the task need to be performed 2 times in batch to compensate the miss.
+
+firstPerformAt          = startedAt + initialDelay                           (5  = 0 + 5)
+nextPerformIndex        = performCount + 1                                   (2  = 1 + 1)
+nextPerformAt           = firstPerformAt + (nextPerformIndex - 1) * interval (15 = 5 + (2 - 1) * 10)
+oldRemainingDelay       = nextPerformAt - accumulatedDelay                   (6  = 15 - 9)
+
+delayJump               = (nextPerformIndex - 1) * interval                                    (10 = 2 - 1 * 10)
+inactiveTime            = now - lastActiveAt                                                   (21 = 30 - 9)
+newPerformCount         = performCount + performsTodo                                          (3  = 1 + 2)
+newRemainingDelay       = inactiveTime - oldRemainingDelay - delayJump                         (5  = 21 - 6 - 10)
+newAccumulatedDelay     = accumulatedDelay + oldRemainingDelay + newRemainingDelay + delayJump (30 = 9 + 6 + 10 + 5)
+
+The task then continues with the newRemainingDelay
+
+With the pause model, no performs will be missed and the remainingDelay will still be 6.
+*/
+
+class StageActChoreographer {
+    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    fun performsTodo(firstPerformAt: Long, performCount: Int, performMode: PerformMode): Int {
+        val now = getTimeMillis()
+
+        when (performMode) {
+            is PerformMode.Once -> return 1
+            is PerformMode.Forever -> {
+                val expectedPerformCountNow =
+                    floor((now - firstPerformAt).toDouble() / performMode.interval.toDouble()).toInt() + 1
+                val missedPerformCount = expectedPerformCountNow - performCount
+                val remainingPerformCount = Int.MAX_VALUE - performCount
+                val performsTodo = minOf(missedPerformCount, remainingPerformCount)
+                return performsTodo
+            }
+
+            is PerformMode.Repeat -> {
+                val expectedPerformCountNow =
+                    floor((now - firstPerformAt).toDouble() / performMode.interval.toDouble()).toInt() + 1
+                val missedPerformCount = expectedPerformCountNow - performCount
+                val remainingPerformCount = performMode.times - performCount
+                val performsTodo = minOf(missedPerformCount, remainingPerformCount)
+                return performsTodo
+            }
+        }
+    }
+
+    fun nextPerformAt(setup: ActSetup, progress: ActProgress, performCount: Int): Long {
+        if (performCount <= 0) {
+            return setup.initialDelay
+        }
+
+        when (setup.performMode) {
+            is PerformMode.Once -> {
+                Fancam.warn {
+                    "nextPerformAt called on PerformMode.Once when performCount is $performCount. " +
+                            "Returned ${setup.initialDelay} (${dateFormatter.format(setup.initialDelay)})"
+                }
+                return setup.initialDelay
+            }
+
+            is PerformMode.Repeat -> {
+                val firstPerformAt = progress.startedAt + setup.initialDelay
+                val nextPerformIndex = performCount + 1
+                val nextPerformAt = firstPerformAt + (nextPerformIndex - 1) * setup.performMode.interval
+
+                if (performCount == setup.performMode.times - 1) {
+                    Fancam.warn {
+                        "nextPerformAt called on PerformMode.Repeat when performCount is $performCount (repeat=${setup.performMode.times}). " +
+                                "Returned $nextPerformAt (${dateFormatter.format(nextPerformAt)})"
+                    }
+                }
+
+                return nextPerformAt
+            }
+
+            is PerformMode.Forever -> {
+                val firstPerformAt = progress.startedAt + setup.initialDelay
+                val nextPerformIndex = performCount + 1
+                val nextPerformAt = firstPerformAt + (nextPerformIndex - 1) * setup.performMode.interval
+
+                return nextPerformAt
+            }
+        }
+    }
+
+    fun remainingDelayToNextExecution(nextExecutionAt: Long, accumulatedDelay: Long): Long {
+        return nextExecutionAt - accumulatedDelay
+    }
+}
 
 /**
  * Represents a scheduled server-side task.
@@ -190,8 +309,9 @@ class BuildingCreateConcept(
 /**
  * Represents a snapshot of an unfinished [StageAct].
  *
- * Stage acts with [LifetimeMode.Persistent] that are not completed when a player
- * disconnects are serialized and stored in the database as a `Photocard`.
+ * Stage acts with [LifetimeMode.PausedPersistent] or [LifetimeMode.ContinuousPersistent]
+ * that are not completed when a player disconnects are serialized and stored in the database
+ * as a `Photocard`.
  *
  * This model contains only the minimal information required to restore and resume
  * the act at a later time.
@@ -267,22 +387,35 @@ sealed class PerformMode {
  * - [LifetimeMode.Bound] represents temporary acts tied to some runtime owner
  *   (e.g., a player's connection). The act is terminated when its owner is no longer valid,
  *   even if it has not completed.
- * - [LifetimeMode.Persistent] represents durable acts that are stored and can be
- *   resumed later if they have not yet completed.
+ * - [LifetimeMode.PausedPersistent] and [LifetimeMode.ContinuousPersistent]
+ *   represents durable acts that are stored and can be resumed later.
  */
 sealed class LifetimeMode {
     /**
      * A temporary act bound to a runtime owner.
      */
-    object Bound : LifetimeMode()
+    data object Bound : LifetimeMode()
 
     /**
-     * A persistent act that survives runtime bounds and can be resumed.
+     * A persistent act that survives runtime bounds and resumes from its
+     * last execution state.
+     *
+     * Time does not progress while inactive. Upon resumption, the act continues
+     * as if no time has passed.
+     */
+    data object PausedPersistent : LifetimeMode()
+
+    /**
+     * A persistent act that survives runtime bounds and preserves continuous
+     * time progression.
+     *
+     * While inactive, time continues to advance. Upon resumption, the act
+     * may execute missed intervals and resume mid-interval based on real time.
      *
      * @property missedPerformPolicy Execution policy applied when the act is resumed
      *                               if one or more executions are missed.
      */
-    data class Persistent(val missedPerformPolicy: MissedPerformPolicy) : LifetimeMode()
+    data class ContinuousPersistent(val missedPerformPolicy: MissedPerformPolicy) : LifetimeMode()
 }
 
 /**
@@ -314,39 +447,6 @@ sealed class MissedPerformPolicy(val maxBatch: Int) {
     data class CatchUp(private val maxTimes: Int) : MissedPerformPolicy(maxBatch = maxTimes)
 }
 
-fun x() {
-
-
-}
-
-/*
-initialDelay     = 5s
-repeatInterval = 10s
-repetition     = 3
-
-startedAt        : S
-accumulatedDelay     : T
-performCount          : C
-
-0      5    9      15         25         35
-S -----!----P------!----------!----------!
-    5  !  4    6   !    10    !    10    !
-
-S = 0
-E = 35 (5 + 10 + 10 + 10)
-L = 9 (5 + 4)
-C = 1
-
-firstExecutionAt   = startedAt + initialDelay
-nextExecutionIndex = performCount + 1
-nextExecutionAt    = firstExecutionAt + (nextExecutionIndex - 1) * repeatInterval
-remainingDelay     = nextExecutionAt - accumulatedDelay
-expectedPerformCount    = (now - firstExecutionAt) / repeatInterval + 1
-missedPerformCount      = expectedPerformCount - performCount
-remainingPerformCount   = repetition - performCount
-actualRunsTodo     = min(missedperformCount, remainingPerformCount)
- */
-
 /**
  * Represent the progress state of a [StageAct].
  *
@@ -356,15 +456,17 @@ actualRunsTodo     = min(missedperformCount, remainingPerformCount)
  *                            which includes the [ActSetup.initialDelay] and each repetition's
  *                            interval if the act is repeatable. This does not include the
  *                            act's execution time.
+ * @property lastActiveAt Epoch millis of when the act was last active. This becomes the point where
+ *                        `accumulatedDelay` can no longer be calculated manually.
  * @property performCount The total amount of times [StageAct.perform] has been called.
  */
 @Serializable
 class ActProgress(
     val startedAt: Long,
     val accumulatedDelay: Long,
+    val lastActiveAt: Long,
     val performCount: Int
 )
-
 
 /**
  * Marker interface representing the input for a stage act.
