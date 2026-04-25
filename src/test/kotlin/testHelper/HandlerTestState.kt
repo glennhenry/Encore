@@ -5,6 +5,7 @@ import encore.context.PlayerContext
 import encore.context.PlayerSubunits
 import encore.context.ServerContext
 import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerId
 import encore.network.transport.TestConnection
 import encore.network.handler.DefaultHandlerContext
 import encore.network.handler.HandlerContext
@@ -16,7 +17,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
  * Handler testing utility to encapsulate the relevant states to test message handlers.
  */
 data class HandlerTestState<T : SocketMessage>(
-    val playerId: String = "testPlayerId123",
+    val playerId: PlayerId = "testPlayerId123",
     val playerName: String = "TestPlayerABC",
     val message: T,
     val account: PlayerAccount = createAccount(playerId, playerName, "anypassword"),

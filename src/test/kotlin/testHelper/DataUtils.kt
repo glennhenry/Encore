@@ -3,10 +3,11 @@ package testHelper
 import encore.datastore.collection.PlayerAccount
 import encore.account.model.Profile
 import encore.account.model.ServerMetadata
+import encore.datastore.collection.PlayerId
 import encore.utils.hash
 import io.ktor.util.date.*
 
-fun createAccount(playerId: String, username: String, password: String): PlayerAccount {
+fun createAccount(playerId: PlayerId, username: String, password: String): PlayerAccount {
     return PlayerAccount(
         playerId = playerId,
         username = username,
@@ -17,7 +18,7 @@ fun createAccount(playerId: String, username: String, password: String): PlayerA
     )
 }
 
-fun createProfile(playerId: String): Profile {
+fun createProfile(playerId: PlayerId): Profile {
     val now = getTimeMillis()
     return Profile(
         playerId = playerId,

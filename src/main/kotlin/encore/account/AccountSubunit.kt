@@ -3,6 +3,7 @@ package encore.account
 import encore.account.model.Credentials
 import encore.auth.AuthSubunit
 import encore.datastore.collection.PlayerAccount
+import encore.datastore.collection.PlayerId
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
@@ -73,7 +74,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
      * Update the last activity of [playerId].
      * @return [Report] type denoting success or failure.
      */
-    suspend fun updateLastActivity(playerId: String, lastActivity: Long): Report {
+    suspend fun updateLastActivity(playerId: PlayerId, lastActivity: Long): Report {
         return accountRepository.updateLastActivity(playerId, lastActivity)
             .onFailure {
                 Fancam.error(it) { "updateLastActivity: internal repository error for $playerId lastActivity=$lastActivity" }

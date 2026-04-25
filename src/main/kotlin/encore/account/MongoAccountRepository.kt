@@ -129,7 +129,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
  */
 data class QueryPlayerId(
     @field:BsonId val id: String? = null,
-    val playerId: String
+    val playerId: PlayerId
 )
 
 /**
@@ -137,6 +137,6 @@ data class QueryPlayerId(
  */
 data class QueryCredentials(
     @field:BsonId val id: String? = null,
-    val playerId: String,
+    val playerId: PlayerId,
     val hashedPassword: String
 )

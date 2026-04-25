@@ -5,6 +5,7 @@ import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import encore.datastore.DocumentNotFoundException
 import encore.datastore.FieldPlayerId
+import encore.datastore.collection.PlayerId
 import encore.datastore.runMongoCatching
 import encore.datastore.throwIfNotModified
 import encore.fancam.Fancam
@@ -42,10 +43,10 @@ class ExampleSubunitTest {
     @Test
     fun testSubunits() = runTest {
         val mockRepo = object : PlayerRepository {
-            override suspend fun getHealth(playerId: String) = Result.success(10)
-            override suspend fun getItems(playerId: String) = Result.success(listOf("s3", "s4"))
-            override suspend fun updateHealth(playerId: String, newHealth: Int) = Result.success(Unit)
-            override suspend fun updateItems(playerId: String, newItems: List<String>) = TODO()
+            override suspend fun getHealth(playerId: PlayerId) = Result.success(10)
+            override suspend fun getItems(playerId: PlayerId) = Result.success(listOf("s3", "s4"))
+            override suspend fun updateHealth(playerId: PlayerId, newHealth: Int) = Result.success(Unit)
+            override suspend fun updateItems(playerId: PlayerId, newItems: List<String>) = TODO()
         }
 
         val subunit = PlayerSubunit(mockRepo).also { it.debut(PlayerScope("pid123")) }
@@ -107,7 +108,7 @@ class ExampleSubunitTest {
  * Example of a domain model
  */
 data class PlayerModel(
-    val playerId: String,
+    val playerId: PlayerId,
     val health: Int,
     val items: List<String>
 )
@@ -124,10 +125,10 @@ data class PlayerModel(
  * A `Result<Unit>` can be used when it doesn't have a return type.
  */
 interface PlayerRepository {
-    suspend fun getHealth(playerId: String): Result<Int>
-    suspend fun getItems(playerId: String): Result<List<String>>
-    suspend fun updateHealth(playerId: String, newHealth: Int): Result<Unit>
-    suspend fun updateItems(playerId: String, newItems: List<String>): Result<Unit>
+    suspend fun getHealth(playerId: PlayerId): Result<Int>
+    suspend fun getItems(playerId: PlayerId): Result<List<String>>
+    suspend fun updateHealth(playerId: PlayerId, newHealth: Int): Result<Unit>
+    suspend fun updateItems(playerId: PlayerId, newItems: List<String>): Result<Unit>
 }
 
 /**
@@ -172,7 +173,7 @@ interface PlayerRepository {
  * This results in clear separation and no duplicate error logging.
  */
 class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepository {
-    override suspend fun getHealth(playerId: String): Result<Int> {
+    override suspend fun getHealth(playerId: PlayerId): Result<Int> {
         return runMongoCatching {
             val filter = Filters.eq(FieldPlayerId, playerId)
             data.find(filter)
@@ -181,7 +182,7 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
         }
     }
 
-    override suspend fun getItems(playerId: String): Result<List<String>> {
+    override suspend fun getItems(playerId: PlayerId): Result<List<String>> {
         return runMongoCatching {
             val filter = Filters.eq(FieldPlayerId, playerId)
             data.find(filter)
@@ -190,7 +191,7 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
         }
     }
 
-    override suspend fun updateHealth(playerId: String, newHealth: Int): Result<Unit> {
+    override suspend fun updateHealth(playerId: PlayerId, newHealth: Int): Result<Unit> {
         return runMongoCatching {
             val filter = Filters.eq(FieldPlayerId, playerId)
             val update = Updates.set("health", newHealth)
@@ -200,7 +201,7 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
         }
     }
 
-    override suspend fun updateItems(playerId: String, newItems: List<String>): Result<Unit> {
+    override suspend fun updateItems(playerId: PlayerId, newItems: List<String>): Result<Unit> {
         return runMongoCatching {
             val filter = Filters.eq(FieldPlayerId, playerId)
             val update = Updates.set("items", newItems)
@@ -299,7 +300,7 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
  * ```
  */
 class PlayerSubunit(private val playerRepository: PlayerRepository) : Subunit<PlayerScope> {
-    private lateinit var playerId: String
+    private lateinit var playerId: PlayerId
     private var health: Int? = null
     private var items = mutableListOf<String>()
 

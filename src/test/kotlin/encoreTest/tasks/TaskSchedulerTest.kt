@@ -1,5 +1,6 @@
 package encoreTest.tasks
 
+import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -39,7 +40,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }
@@ -73,7 +74,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }
@@ -122,7 +123,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }
@@ -166,7 +167,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }
@@ -218,7 +219,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }
@@ -267,7 +268,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }
@@ -314,7 +315,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }
@@ -363,7 +364,7 @@ class TaskSchedulerTest {
         dispatcher.registerTask(
             name = TaskName.DummyName,
             stopFactory = { ExampleTaskStopParameter() },
-            deriveTaskId = { playerId: String, name, _ ->
+            deriveTaskId = { playerId: PlayerId, name, _ ->
                 // "DN-pid123-unit
                 "${name.code}-$playerId-unit"
             }

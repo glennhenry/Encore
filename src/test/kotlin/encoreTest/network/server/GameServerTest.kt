@@ -2,6 +2,7 @@ package encoreTest.network.server
 
 import encore.annotation.source.RevisitLater
 import encore.context.ServerContext
+import encore.datastore.collection.PlayerId
 import encore.network.server.GameServer
 import encore.network.server.GameServerConfig
 import encore.network.server.ServerContainer
@@ -256,7 +257,7 @@ class GameServerTest {
      * Must use CoroutineScope.backgroundScope
      */
     private fun createConnection(
-        playerId: String = "playerId123",
+        playerId: PlayerId = "playerId123",
         username: String = "playerABC",
         scope: CoroutineScope
     ): TestConnection {
