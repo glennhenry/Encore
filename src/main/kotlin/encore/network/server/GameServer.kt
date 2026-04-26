@@ -16,6 +16,7 @@ import encore.utils.safeAsciiString
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.util.date.*
+import io.ktor.utils.io.ClosedByteChannelException
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
@@ -127,6 +128,8 @@ class GameServer(
                 }
             } catch (_: CancellationException) {
                 Fancam.info { "Coroutine cancalled for $connection" }
+            } catch (e: ClosedByteChannelException) {
+                Fancam.info { "Connection closed for $connection: ${e.message}" }
             } catch (e: Exception) {
                 Fancam.error(e) { "Exception in client socket $connection" }
             } finally {
