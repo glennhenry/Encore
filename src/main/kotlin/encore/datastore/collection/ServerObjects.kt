@@ -1,6 +1,6 @@
 package encore.datastore.collection
 
-//import encore.server.tasks.SavedAct
+import encore.acts.photocard.model.SavedAct
 import kotlinx.serialization.Serializable
 
 /**
@@ -18,7 +18,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ServerObjects(
     val dbId: String = ServerObjectsId,
-//    val acts: List<SavedAct>
+    val acts: List<SavedAct>
 )
 
 const val ServerObjectsId = "sobjs"
