@@ -43,13 +43,23 @@ import encore.fancam.impl.RehearsalFancam
 object TestFancam {
     private lateinit var fancam: RehearsalFancam
 
+    /**
+     * Creates a `RehearsalFancam`, and use it to initialize the `Fancam` facade.
+     */
     fun create() {
         fancam = RehearsalFancam()
         Fancam.initialize(fancam)
     }
 
+    /**
+     * Returns the previously created fancam.
+     * Throws [UninitializedPropertyAccessException] if [create] is not called before.
+     */
     fun get() = fancam
 
+    /**
+     * Call the [RehearsalFancam.clearAll] which clears all log entries.
+     */
     fun clear() {
         fancam.clearAll()
     }
