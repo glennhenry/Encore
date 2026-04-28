@@ -36,4 +36,16 @@ class PhotocardSubunit(private val photocardRepository: PhotocardRepository) : S
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
     override suspend fun disband(scope: ServerScope): Result<Unit> = Result.success(Unit)
+
+    companion object {
+        /**
+         * Creates a test instance of [PhotocardSubunit].
+         *
+         * @param photocardRepository repository dependency.
+         * Use [BlankPhotocardRepository] when this subunit is not used.
+         */
+        fun createForTest(photocardRepository: PhotocardRepository = BlankPhotocardRepository()): PhotocardSubunit {
+            return PhotocardSubunit(photocardRepository)
+        }
+    }
 }
