@@ -16,6 +16,8 @@ import org.bson.codecs.pojo.annotations.BsonId
  * MongoDB implementation of [AccountRepository].
  */
 class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccount>) : AccountRepository {
+    override val name: String = "MongoAccountRepository"
+
     override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount> {
         return runMongoCatching {
             accountCollection

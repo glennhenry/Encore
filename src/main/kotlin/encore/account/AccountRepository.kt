@@ -4,6 +4,7 @@ import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.account.model.Credentials
 import encore.account.model.Profile
+import encore.repository.Repository
 
 /**
  * Repository template for [PlayerAccount].
@@ -18,7 +19,7 @@ import encore.account.model.Profile
  * [Result.failure] is used when the operation fails due to an internal failure
  * like DB errors and not business outcome.
  */
-interface AccountRepository {
+interface AccountRepository: Repository {
     /**
      * Returns [PlayerAccount] associated with the given [playerId], if it exists.
      *
