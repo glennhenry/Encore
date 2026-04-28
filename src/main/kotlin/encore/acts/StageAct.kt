@@ -1,6 +1,10 @@
 package encore.acts
 
+import encore.acts.photocard.model.Photocard
 import encore.acts.setup.ActSetup
+import encore.acts.setup.LifetimeMode
+import encore.acts.setup.MissedPerformPolicy
+import encore.acts.setup.PerformMode
 import encore.tasks.CancellationReason
 import encore.tasks.ServerTaskDispatcher
 
