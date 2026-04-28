@@ -1,19 +1,25 @@
-import encore.acts.StageAct
-import encore.acts.photocard.model.ActProgress
-import encore.acts.photocard.PhotocardSubunit
 import encore.acts.ActConcept
+import encore.acts.StageAct
+import encore.acts.photocard.PhotocardSubunit
+import encore.acts.photocard.model.ActProgress
 import encore.acts.setup.ActSetup
 import encore.acts.setup.LifetimeMode
 import encore.acts.setup.PerformMode
 import encore.fancam.Fancam
+import encore.utils.Ids
 import io.ktor.util.date.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.currentTime
+import kotlinx.coroutines.test.runTest
+import testHelper.TestFancam
 import java.text.SimpleDateFormat
 import kotlin.math.floor
+import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -21,10 +27,144 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * .\gradlew test --tests "Playground.playground" --console=plain
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class Playground {
-    @Test
-    fun playground() {
+    @BeforeTest
+    fun setup() {
+        TestFancam.create()
+    }
 
+    val director = StageActDirector(PhotocardSubunit.createForTest())
+
+    @Test
+    fun `bound once`() = runTest {
+        runTimerAfter(3000, this)
+    }
+
+    @Test
+    fun `bound once multiple acts`() = runTest {
+        // all these acts should start instantly since
+        // director.run launches a coroutine and returns the act ID immediately
+
+        // In real environment, there may be slight delay caused by
+        // CPU, GC, coroutine, or setup creation
+
+        // inside the coroutine, onStart is called, delay is started, perform is called,
+        // and finally onEndingFairy is called
+        runTimerAfter(3000L, this)  // finish at tick 3s
+        runTimerAfter(3000L, this)  // finish at tick 3s
+        runTimerAfter(3000L, this)  // finish at tick 3s
+        runTimerAfter(2000L, this)  // finish at tick 2s
+        runTimerAfter(3500L, this)  // finish at tick 3.5s
+        runTimerAfter(3001L, this)  // finish at tick 3.001s
+        runTimerAfter(60000L, this) // finish at tick 60s
+    }
+
+    @Test
+    fun `cancel successfully stops bound once act`() = runBlocking {
+        val id = director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(3000) {
+                throw AssertionError("Executed here after 3 secs")
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "Test"
+                override val coroutineScope: CoroutineScope = this@runBlocking
+            }
+        )
+        assertTrue(director.isActive(id))
+
+        // must rely on real time because stop or job.cancel() takes some time
+        // that can't be awaited with runTest
+        delay(200.milliseconds)
+        assertTrue(director.stop(id))
+        delay(200.milliseconds)
+        assertFalse(director.isActive(id))
+    }
+
+    @Test
+    fun `error inside perform terminate bound once act`() = runTest {
+        // create the error act
+        val id = director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(5000) {
+                throw RuntimeException("Exception inside perform")
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "Test"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+        // assert active
+        assertTrue(director.isActive(id))
+
+        // rely on another timer to assert
+        director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(5001) {
+                // assert the error act is no longer active
+                assertFalse(director.isActive(id))
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "Test"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+    }
+
+    private fun runTimerAfter(time: Long, scope: TestScope): String {
+        val id = director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(time) {
+                println("Timer after $time TestScope.currentTime=${scope.currentTime}")
+                assertTrue(scope.currentTime >= time)
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope-$time"
+                override val coroutineScope: CoroutineScope = scope
+            }
+        )
+        assertTrue(director.isActive(id))
+
+        // assert that the act is no longer active after it finishes
+        // runTest skips any delay, so must rely on another timer to assert
+        director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(time + 100) {
+                assertFalse(director.isActive(id))
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope-reassert"
+                override val coroutineScope: CoroutineScope = scope
+            }
+        )
+
+        return id
+    }
+}
+
+data class TimerActConcept(
+    val delay: Long,
+    val onPerform: () -> Unit
+) : ActConcept
+
+class TimerAct : StageAct<TimerActConcept> {
+    override val name: String = "TimerAct"
+
+    override fun createId(concept: TimerActConcept): String {
+        return Ids.uuid()
+    }
+
+    override fun createSetup(concept: TimerActConcept): ActSetup {
+        return ActSetup(
+            initialDelay = concept.delay,
+            performMode = PerformMode.Once,
+            lifetimeMode = LifetimeMode.Bound
+        )
+    }
+
+    override suspend fun perform(concept: TimerActConcept, times: Int) {
+        concept.onPerform()
     }
 }
 
@@ -35,49 +175,64 @@ data class Step(
 )
 
 class StageActDirector(
-    private val choreographer: Choreographer,
     private val photocardSubunit: PhotocardSubunit
 ) {
-    fun <T : ActConcept> run(act: StageAct<T>, input: T, scope: ActScope) {
-        val setup = act.createSetup(input)
+    private val boundChoreo: BoundChoreographer = BoundChoreographer()
+    private val activeActs = mutableMapOf<String, Job>()
 
-        scope.coroutineScope.launch {
+    fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
+        val setup = act.createSetup(concept)
+        val id = act.createId(concept)
+
+        val job = scope.coroutineScope.launch {
             var performCount = 0
             val startedAt = getTimeMillis()
 
             try {
-                act.onStart(input)
+                act.onStart(concept)
 
                 while (true) {
-                    val step = choreographer.nextStep(setup, startedAt, performCount)
+                    val step = boundChoreo.nextStep(setup, startedAt, performCount)
 
                     if (step.delay > 0) {
                         delay(step.delay.milliseconds)
                     }
 
-                    act.perform(input, step.runs)
+                    act.perform(concept, step.runs)
                     performCount += step.runs
 
                     if (step.isFinished) break
                 }
 
-                act.onEndingFairy(input)
+                act.onEndingFairy(concept)
             } catch (_: CancellationException) {
                 Fancam.trace { "Act '${act.name}' is cancelled for ${scope.ownerId}." }
 
                 when (setup.lifetimeMode) {
                     is LifetimeMode.Bound -> {}
-                    is LifetimeMode.PausedPersistent -> {
-
-                    }
-
-                    is LifetimeMode.ContinuousPersistent -> TODO()
+                    is LifetimeMode.PausedPersistent -> {}
+                    is LifetimeMode.ContinuousPersistent -> {}
                 }
 
             } catch (e: Exception) {
                 Fancam.error(e) { "Error on act '${act.name}' for ${scope.ownerId}." }
+            } finally {
+                activeActs.remove(id)
             }
         }
+
+        activeActs[id] = job
+        return id
+    }
+
+    fun stop(actId: String): Boolean {
+        (activeActs[actId] ?: return false)
+            .cancel(CancellationException("Stop called"))
+        return true
+    }
+
+    fun isActive(actId: String): Boolean {
+        return activeActs.containsKey(actId)
     }
 }
 
