@@ -153,6 +153,7 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope())
         val repo = object : AccountRepository {
+            override val name: String = "AccountRepository-anonymous"
             override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?> = TODO()
             override suspend fun getAccountByUsername(username: String): Result<PlayerAccount?> = TODO()
             override suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?> = TODO()

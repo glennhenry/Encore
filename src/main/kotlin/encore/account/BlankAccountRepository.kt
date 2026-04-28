@@ -9,7 +9,7 @@ import encore.account.model.Profile
  * Blank implementation (no operation) of [AccountRepository] only used for testing purposes.
  */
 class BlankAccountRepository : AccountRepository {
-    override val name: String = TODO("NO OPERATION")
+    override val name: String = "BlankAccountRepository"
     override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?> = TODO("NO OPERATION")
     override suspend fun getAccountByUsername(username: String): Result<PlayerAccount?> = TODO("NO OPERATION")
     override suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?> = TODO("NO OPERATION")
