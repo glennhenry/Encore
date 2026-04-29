@@ -33,7 +33,8 @@ class MongoPhotocardRepositoryTest {
                     SavedAct("playerX", listOf(photocard(), photocard(), photocard())),
                     SavedAct("playerY", listOf(photocard(), photocard(), photocard())),
                     SavedAct("playerZ", listOf(photocard(), photocard(), photocard()))
-                )
+                ),
+                serverActs = listOf(photocard("serverId1")),
             )
         )
 
@@ -52,6 +53,21 @@ class MongoPhotocardRepositoryTest {
         val photocards3 = repo.getAllPhotocards("player1").getOrThrow()
         assertNull(photocards3.find { it.actId == "id2" })
         assertFalse(repo.deletePhotocard("player1", "id2").isSuccess)
+
+        // test getServerPhotocards
+        val serverPhotocards = repo.getServerPhotocards().getOrThrow()
+        assertNotNull(serverPhotocards.find { it.actId == "serverId1" })
+
+        // test saveServerPhotocard
+        assertTrue(repo.saveServerPhotocard(photocard("serverId2")).isSuccess)
+        val serverPhotocards2 = repo.getServerPhotocards().getOrThrow()
+        assertNotNull(serverPhotocards2.find { it.actId == "serverId2" })
+
+        // test deleteServerPhotocard
+        assertTrue(repo.deleteServerPhotocard("serverId1").isSuccess)
+        val serverPhotocards3 = repo.getServerPhotocards().getOrThrow()
+        assertNull(photocards3.find { it.actId == "serverId1" })
+        assertFalse(repo.deleteServerPhotocard("serverId1").isSuccess)
     }
 
     private fun photocard(id: String? = null): Photocard {

@@ -6,13 +6,11 @@ import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import encore.acts.photocard.model.Photocard
-import encore.datastore.FieldPlayerId
-import encore.datastore.ServerObjectsFilter
+import encore.datastore.*
 import encore.datastore.collection.PlayerId
 import encore.datastore.collection.ServerObjects
-import encore.datastore.runMongoCatching
-import encore.datastore.throwIfNotModified
 import kotlinx.coroutines.flow.firstOrNull
+import org.bson.codecs.pojo.annotations.BsonId
 
 /**
  * Implementation of [PhotocardRepository] with Mongo.
@@ -81,4 +79,44 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
                 .throwIfNotModified("savePhotocard")
         }
     }
+
+    override suspend fun getServerPhotocards(): Result<List<Photocard>> {
+        return runMongoCatching {
+            objects
+                .withDocumentClass<QueryServerActs>()
+                .find(ServerObjectsFilter)
+                .projection(
+                    Projections.fields(
+                        Projections.include(FieldServerActs),
+                        Projections.excludeId()
+                    )
+                )
+                .firstOrNull()
+                ?.serverActs
+        }
+    }
+
+    override suspend fun deleteServerPhotocard(actId: String): Result<Unit> {
+        return runMongoCatching {
+            val update = Updates.pull("serverActs", Filters.eq("actId", actId))
+            objects.updateOne(ServerObjectsFilter, update)
+                .throwIfNotModified("deleteServerPhotocard")
+        }
+    }
+
+    override suspend fun saveServerPhotocard(photocard: Photocard): Result<Unit> {
+        return runMongoCatching {
+            val update = Updates.push("serverActs", photocard)
+            objects.updateOne(ServerObjectsFilter, update)
+                .throwIfNotModified("saveServerPhotocard")
+        }
+    }
 }
+
+/**
+ * Mongo projection class to query the [ServerObjects.serverActs].
+ */
+data class QueryServerActs(
+    @field:BsonId val id: String? = null,
+    val serverActs: List<Photocard>
+)

@@ -34,6 +34,28 @@ class PhotocardSubunit(private val photocardRepository: PhotocardRepository) : S
             }
     }
 
+    suspend fun getServerPhotocards(): List<Photocard> {
+        return photocardRepository.getServerPhotocards()
+            .onFailure {
+                Fancam.error { "Failed to get all server photocards." }
+            }
+            .getOrNull() ?: emptyList()
+    }
+
+    suspend fun deleteServerPhotocard(actId: String) {
+        photocardRepository.deleteServerPhotocard(actId)
+            .onFailure {
+                Fancam.error { "Failed to delete server photocard with actId=$actId" }
+            }
+    }
+
+    suspend fun saveServerPhotocard(photocard: Photocard) {
+        photocardRepository.saveServerPhotocard(photocard)
+            .onFailure {
+                Fancam.error { "Failed to save server photocard with actId=${photocard.actId} name=${photocard.name}" }
+            }
+    }
+
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
     override suspend fun disband(scope: ServerScope): Result<Unit> = Result.success(Unit)
 

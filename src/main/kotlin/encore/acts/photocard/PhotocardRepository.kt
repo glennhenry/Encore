@@ -29,4 +29,24 @@ interface PhotocardRepository : Repository {
      * @return [Result] type of whether the operation succeed or fails.
      */
     suspend fun savePhotocard(playerId: PlayerId, photocard: Photocard): Result<Unit>
+
+    /**
+     * Get all server-owned photocards.
+     * @return Every photocards in [Result] type.
+     * - [Result.failure] when there is an internal repo/DB error.
+     * - [Result.success] otherwise, including case when photocards are empty.
+     */
+    suspend fun getServerPhotocards(): Result<List<Photocard>>
+
+    /**
+     * Delete the server-owned [Photocard] associated with [actId].
+     * @return [Result] type of whether the operation succeed or fails.
+     */
+    suspend fun deleteServerPhotocard(actId: String): Result<Unit>
+
+    /**
+     * Save a server-owned [photocard].
+     * @return [Result] type of whether the operation succeed or fails.
+     */
+    suspend fun saveServerPhotocard(photocard: Photocard): Result<Unit>
 }
