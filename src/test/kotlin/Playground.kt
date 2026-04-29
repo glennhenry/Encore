@@ -1,10 +1,16 @@
 import encore.acts.ActConcept
+import encore.acts.CancellationReason
+import encore.acts.KillCancellationException
 import encore.acts.StageAct
+import encore.acts.StopCancellationException
 import encore.acts.photocard.PhotocardSubunit
 import encore.acts.photocard.model.ActProgress
+import encore.acts.photocard.model.Photocard
 import encore.acts.setup.ActSetup
 import encore.acts.setup.LifetimeMode
 import encore.acts.setup.PerformMode
+import encore.acts.toCancellationReason
+import encore.datastore.collection.ServerId
 import encore.fancam.Fancam
 import encore.utils.Ids
 import encore.utils.SystemTime
@@ -412,9 +418,12 @@ class StageActDirector(
 
                 act.onEndingFairy(concept)
             } catch (_: CancellationException) {
-                Fancam.trace { "Act '${act.name}' is cancelled for ${scope.ownerId}." }
+                // cancel reason is either stopped or killed
+                // since bound act "cannot" be killed, to guarantee correctness
+                // CancellationReason.Stopped is passed directly
+                act.onCancelled(concept, CancellationReason.Stopped)
             } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.name}' for ${scope.ownerId}." }
+                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
             } finally {
                 activeActs.remove(id)
             }
@@ -436,7 +445,7 @@ class StageActDirector(
 
     fun stop(actId: String): Boolean {
         (activeActs[actId] ?: return false)
-            .cancel(CancellationException("Stop called"))
+            .cancel(StopCancellationException())
         return true
     }
 
@@ -445,8 +454,35 @@ class StageActDirector(
     }
 }
 
+/**
+ * Represent the scope to which a [StageAct] is bound to.
+ *
+ * A stage act is bound to an owner that determines its lifetime.
+ * The owner can be a particular player or the server itself.
+ *
+ * For example, if an act is bound to a player and their connection is dead,
+ * the act will seen as invalid, and thus cancelled. This is typically determined
+ * through the owner's [coroutineScope].
+ *
+ * **Important:** The [ownerId] is required for acts with [LifetimeMode.PausedPersistent]
+ * or [LifetimeMode.ContinuousPersistent]; as it is used for identification
+ * in saving and resuming acts.
+ */
 interface ActScope {
+    /**
+     * The globally unique identifier of the [StageAct] owner.
+     *
+     * This should be assigned properly for acts with [LifetimeMode.PausedPersistent]
+     * or [LifetimeMode.ContinuousPersistent].
+     *
+     * For player this should be [PlayerId].
+     * Server-owned acts should use the [ServerId].
+     */
     val ownerId: String
+
+    /**
+     * The coroutine scope the act will run on.
+     */
     val coroutineScope: CoroutineScope
 }
 
@@ -612,46 +648,4 @@ class StageActChoreographer {
         }
     }
 
-    fun nextPerformAt(setup: ActSetup, progress: ActProgress, performCount: Int): Long {
-        if (performCount <= 0) {
-            return setup.initialDelay
-        }
-
-        when (setup.performMode) {
-            is PerformMode.Once -> {
-                Fancam.warn {
-                    "nextPerformAt called on PerformMode.Once when performCount is $performCount. " +
-                            "Returned ${setup.initialDelay} (${dateFormatter.format(setup.initialDelay)})"
-                }
-                return setup.initialDelay
-            }
-
-            is PerformMode.Repeat -> {
-                val firstPerformAt = progress.startedAt + setup.initialDelay
-                val nextPerformIndex = performCount + 1
-                val nextPerformAt = firstPerformAt + (nextPerformIndex - 1) * setup.performMode.interval
-
-                if (performCount == setup.performMode.repetition - 1) {
-                    Fancam.warn {
-                        "nextPerformAt called on PerformMode.Repeat when performCount is $performCount (repeat=${setup.performMode.repetition}). " +
-                                "Returned $nextPerformAt (${dateFormatter.format(nextPerformAt)})"
-                    }
-                }
-
-                return nextPerformAt
-            }
-
-            is PerformMode.Forever -> {
-                val firstPerformAt = progress.startedAt + setup.initialDelay
-                val nextPerformIndex = performCount + 1
-                val nextPerformAt = firstPerformAt + (nextPerformIndex - 1) * setup.performMode.interval
-
-                return nextPerformAt
-            }
-        }
-    }
-
-    fun delayForNextPerform(setup: ActSetup, progress: ActProgress): Long {
-        return nextPerformAt(setup, progress, progress.performCount) - progress.accumulatedDelay
-    }
 }

@@ -27,7 +27,7 @@ enum class CancellationReason {
      * Persistent acts that are stopped from this route will **not** be persisted
      * and past entry will be **deleted**.
      *
-     * Non-persistent acts stopped from this route will not differ than [Stopped].
+     * Non-persistent acts are **guaranteed** to never receive this reason.
      */
     Killed,
 }
