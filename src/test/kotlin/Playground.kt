@@ -385,8 +385,9 @@ class StageActDirector(
     private val boundChoreo: BoundChoreographer = BoundChoreographer(timeProvider)
     private val activeActs = mutableMapOf<String, Job>()
 
-    fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
-        val setup = act.createSetup(concept)
+    private fun <T : ActConcept> runBound(
+        act: StageAct<T>, setup: ActSetup, concept: T, scope: ActScope
+    ): String {
         val id = act.createId(concept)
 
         val job = scope.coroutineScope.launch {
@@ -412,13 +413,6 @@ class StageActDirector(
                 act.onEndingFairy(concept)
             } catch (_: CancellationException) {
                 Fancam.trace { "Act '${act.name}' is cancelled for ${scope.ownerId}." }
-
-                when (setup.lifetimeMode) {
-                    is LifetimeMode.Bound -> {}
-                    is LifetimeMode.PausedPersistent -> {}
-                    is LifetimeMode.ContinuousPersistent -> {}
-                }
-
             } catch (e: Exception) {
                 Fancam.error(e) { "Error on act '${act.name}' for ${scope.ownerId}." }
             } finally {
@@ -428,6 +422,16 @@ class StageActDirector(
 
         activeActs[id] = job
         return id
+    }
+
+    fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
+        val setup = act.createSetup(concept)
+
+        return when (setup.lifetimeMode) {
+            is LifetimeMode.Bound -> runBound(act, setup, concept, scope)
+            is LifetimeMode.PausedPersistent -> TODO()
+            is LifetimeMode.ContinuousPersistent -> TODO()
+        }
     }
 
     fun stop(actId: String): Boolean {
