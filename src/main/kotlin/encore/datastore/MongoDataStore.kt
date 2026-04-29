@@ -44,15 +44,34 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
         try {
             val count = accounts.estimatedDocumentCount()
             Fancam.info { "MongoDB contains $count accounts." }
+            prepareServerObjects()
             setupIndexes()
         } catch (e: Exception) {
             Fancam.error { "MongoDB failed during initialization: $e" }
         }
     }
 
-    suspend fun setupIndexes() {
+    private suspend fun setupIndexes() {
         serverObjects.createIndex(Indexes.text())
         Fancam.info { "Mongo index set up" }
+    }
+
+    private suspend fun prepareServerObjects() {
+        when (val count = serverObjects.estimatedDocumentCount()) {
+            0L -> {
+                serverObjects.insertOne(
+                    ServerObjects(
+                        acts = emptyList(),
+                        serverActs = emptyList()
+                    )
+                )
+            }
+            1L -> return
+
+            else -> {
+                Fancam.warn { "Detected multiple server object document count=$count" }
+            }
+        }
     }
 
     override suspend fun playerExists(playerId: PlayerId): Boolean {
