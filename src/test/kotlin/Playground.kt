@@ -7,6 +7,8 @@ import encore.acts.setup.LifetimeMode
 import encore.acts.setup.PerformMode
 import encore.fancam.Fancam
 import encore.utils.Ids
+import encore.utils.SystemTime
+import encore.utils.TimeProvider
 import io.ktor.util.date.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -14,6 +16,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
+import testHelper.TestTimeProvider
 import java.text.SimpleDateFormat
 import kotlin.math.floor
 import kotlin.test.BeforeTest
@@ -62,6 +65,8 @@ class Playground {
 
     @Test
     fun `cancel successfully stops bound once act`() = runBlocking {
+        val director = StageActDirector(PhotocardSubunit.createForTest(), SystemTime)
+
         val id = director.run(
             act = TimerAct(),
             concept = TimerActConcept(3000) {
@@ -84,6 +89,11 @@ class Playground {
 
     @Test
     fun `error inside perform terminate bound once act`() = runTest {
+        val director = StageActDirector(
+            PhotocardSubunit.createForTest(),
+            TestTimeProvider(this)
+        )
+
         // create the error act
         val id = director.run(
             act = TimerAct(),
@@ -113,6 +123,11 @@ class Playground {
     }
 
     private fun runTimerAfter(time: Long, scope: TestScope): String {
+        val director = StageActDirector(
+            PhotocardSubunit.createForTest(),
+            TestTimeProvider(scope)
+        )
+
         val id = director.run(
             act = TimerAct(),
             concept = TimerActConcept(time) {
@@ -175,9 +190,10 @@ data class Step(
 )
 
 class StageActDirector(
-    private val photocardSubunit: PhotocardSubunit
+    private val photocardSubunit: PhotocardSubunit,
+    private val timeProvider: TimeProvider
 ) {
-    private val boundChoreo: BoundChoreographer = BoundChoreographer()
+    private val boundChoreo: BoundChoreographer = BoundChoreographer(timeProvider)
     private val activeActs = mutableMapOf<String, Job>()
 
     fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
@@ -186,7 +202,7 @@ class StageActDirector(
 
         val job = scope.coroutineScope.launch {
             var performCount = 0
-            val startedAt = getTimeMillis()
+            val startedAt = timeProvider.now()
 
             try {
                 act.onStart(concept)
@@ -305,7 +321,7 @@ interface Choreographer {
     fun nextStep(setup: ActSetup, startedAt: Long, performCount: Int): Step
 }
 
-class BoundChoreographer : Choreographer {
+class BoundChoreographer(private val timeProvider: TimeProvider) : Choreographer {
     override fun nextStep(setup: ActSetup, startedAt: Long, performCount: Int): Step {
         val delay = delayForNextPerform(setup, startedAt, performCount)
         return Step(delay, 1, isFinished(setup, performCount + 1))
@@ -336,7 +352,7 @@ class BoundChoreographer : Choreographer {
                     startedAt, setup.initialDelay,
                     performCount, setup.performMode.interval
                 )
-                val now = getTimeMillis()
+                val now = timeProvider.now()
                 val timeLeftUntilNextPerform = nextPerformAt - now
                 return timeLeftUntilNextPerform
             }
@@ -346,7 +362,7 @@ class BoundChoreographer : Choreographer {
                     startedAt, setup.initialDelay,
                     performCount, setup.performMode.interval
                 )
-                val now = getTimeMillis()
+                val now = timeProvider.now()
                 val timeLeftUntilNextPerform = nextPerformAt - now
                 return timeLeftUntilNextPerform
             }
