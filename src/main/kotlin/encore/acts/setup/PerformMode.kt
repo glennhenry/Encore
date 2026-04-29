@@ -18,17 +18,17 @@ sealed class PerformMode {
     /**
      * The stage act is performed repeatedly with a fixed interval.
      *
-     * The total number of executions is `times + 1`, as [times] counts only
+     * The total number of executions is `repetition + 1`, as [repetition] counts only
      * the additional repeats after the initial execution.
      *
      * Examples:
-     * - `times = 0` is equivalent to [Once]
-     * - `times = 1` is executed twice in total
+     * - `repetition = 0` is equivalent to [Once]
+     * - `repetition = 1` is executed twice in total
      *
-     * @property times Number of additional executions after the first run.
+     * @property repetition Number of additional executions after the first run.
      * @property interval Interval between executions, in milliseconds.
      */
-    data class Repeat(val times: Int, val interval: Long) : PerformMode()
+    data class Repeat(val repetition: Int, val interval: Long) : PerformMode()
 
     /**
      * The stage act is performed indefinitely at a fixed interval.

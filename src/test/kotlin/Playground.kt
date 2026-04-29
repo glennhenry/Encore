@@ -160,7 +160,7 @@ class Playground {
 
 data class TimerActConcept(
     val delay: Long,
-    val onPerform: () -> Unit
+    val onPerform: (Int) -> Unit
 ) : ActConcept
 
 class TimerAct : StageAct<TimerActConcept> {
@@ -178,8 +178,8 @@ class TimerAct : StageAct<TimerActConcept> {
         )
     }
 
-    override suspend fun perform(concept: TimerActConcept, times: Int) {
-        concept.onPerform()
+    override suspend fun perform(concept: TimerActConcept, performNumber: Int, batch: Int) {
+        concept.onPerform(performNumber)
     }
 }
 
@@ -214,7 +214,7 @@ class StageActDirector(
                         delay(step.delay.milliseconds)
                     }
 
-                    act.perform(concept, step.runs)
+                    act.perform(concept, performCount + step.runs, step.runs)
                     performCount += step.runs
 
                     if (step.isFinished) break
@@ -279,7 +279,7 @@ Time model and illustration
 
 initialDelay = 5s
 interval     = 10s
-times        = 3
+repetition   = 3
 
 0      5    9      15         25    30    35
 S -----!----T------!----------!-----N-----!
@@ -296,10 +296,10 @@ Now in tick 30.
 
 expectedPerformCountNow = (now - firstPerformAt) / interval + 1          (3  = floor((30 - 5) / 10 + 1))
 missedPerformCount      = expectedPerformCountNow - performCount         (2  = 3 - 1)
-remainingPerformCount   = times - performCount                           (2  = 3 - 1)
+remainingPerformCount   = repetition - performCount                      (2  = 3 - 1)
 performsTodo            = min(missedperformCount, remainingPerformCount) (2  = min(2, 2))
 
-This means that the task need to be performed 2 times in batch to compensate the miss.
+This means that the task need to be performed 2 repeats in batch to compensate the miss.
 
 firstPerformAt          = startedAt + initialDelay                           (5  = 0 + 5)
 nextPerformIndex        = performCount + 1                                   (2  = 1 + 1)
@@ -341,10 +341,10 @@ class BoundChoreographer(private val timeProvider: TimeProvider) : Choreographer
             }
 
             is PerformMode.Repeat -> {
-                if (performCount >= setup.performMode.times + 1) {
+                if (performCount >= setup.performMode.repetition + 1) {
                     throw IllegalArgumentException(
                         "nextPerformAt called on PerformMode.Repeat when " +
-                                "performCount is already $performCount (repeat=${setup.performMode.times})."
+                                "performCount is already $performCount (repeat=${setup.performMode.repetition})."
                     )
                 }
 
@@ -383,7 +383,7 @@ class BoundChoreographer(private val timeProvider: TimeProvider) : Choreographer
         return when (setup.performMode) {
             is PerformMode.Once -> true
             is PerformMode.Repeat -> {
-                newPerformCount == setup.performMode.times + 1
+                newPerformCount == setup.performMode.repetition + 1
             }
 
             is PerformMode.Forever -> false
@@ -412,7 +412,7 @@ class StageActChoreographer {
                 val expectedPerformCountNow =
                     floor((now - firstPerformAt).toDouble() / performMode.interval.toDouble()).toInt() + 1
                 val missedPerformCount = expectedPerformCountNow - performCount
-                val remainingPerformCount = performMode.times - performCount
+                val remainingPerformCount = performMode.repetition - performCount
                 val performsTodo = minOf(missedPerformCount, remainingPerformCount)
                 return performsTodo
             }
@@ -438,9 +438,9 @@ class StageActChoreographer {
                 val nextPerformIndex = performCount + 1
                 val nextPerformAt = firstPerformAt + (nextPerformIndex - 1) * setup.performMode.interval
 
-                if (performCount == setup.performMode.times - 1) {
+                if (performCount == setup.performMode.repetition - 1) {
                     Fancam.warn {
-                        "nextPerformAt called on PerformMode.Repeat when performCount is $performCount (repeat=${setup.performMode.times}). " +
+                        "nextPerformAt called on PerformMode.Repeat when performCount is $performCount (repeat=${setup.performMode.repetition}). " +
                                 "Returned $nextPerformAt (${dateFormatter.format(nextPerformAt)})"
                     }
                 }

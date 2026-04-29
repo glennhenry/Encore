@@ -78,17 +78,29 @@ interface StageAct<T : ActConcept> {
     /**
      * Main execution body of the act.
      *
-     * [times] represents the batch size for the current [perform] call.
+     * ###### runNumber
      *
-     * For example, if 6 executions were missed and a [MissedPerformPolicy.CatchUp] is applied,
-     * `times` will be 6. Under normal conditions (no missed executions), `times` is typically 1.
+     * Indicates the current perform number (1-based).
      *
-     * Stage act should implement `perform` in inclusion of the arbitrary amount of [times],
-     * unless [MissedPerformPolicy] is specifically skip or last only.
+     * For example, if an act has 3 repetitions (4 total runs including the initial run),
+     * then on the 2nd repetition this value will be `3`, meaning it is the third performance.
      *
-     * @param times Number of executions to process in a single batch.
+     * This value is always `1` for [PerformMode.Once].
+     *
+     * ###### batch
+     *
+     * Represents how many unit of executions should be processed in this invocation.
+     *
+     * For example, if 6 performs were missed and [MissedPerformPolicy.CatchUp] is applied,
+     * `batch` will be `6`. Under normal conditions (no missed performs), `batch` is typically `1`.
+     *
+     * Implementations should handle arbitrary `batch` sizes unless the [MissedPerformPolicy]
+     * guarantees otherwise (e.g. skip or last-only behavior).
+     *
+     * @param performNumber Current perform number (1-based).
+     * @param batch Number of executions to process in this call.
      */
-    suspend fun perform(concept: T, times: Int)
+    suspend fun perform(concept: T, performNumber: Int, batch: Int)
 
     /**
      * Called once when the act completes all scheduled executions successfully.
