@@ -10,7 +10,7 @@ import encore.tasks.TaskScheduler
 import encore.tasks.ServerTaskDispatcher
 import encore.tasks.TaskConfig
 import encore.tasks.TaskName
-import encore.utils.FakeTimeProvider
+import encore.utils.ManualTimeProvider
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -33,7 +33,7 @@ class TaskSchedulerTest {
 
     @Test
     fun `test runTaskFor adds task to the running instances`() = runTest {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 
@@ -67,7 +67,7 @@ class TaskSchedulerTest {
 
     @Test
     fun `test stopTaskFor removes from the running instances`() = runTest {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 
@@ -116,7 +116,7 @@ class TaskSchedulerTest {
     @Test
     @Ignore("slow, real-time timer")
     fun `test onStart should be fired immediately after runTaskFor`() = runBlocking {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 
@@ -160,7 +160,7 @@ class TaskSchedulerTest {
     @Test
     @Ignore("slow, real-time timer")
     fun `test onExecute should be fired after start delay`() = runBlocking {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 
@@ -212,7 +212,7 @@ class TaskSchedulerTest {
     @Test
     @Ignore("slow, real-time timer")
     fun `test onIterationStart and onIterationComplete fired on each iteration`() = runBlocking {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 
@@ -261,7 +261,7 @@ class TaskSchedulerTest {
     @Test
     @Ignore("slow, real-time timer")
     fun `test onIterationStart and onIterationComplete shouldn't be fired for non-repeating task`() = runBlocking {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 
@@ -308,7 +308,7 @@ class TaskSchedulerTest {
     @Test
     @Ignore("slow, real-time timer")
     fun `test stopTaskFor properly call onForceComplete or onCancelled`() = runBlocking {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 
@@ -357,7 +357,7 @@ class TaskSchedulerTest {
     @Test
     @Ignore("slow, real-time timer")
     fun `test the complete lifecycle of a task`() = runBlocking {
-        val time = FakeTimeProvider(0)
+        val time = ManualTimeProvider(0)
         val dispatcher = ServerTaskDispatcher(time)
         val connection = createConnection(this)
 

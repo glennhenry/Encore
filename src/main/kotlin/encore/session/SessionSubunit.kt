@@ -3,7 +3,7 @@ package encore.session
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import game.AdminData
-import encore.utils.FakeTimeProvider
+import encore.utils.ManualTimeProvider
 import encore.utils.Ids
 import encore.utils.SystemTime
 import encore.utils.TimeProvider
@@ -153,11 +153,11 @@ class SessionSubunit(
          * Creates a test instance of [SessionSubunit].
          *
          * @param parentScope scope used for lifecycle and cleanup job (e.g., `TestScope`).
-         * @param time time provider used to control session timing (e.g., [FakeTimeProvider]).
+         * @param time time provider used to control session timing (e.g., [ManualTimeProvider]).
          */
         fun createForTest(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-            time: TimeProvider = FakeTimeProvider(0)
+            time: TimeProvider = ManualTimeProvider(0)
         ): SessionSubunit {
             return SessionSubunit(parentScope, time)
         }

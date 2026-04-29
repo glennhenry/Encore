@@ -16,7 +16,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
-import testHelper.TestTimeProvider
+import testHelper.VirtualTimeProvider
 import java.text.SimpleDateFormat
 import kotlin.math.floor
 import kotlin.test.BeforeTest
@@ -91,7 +91,7 @@ class Playground {
     fun `error inside perform terminate bound once act`() = runTest {
         val director = StageActDirector(
             PhotocardSubunit.createForTest(),
-            TestTimeProvider(this)
+            VirtualTimeProvider(this)
         )
 
         // create the error act
@@ -125,7 +125,7 @@ class Playground {
     private fun runTimerAfter(time: Long, scope: TestScope): String {
         val director = StageActDirector(
             PhotocardSubunit.createForTest(),
-            TestTimeProvider(scope)
+            VirtualTimeProvider(scope)
         )
 
         val id = director.run(

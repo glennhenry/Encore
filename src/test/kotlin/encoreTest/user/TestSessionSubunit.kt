@@ -1,7 +1,7 @@
 package encoreTest.user
 
 import encore.session.SessionSubunit
-import encore.utils.FakeTimeProvider
+import encore.utils.ManualTimeProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -27,7 +27,7 @@ class TestSessionSubunit {
 
     @Test
     fun `test verify unexpired session return true`() = runTest {
-        val time = FakeTimeProvider(1)
+        val time = ManualTimeProvider(1)
         val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 1.hours)
         assertTrue(manager.verify(session.token))
@@ -39,7 +39,7 @@ class TestSessionSubunit {
 
     @Test
     fun `test verify expired session return false`() = runTest {
-        val time = FakeTimeProvider(1)
+        val time = ManualTimeProvider(1)
         val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 90.minutes)
 
@@ -50,7 +50,7 @@ class TestSessionSubunit {
 
     @Test
     fun `test verify session lifetime exceeded the session duration but refreshed in between return true`() = runTest {
-        val time = FakeTimeProvider(1)
+        val time = ManualTimeProvider(1)
         val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 1.hours, lifetime = 6.hours)
 
@@ -63,7 +63,7 @@ class TestSessionSubunit {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `test verify session refreshed after expired but before exceeding max lifetime return true`() = runTest {
-        val time = FakeTimeProvider(1)
+        val time = ManualTimeProvider(1)
         val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123")
 
@@ -79,7 +79,7 @@ class TestSessionSubunit {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `test verify session refreshed after expired but after exceeding max lifetime return false`() = runTest {
-        val time = FakeTimeProvider(1)
+        val time = ManualTimeProvider(1)
         val manager = SessionSubunit(scope(), time)
         val session = manager.create("pid123", validFor = 1.hours, lifetime = 6.hours)
 
