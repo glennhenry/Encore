@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat
 import kotlin.math.floor
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
@@ -37,7 +38,39 @@ class Playground {
         TestFancam.create()
     }
 
-    val director = StageActDirector(PhotocardSubunit.createForTest())
+    @Test
+    fun `bound repeat`() = runTest {
+        // 3000, 5000, 7000, 9000, 11000, 13000
+        runRepeatTimer(3000L, 5, 2000L, this) {}
+    }
+
+    @Test
+    fun `cancel successfully stops bound repeat act`() = runBlocking {
+        val director = StageActDirector(PhotocardSubunit.createForTest(), SystemTime)
+        var performCount = 0
+
+        val id = director.run(
+            act = RepeatTimerAct(),
+            concept = RepeatTimerActConcept(500, 500, 3) { count ->
+                println("[run=$count] (${500 + (count - 1) * 500}ms)")
+                performCount += 1
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "Test"
+                override val coroutineScope: CoroutineScope = this@runBlocking
+            }
+        )
+
+        // must rely on real time because stop or job.cancel() takes some time
+        // that can't be awaited with runTest
+        // 500ms -> performCount = 1
+        // 1000ms -> performCount = 2
+        // 1500ms -> performCount = 3
+        // 1700ms -> performCount = 3 (stopped)
+        delay(1700.milliseconds)
+        assertTrue(director.stop(id))
+        assertEquals(3, performCount)
+    }
 
     @Test
     fun `bound once`() = runTest {
@@ -122,6 +155,33 @@ class Playground {
         )
     }
 
+    private fun runRepeatTimer(
+        initialDelay: Long, repetition: Int,
+        interval: Long, scope: TestScope, assertHook: (Int) -> Unit
+    ): String {
+        val director = StageActDirector(
+            PhotocardSubunit.createForTest(),
+            VirtualTimeProvider(scope)
+        )
+
+        val id = director.run(
+            act = RepeatTimerAct(),
+            concept = RepeatTimerActConcept(initialDelay, interval, repetition) { performNumber ->
+                println("[run=$performNumber] TestScope.currentTime=${scope.currentTime}")
+                assertTrue(scope.currentTime >= initialDelay + (performNumber - 1) * interval)
+                assertHook(performNumber)
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = scope
+            }
+        )
+
+        println("Repeat timer (after ${initialDelay}ms, every ${interval}ms for 1 + $repetition repeats).")
+
+        return id
+    }
+
     private fun runTimerAfter(time: Long, scope: TestScope): String {
         val director = StageActDirector(
             PhotocardSubunit.createForTest(),
@@ -179,6 +239,33 @@ class TimerAct : StageAct<TimerActConcept> {
     }
 
     override suspend fun perform(concept: TimerActConcept, performNumber: Int, batch: Int) {
+        concept.onPerform(performNumber)
+    }
+}
+
+data class RepeatTimerActConcept(
+    val initialDelay: Long,
+    val interval: Long,
+    val repetition: Int,
+    val onPerform: (Int) -> Unit
+) : ActConcept
+
+class RepeatTimerAct : StageAct<RepeatTimerActConcept> {
+    override val name: String = "RepeatTimerAct"
+
+    override fun createId(concept: RepeatTimerActConcept): String {
+        return Ids.uuid()
+    }
+
+    override fun createSetup(concept: RepeatTimerActConcept): ActSetup {
+        return ActSetup(
+            initialDelay = concept.initialDelay,
+            performMode = PerformMode.Repeat(concept.repetition, concept.interval),
+            lifetimeMode = LifetimeMode.Bound
+        )
+    }
+
+    override suspend fun perform(concept: RepeatTimerActConcept, performNumber: Int, batch: Int) {
         concept.onPerform(performNumber)
     }
 }
