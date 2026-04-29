@@ -205,6 +205,19 @@ class Playground {
         assertEquals(3, performCount)
     }
 
+    @Test
+    fun `bound forever`() = runTest {
+        var performCount = 0
+        runForeverTimer(0L, 2000L, this) { count ->
+            performCount += 1
+
+            // stopping timer without director.stop by throwing CancellationException
+            if (count == 50) {
+                assertEquals(50, performCount)
+                throw CancellationException("Manual stop")
+            }
+        }
+    }
 
     private fun runTimer(time: Long, scope: TestScope): String {
         val director = StageActDirector(
@@ -251,6 +264,32 @@ class Playground {
         )
 
         Fancam.trace { "Repeat timer started (will fire after ${initialDelay}ms, every ${interval}ms for 1 + $repetition repeats)." }
+        return id
+    }
+
+    private fun runForeverTimer(
+        initialDelay: Long, interval: Long,
+        scope: TestScope, assertHook: ((Int) -> Unit)?
+    ): String {
+        val director = StageActDirector(
+            PhotocardSubunit.createForTest(),
+            VirtualTimeProvider(scope)
+        )
+
+        val id = director.run(
+            act = ForeverTimerAct(),
+            concept = ForeverTimerActConcept(initialDelay, interval) { performNumber ->
+                Fancam.trace { "[run=$performNumber] TestScope.currentTime=${scope.currentTime}" }
+                assertEquals(scope.currentTime, initialDelay + (performNumber - 1) * interval)
+                assertHook?.invoke(performNumber)
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = scope
+            }
+        )
+
+        Fancam.trace { "Forever timer started (will fire after ${initialDelay}ms, every ${interval}ms)." }
         return id
     }
 }
@@ -303,6 +342,32 @@ class RepeatTimerAct : StageAct<RepeatTimerActConcept> {
     }
 
     override suspend fun perform(concept: RepeatTimerActConcept, performNumber: Int, batch: Int) {
+        concept.onPerform(performNumber)
+    }
+}
+
+data class ForeverTimerActConcept(
+    val initialDelay: Long,
+    val interval: Long,
+    val onPerform: (Int) -> Unit
+) : ActConcept
+
+class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
+    override val name: String = "ForeverTimerAct"
+
+    override fun createId(concept: ForeverTimerActConcept): String {
+        return Ids.uuid()
+    }
+
+    override fun createSetup(concept: ForeverTimerActConcept): ActSetup {
+        return ActSetup(
+            initialDelay = concept.initialDelay,
+            performMode = PerformMode.Forever(concept.interval),
+            lifetimeMode = LifetimeMode.Bound
+        )
+    }
+
+    override suspend fun perform(concept: ForeverTimerActConcept, performNumber: Int, batch: Int) {
         concept.onPerform(performNumber)
     }
 }
