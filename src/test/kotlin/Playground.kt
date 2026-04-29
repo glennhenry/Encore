@@ -39,20 +39,153 @@ class Playground {
     }
 
     @Test
+    fun `bound once`() = runTest {
+        runTimer(3000, this)
+    }
+
+    @Test
+    fun `bound once multiple acts`() = runTest {
+        // all these acts should start instantly since
+        // director.run launches a coroutine and returns the act ID immediately
+
+        // In real environment, there may be slight delay caused by
+        // CPU, GC, coroutine, or setup creation
+
+        // inside the coroutine, onStart is called, delay is started, perform is called,
+        // and finally onEndingFairy is called
+        runTimer(3000L, this)  // finish at tick 3s
+        runTimer(3000L, this)  // finish at tick 3s
+        runTimer(3000L, this)  // finish at tick 3s
+        runTimer(2000L, this)  // finish at tick 2s
+        runTimer(3500L, this)  // finish at tick 3.5s
+        runTimer(3001L, this)  // finish at tick 3.001s
+        runTimer(60000L, this) // finish at tick 60s
+    }
+
+    @Test
+    fun `isActive works as expected`() = runTest {
+        val director = StageActDirector(
+            PhotocardSubunit.createForTest(),
+            VirtualTimeProvider(this)
+        )
+
+        val id = director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(3000) {},
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+
+        // must be active after run is called
+        val isActive = director.isActive(id)
+        assertTrue(isActive)
+        Fancam.trace { "Timer started and isActive=${true}" }
+
+        // assert that the act is no longer active after it finishes
+        // runTest skips any delay, so must rely on another timer to assert
+        director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(3100) {
+                val isActive = director.isActive(id)
+                assertFalse(isActive)
+                Fancam.trace { "isActive=${false}" }
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope-reassert"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+    }
+
+    @Test
+    fun `bound act stop successfully stops it`() = runBlocking {
+        val director = StageActDirector(PhotocardSubunit.createForTest(), SystemTime)
+
+        val id = director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(3000) {
+                throw AssertionError("Executed here after 3 secs")
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = this@runBlocking
+            }
+        )
+
+        // must be active after run
+        val isActive = director.isActive(id)
+        assertTrue(isActive)
+        Fancam.trace { "Timer started and isActive=${true}" }
+
+        // must rely on real time because stop or job.cancel() takes some time
+        // that can't be awaited with runTest
+        delay(200.milliseconds)
+        assertTrue(director.stop(id))
+        delay(200.milliseconds)
+        val isActive2 = director.isActive(id)
+        assertFalse(isActive2)
+        Fancam.trace { "isActive=${false}" }
+    }
+
+    @Test
+    fun `bound act error gets terminated`() = runTest {
+        val director = StageActDirector(
+            PhotocardSubunit.createForTest(),
+            VirtualTimeProvider(this)
+        )
+
+        // create the error act
+        val id = director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(5000) {
+                throw RuntimeException("Exception inside perform")
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+
+        // assert active
+        val isActive = director.isActive(id)
+        assertTrue(isActive)
+        Fancam.trace { "Timer started and isActive=${true}" }
+
+        // rely on another timer to assert
+        // the error act should already throws before this
+        director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(5001) {
+                // assert the error act is no longer active
+                // log should also have error message
+                val isActive = director.isActive(id)
+                assertFalse(isActive)
+                Fancam.trace { "isActive=${false}" }
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+    }
+
+    @Test
     fun `bound repeat`() = runTest {
         // 3000, 5000, 7000, 9000, 11000, 13000
         runRepeatTimer(3000L, 5, 2000L, this) {}
     }
 
     @Test
-    fun `cancel successfully stops bound repeat act`() = runBlocking {
+    fun `bound repeat stop successfully stops it`() = runBlocking {
         val director = StageActDirector(PhotocardSubunit.createForTest(), SystemTime)
         var performCount = 0
 
         val id = director.run(
             act = RepeatTimerAct(),
             concept = RepeatTimerActConcept(500, 500, 3) { count ->
-                println("[run=$count] (${500 + (count - 1) * 500}ms)")
+                Fancam.trace { "[run=$count] (${500 + (count - 1) * 500}ms)" }
                 performCount += 1
             },
             scope = object : ActScope {
@@ -72,92 +205,32 @@ class Playground {
         assertEquals(3, performCount)
     }
 
-    @Test
-    fun `bound once`() = runTest {
-        runTimerAfter(3000, this)
-    }
 
-    @Test
-    fun `bound once multiple acts`() = runTest {
-        // all these acts should start instantly since
-        // director.run launches a coroutine and returns the act ID immediately
-
-        // In real environment, there may be slight delay caused by
-        // CPU, GC, coroutine, or setup creation
-
-        // inside the coroutine, onStart is called, delay is started, perform is called,
-        // and finally onEndingFairy is called
-        runTimerAfter(3000L, this)  // finish at tick 3s
-        runTimerAfter(3000L, this)  // finish at tick 3s
-        runTimerAfter(3000L, this)  // finish at tick 3s
-        runTimerAfter(2000L, this)  // finish at tick 2s
-        runTimerAfter(3500L, this)  // finish at tick 3.5s
-        runTimerAfter(3001L, this)  // finish at tick 3.001s
-        runTimerAfter(60000L, this) // finish at tick 60s
-    }
-
-    @Test
-    fun `cancel successfully stops bound once act`() = runBlocking {
-        val director = StageActDirector(PhotocardSubunit.createForTest(), SystemTime)
-
-        val id = director.run(
-            act = TimerAct(),
-            concept = TimerActConcept(3000) {
-                throw AssertionError("Executed here after 3 secs")
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "Test"
-                override val coroutineScope: CoroutineScope = this@runBlocking
-            }
-        )
-        assertTrue(director.isActive(id))
-
-        // must rely on real time because stop or job.cancel() takes some time
-        // that can't be awaited with runTest
-        delay(200.milliseconds)
-        assertTrue(director.stop(id))
-        delay(200.milliseconds)
-        assertFalse(director.isActive(id))
-    }
-
-    @Test
-    fun `error inside perform terminate bound once act`() = runTest {
+    private fun runTimer(time: Long, scope: TestScope): String {
         val director = StageActDirector(
             PhotocardSubunit.createForTest(),
-            VirtualTimeProvider(this)
+            VirtualTimeProvider(scope)
         )
 
-        // create the error act
         val id = director.run(
             act = TimerAct(),
-            concept = TimerActConcept(5000) {
-                throw RuntimeException("Exception inside perform")
+            concept = TimerActConcept(time) {
+                Fancam.trace { "TestScope.currentTime=${scope.currentTime}" }
+                assertEquals(scope.currentTime, time)
             },
             scope = object : ActScope {
-                override val ownerId: String = "Test"
-                override val coroutineScope: CoroutineScope = this@runTest
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = scope
             }
         )
-        // assert active
-        assertTrue(director.isActive(id))
 
-        // rely on another timer to assert
-        director.run(
-            act = TimerAct(),
-            concept = TimerActConcept(5001) {
-                // assert the error act is no longer active
-                assertFalse(director.isActive(id))
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "Test"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
-        )
+        Fancam.trace { "Timer started (will fire after ${time}ms)." }
+        return id
     }
 
     private fun runRepeatTimer(
         initialDelay: Long, repetition: Int,
-        interval: Long, scope: TestScope, assertHook: (Int) -> Unit
+        interval: Long, scope: TestScope, assertHook: ((Int) -> Unit)?
     ): String {
         val director = StageActDirector(
             PhotocardSubunit.createForTest(),
@@ -167,9 +240,9 @@ class Playground {
         val id = director.run(
             act = RepeatTimerAct(),
             concept = RepeatTimerActConcept(initialDelay, interval, repetition) { performNumber ->
-                println("[run=$performNumber] TestScope.currentTime=${scope.currentTime}")
-                assertTrue(scope.currentTime >= initialDelay + (performNumber - 1) * interval)
-                assertHook(performNumber)
+                Fancam.trace { "[run=$performNumber] TestScope.currentTime=${scope.currentTime}" }
+                assertEquals(scope.currentTime, initialDelay + (performNumber - 1) * interval)
+                assertHook?.invoke(performNumber)
             },
             scope = object : ActScope {
                 override val ownerId: String = "TestScope"
@@ -177,43 +250,7 @@ class Playground {
             }
         )
 
-        println("Repeat timer (after ${initialDelay}ms, every ${interval}ms for 1 + $repetition repeats).")
-
-        return id
-    }
-
-    private fun runTimerAfter(time: Long, scope: TestScope): String {
-        val director = StageActDirector(
-            PhotocardSubunit.createForTest(),
-            VirtualTimeProvider(scope)
-        )
-
-        val id = director.run(
-            act = TimerAct(),
-            concept = TimerActConcept(time) {
-                println("Timer after $time TestScope.currentTime=${scope.currentTime}")
-                assertTrue(scope.currentTime >= time)
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope-$time"
-                override val coroutineScope: CoroutineScope = scope
-            }
-        )
-        assertTrue(director.isActive(id))
-
-        // assert that the act is no longer active after it finishes
-        // runTest skips any delay, so must rely on another timer to assert
-        director.run(
-            act = TimerAct(),
-            concept = TimerActConcept(time + 100) {
-                assertFalse(director.isActive(id))
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope-reassert"
-                override val coroutineScope: CoroutineScope = scope
-            }
-        )
-
+        Fancam.trace { "Repeat timer started (will fire after ${initialDelay}ms, every ${interval}ms for 1 + $repetition repeats)." }
         return id
     }
 }
