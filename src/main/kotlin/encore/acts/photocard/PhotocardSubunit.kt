@@ -34,6 +34,13 @@ class PhotocardSubunit(private val photocardRepository: PhotocardRepository) : S
             }
     }
 
+    suspend fun updatePhotocard(playerId: PlayerId, photocard: Photocard) {
+        photocardRepository.updatePhotocard(playerId, photocard)
+            .onFailure {
+                Fancam.error { "Failed to update photocard for playerId=$playerId with actId=${photocard.actId} name=${photocard.name}" }
+            }
+    }
+
     suspend fun getServerPhotocards(): List<Photocard> {
         return photocardRepository.getServerPhotocards()
             .onFailure {
@@ -53,6 +60,13 @@ class PhotocardSubunit(private val photocardRepository: PhotocardRepository) : S
         photocardRepository.saveServerPhotocard(photocard)
             .onFailure {
                 Fancam.error { "Failed to save server photocard with actId=${photocard.actId} name=${photocard.name}" }
+            }
+    }
+
+    suspend fun updatePhotocard(photocard: Photocard) {
+        photocardRepository.updateServerPhotocard(photocard)
+            .onFailure {
+                Fancam.error { "Failed to update server photocard with actId=${photocard.actId} name=${photocard.name}" }
             }
     }
 

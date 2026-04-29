@@ -80,6 +80,30 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
         }
     }
 
+    override suspend fun updatePhotocard(
+        playerId: PlayerId,
+        photocard: Photocard
+    ): Result<Unit> {
+        return runMongoCatching {
+            val filter = Filters.and(
+                ServerObjectsFilter,
+                Filters.eq("acts.playerId", playerId)
+            )
+
+            val update = Updates.set("acts.$[act].photocards.$[photocard]", photocard)
+
+            val options = UpdateOptions().arrayFilters(
+                listOf(
+                    Filters.eq("act.playerId", playerId),
+                    Filters.eq("photocard.actId", photocard.actId)
+                )
+            )
+
+            objects.updateOne(filter, update, options)
+                .throwIfNotModified("updatePhotocard")
+        }
+    }
+
     override suspend fun getServerPhotocards(): Result<List<Photocard>> {
         return runMongoCatching {
             objects
@@ -109,6 +133,19 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
             val update = Updates.push("serverActs", photocard)
             objects.updateOne(ServerObjectsFilter, update)
                 .throwIfNotModified("saveServerPhotocard")
+        }
+    }
+
+    override suspend fun updateServerPhotocard(photocard: Photocard): Result<Unit> {
+        return runMongoCatching {
+            val filter = Filters.and(
+                ServerObjectsFilter,
+                Filters.eq("serverActs.actId", photocard.actId)
+            )
+
+            val update = Updates.set("serverActs.$", photocard)
+            objects.updateOne(filter, update)
+                .throwIfNotModified("updateServerPhotocard")
         }
     }
 }

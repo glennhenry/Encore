@@ -12,6 +12,7 @@ import testHelper.TestMongoCollectionName
 import testHelper.initMongo
 import testHelper.randomString
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -44,7 +45,9 @@ class MongoPhotocardRepositoryTest {
         assertNotNull(photocards1.find { it.actId == "id2" })
 
         // test savePhotocard
-        assertTrue(repo.savePhotocard("player1", photocard("id3")).isSuccess)
+        val pc3 = photocard("id3")
+        println("PC3 = $pc3")
+        assertTrue(repo.savePhotocard("player1", pc3).isSuccess)
         val photocards2 = repo.getAllPhotocards("player1").getOrThrow()
         assertNotNull(photocards2.find { it.actId == "id3" })
 
@@ -54,20 +57,31 @@ class MongoPhotocardRepositoryTest {
         assertNull(photocards3.find { it.actId == "id2" })
         assertFalse(repo.deletePhotocard("player1", "id2").isSuccess)
 
+        // test updatePhotocard
+        assertTrue(repo.updatePhotocard("player1", pc3.copy(name = "ABCDEFGirl")).isSuccess)
+        val photocards4 = repo.getAllPhotocards("player1").getOrThrow()
+        assertEquals("ABCDEFGirl", photocards4.find { it.actId == "id3" }?.name)
+
         // test getServerPhotocards
         val serverPhotocards = repo.getServerPhotocards().getOrThrow()
         assertNotNull(serverPhotocards.find { it.actId == "serverId1" })
 
         // test saveServerPhotocard
-        assertTrue(repo.saveServerPhotocard(photocard("serverId2")).isSuccess)
+        val spc2 = photocard("serverId2")
+        assertTrue(repo.saveServerPhotocard(spc2).isSuccess)
         val serverPhotocards2 = repo.getServerPhotocards().getOrThrow()
         assertNotNull(serverPhotocards2.find { it.actId == "serverId2" })
 
         // test deleteServerPhotocard
         assertTrue(repo.deleteServerPhotocard("serverId1").isSuccess)
         val serverPhotocards3 = repo.getServerPhotocards().getOrThrow()
-        assertNull(photocards3.find { it.actId == "serverId1" })
+        assertNull(serverPhotocards3.find { it.actId == "serverId1" })
         assertFalse(repo.deleteServerPhotocard("serverId1").isSuccess)
+
+        // test updateServerPhotocard
+        assertTrue(repo.updateServerPhotocard(spc2.copy(name = "ABCDEFGirl")).isSuccess)
+        val serverPhotocards4 = repo.getServerPhotocards().getOrThrow()
+        assertEquals("ABCDEFGirl", serverPhotocards4.find { it.actId == "serverId2" }?.name)
     }
 
     private fun photocard(id: String? = null): Photocard {

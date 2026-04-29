@@ -25,10 +25,16 @@ interface PhotocardRepository : Repository {
     suspend fun deletePhotocard(playerId: PlayerId, actId: String): Result<Unit>
 
     /**
-     * Save the [photocard] for [playerId].
+     * Save the [photocard] for [playerId] which adds a new entry.
      * @return [Result] type of whether the operation succeed or fails.
      */
     suspend fun savePhotocard(playerId: PlayerId, photocard: Photocard): Result<Unit>
+
+    /**
+     * Update the existing [photocard] for [playerId].
+     * @return [Result] type of whether the operation succeed or fails.
+     */
+    suspend fun updatePhotocard(playerId: PlayerId, photocard: Photocard): Result<Unit>
 
     /**
      * Get all server-owned photocards.
@@ -45,8 +51,14 @@ interface PhotocardRepository : Repository {
     suspend fun deleteServerPhotocard(actId: String): Result<Unit>
 
     /**
-     * Save a server-owned [photocard].
+     * Save a server-owned [photocard] which adds a new entry.
      * @return [Result] type of whether the operation succeed or fails.
      */
     suspend fun saveServerPhotocard(photocard: Photocard): Result<Unit>
+
+    /**
+     * Update the existing server-owned [photocard].
+     * @return [Result] type of whether the operation succeed or fails.
+     */
+    suspend fun updateServerPhotocard(photocard: Photocard): Result<Unit>
 }
