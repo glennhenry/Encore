@@ -389,6 +389,7 @@ class StageActDirector(
     private val timeProvider: TimeProvider
 ) {
     private val boundChoreo: BoundChoreographer = BoundChoreographer(timeProvider)
+    private val pausedPersistentChoreo: PausedPersistentChoreographer = PausedPersistentChoreographer(timeProvider)
     private val activeActs = mutableMapOf<String, Job>()
 
     private fun <T : ActConcept> runBound(
@@ -433,12 +434,69 @@ class StageActDirector(
         return id
     }
 
+    private fun <T : ActConcept> runPausedPersistent(
+        act: StageAct<T>, setup: ActSetup, concept: T, scope: ActScope
+    ): String {
+        val id = act.createId(concept)
+
+        val job = scope.coroutineScope.launch {
+            var performCount = 0
+            val actStartedAt = timeProvider.now()
+
+            try {
+                act.onStart(concept)
+
+                while (true) {
+                    val step = pausedPersistentChoreo.nextStep(setup, actStartedAt, performCount)
+
+                    if (step.delay > 0) {
+                        delay(step.delay.milliseconds)
+                    }
+
+                    act.perform(concept, performCount + step.runs, step.runs)
+                    performCount += step.runs
+
+                    if (step.isFinished) break
+                }
+
+                act.onEndingFairy(concept)
+            } catch (e: CancellationException) {
+                act.onCancelled(concept, e.toCancellationReason())
+
+                // for persistent acts, cancelled act that isn't finished
+                // should be persisted to DB (unless they are killed)
+                when (e) {
+                    is KillCancellationException -> {
+                        deleteAct(scope.ownerId, id)
+                    }
+                    else -> {
+                        // this includes StopCancellationException
+                        persistAct(
+                            id, act.name, act.createIdentity(concept),
+                            setup, actStartedAt, scope.ownerId, performCount
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
+                // when error happens, act is rendered as invalid
+                // thus should be removed from DB
+                deleteAct(scope.ownerId, id)
+            } finally {
+                activeActs.remove(id)
+            }
+        }
+
+        activeActs[id] = job
+        return id
+    }
+
     fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
         val setup = act.createSetup(concept)
 
         return when (setup.lifetimeMode) {
             is LifetimeMode.Bound -> runBound(act, setup, concept, scope)
-            is LifetimeMode.PausedPersistent -> TODO()
+            is LifetimeMode.PausedPersistent -> runPausedPersistent(act, setup, concept, scope)
             is LifetimeMode.ContinuousPersistent -> TODO()
         }
     }
@@ -449,8 +507,49 @@ class StageActDirector(
         return true
     }
 
+    fun kill(actId: String): Boolean {
+        (activeActs[actId] ?: return false)
+            .cancel(KillCancellationException())
+        return true
+    }
+
     fun isActive(actId: String): Boolean {
         return activeActs.containsKey(actId)
+    }
+
+    private suspend fun persistAct(
+        actId: String,
+        name: String,
+        identity: Map<String, String>,
+        setup: ActSetup,
+        actStartedAt: Long,
+        ownerId: String,
+        performCount: Int
+    ) {
+        val remainingDelay = pausedPersistentChoreo.delayForNextPerform(setup, actStartedAt, performCount)
+        val photocard = Photocard(
+            actId = actId,
+            name = name,
+            progress = ActProgress(
+                startedAt = actStartedAt,
+                remainingDelay = remainingDelay,
+                lastActiveAt = timeProvider.now(),
+                performCount = performCount
+            ),
+            data = identity
+        )
+
+        when (ownerId) {
+            ServerId -> photocardSubunit.saveServerPhotocard(photocard)
+            else -> photocardSubunit.savePhotocard(ownerId, photocard)
+        }
+    }
+
+    private suspend fun deleteAct(ownerId: String, actId: String) {
+        when (ownerId) {
+            ServerId -> photocardSubunit.deleteServerPhotocard(actId)
+            else -> photocardSubunit.deletePhotocard(ownerId, actId)
+        }
     }
 }
 
@@ -548,6 +647,76 @@ With the pause model, no performs will be missed and the remainingDelay will sti
 
 interface Choreographer {
     fun nextStep(setup: ActSetup, startedAt: Long, performCount: Int): Step
+}
+
+class PausedPersistentChoreographer(private val timeProvider: TimeProvider) : Choreographer {
+    override fun nextStep(setup: ActSetup, startedAt: Long, performCount: Int): Step {
+        val delay = delayForNextPerform(setup, startedAt, performCount)
+        return Step(delay, 1, isFinished(setup, performCount + 1))
+    }
+
+    fun delayForNextPerform(setup: ActSetup, startedAt: Long, performCount: Int): Long {
+        if (performCount <= 0) {
+            return setup.initialDelay
+        }
+
+        when (setup.performMode) {
+            is PerformMode.Once -> {
+                throw IllegalArgumentException(
+                    "nextPerformAt called on PerformMode.Once when " +
+                            "performCount is already $performCount."
+                )
+            }
+
+            is PerformMode.Repeat -> {
+                if (performCount >= setup.performMode.repetition + 1) {
+                    throw IllegalArgumentException(
+                        "nextPerformAt called on PerformMode.Repeat when " +
+                                "performCount is already $performCount (repeat=${setup.performMode.repetition})."
+                    )
+                }
+
+                val nextPerformAt = nextPerformAt(
+                    startedAt, setup.initialDelay,
+                    performCount, setup.performMode.interval
+                )
+                val now = timeProvider.now()
+                val timeLeftUntilNextPerform = nextPerformAt - now
+                return timeLeftUntilNextPerform
+            }
+
+            is PerformMode.Forever -> {
+                val nextPerformAt = nextPerformAt(
+                    startedAt, setup.initialDelay,
+                    performCount, setup.performMode.interval
+                )
+                val now = timeProvider.now()
+                val timeLeftUntilNextPerform = nextPerformAt - now
+                return timeLeftUntilNextPerform
+            }
+        }
+    }
+
+    private fun nextPerformAt(
+        startedAt: Long, initialDelay: Long,
+        performCount: Int, interval: Long
+    ): Long {
+        val firstPerformAt = startedAt + initialDelay
+        val nextPerformIndex = performCount + 1
+        val nextPerformAt = firstPerformAt + (nextPerformIndex - 1) * interval
+        return nextPerformAt
+    }
+
+    fun isFinished(setup: ActSetup, newPerformCount: Int): Boolean {
+        return when (setup.performMode) {
+            is PerformMode.Once -> true
+            is PerformMode.Repeat -> {
+                newPerformCount == setup.performMode.repetition + 1
+            }
+
+            is PerformMode.Forever -> false
+        }
+    }
 }
 
 class BoundChoreographer(private val timeProvider: TimeProvider) : Choreographer {
