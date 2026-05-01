@@ -2,7 +2,6 @@ package encoreTest.account
 
 import encore.account.MongoAccountRepository
 import encore.account.model.Credentials
-import encore.account.model.ServerMetadata
 import encore.datastore.collection.PlayerAccount
 import encore.utils.Ids
 import encore.utils.hash
@@ -34,7 +33,6 @@ class MongoAccountRepositoryTest {
             email,
             hash("pw123"),
             createProfile("id123"),
-            ServerMetadata()
         )
 
         collection.insertMany(List(20) { account() } + account)

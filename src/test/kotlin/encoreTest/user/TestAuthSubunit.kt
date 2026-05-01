@@ -7,7 +7,6 @@ import encore.account.MongoAccountRepository
 import encore.account.PlayerCreationSubunit
 import encore.account.model.Credentials
 import encore.account.model.Profile
-import encore.account.model.ServerMetadata
 import encore.auth.AuthSubunit
 import encore.auth.LoginResult
 import encore.datastore.MongoDataStore
@@ -15,7 +14,6 @@ import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.session.SessionSubunit
 import encore.utils.Outcome
-import encore.utils.okOrNull
 import encore.utils.okOrThrow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -59,8 +57,7 @@ class TestAuthSubunit {
             username = "name",
             email = "anyemail",
             hashedPassword = "anypassword",
-            profile = createProfile("pid12345"),
-            metadata = ServerMetadata()
+            profile = createProfile("pid12345")
         )
         collection.insertOne(account)
 

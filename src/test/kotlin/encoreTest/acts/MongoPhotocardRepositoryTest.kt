@@ -4,7 +4,7 @@ import com.mongodb.assertions.Assertions.assertTrue
 import encore.acts.photocard.model.ActProgress
 import encore.acts.photocard.MongoPhotocardRepository
 import encore.acts.photocard.model.Photocard
-import encore.acts.photocard.model.SavedAct
+import encore.datastore.collection.PlayerServerObjects
 import encore.datastore.collection.ServerObjects
 import encore.utils.Ids
 import kotlinx.coroutines.test.runTest
@@ -21,21 +21,27 @@ class MongoPhotocardRepositoryTest {
     @Test
     fun `test all`() = runTest {
         val mongoDb = initMongo()
-        val collection = mongoDb.getCollection<ServerObjects>(TestMongoCollectionName.serverObjects)
-        collection.drop()
+        val psobjCollection = mongoDb.getCollection<PlayerServerObjects>(TestMongoCollectionName.playerServerObjects)
+        val sobjCollection = mongoDb.getCollection<ServerObjects>(TestMongoCollectionName.serverObjects)
+        psobjCollection.drop()
+        sobjCollection.drop()
+        mongoDb.createCollection(TestMongoCollectionName.playerServerObjects)
         mongoDb.createCollection(TestMongoCollectionName.serverObjects)
 
-        val repo = MongoPhotocardRepository(collection)
+        val repo = MongoPhotocardRepository(psobjCollection, sobjCollection)
 
-        collection.insertOne(
+        psobjCollection.insertMany(
+            listOf(
+                PlayerServerObjects("player1", photocards = listOf(photocard("id1"), photocard("id2"))),
+                PlayerServerObjects("playerX", photocards = listOf(photocard(), photocard(), photocard())),
+                PlayerServerObjects("playerY", photocards = listOf(photocard(), photocard(), photocard())),
+                PlayerServerObjects("playerZ", photocards = listOf(photocard(), photocard(), photocard()))
+            )
+        )
+
+        sobjCollection.insertOne(
             ServerObjects(
-                acts = listOf(
-                    SavedAct("player1", listOf(photocard("id1"), photocard("id2"))),
-                    SavedAct("playerX", listOf(photocard(), photocard(), photocard())),
-                    SavedAct("playerY", listOf(photocard(), photocard(), photocard())),
-                    SavedAct("playerZ", listOf(photocard(), photocard(), photocard()))
-                ),
-                serverActs = listOf(photocard("serverId1")),
+                photocards = listOf(photocard("serverId1")),
             )
         )
 
@@ -46,7 +52,6 @@ class MongoPhotocardRepositoryTest {
 
         // test savePhotocard
         val pc3 = photocard("id3")
-        println("PC3 = $pc3")
         assertTrue(repo.savePhotocard("player1", pc3).isSuccess)
         val photocards2 = repo.getAllPhotocards("player1").getOrThrow()
         assertNotNull(photocards2.find { it.actId == "id3" })

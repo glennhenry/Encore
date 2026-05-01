@@ -9,6 +9,7 @@ const val CHANGE_ME_TEST_DB_NAME = "CHANGE_ME-test-DB"
 val TestMongoCollectionName = MongoCollectionName(
     playerAccount = "test_player_account",
     playerObjects = "test_player_objects",
+    playerServerObjects = "test_player_server_objects",
     serverObjects = "test_server_objects"
 )
 const val MONGO_TEST_URL = "mongodb://localhost:27017"

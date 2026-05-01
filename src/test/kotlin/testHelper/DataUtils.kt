@@ -2,7 +2,6 @@ package testHelper
 
 import encore.datastore.collection.PlayerAccount
 import encore.account.model.Profile
-import encore.account.model.ServerMetadata
 import encore.datastore.collection.PlayerId
 import encore.utils.hash
 import io.ktor.util.date.*
@@ -13,8 +12,7 @@ fun createAccount(playerId: PlayerId, username: String, password: String): Playe
         username = username,
         email = "$username@email.com",
         hashedPassword = hash(password),
-        profile = createProfile(playerId),
-        metadata = ServerMetadata()
+        profile = createProfile(playerId)
     )
 }
 
