@@ -8,6 +8,7 @@ import com.mongodb.kotlin.client.coroutine.MongoCollection
 import encore.acts.photocard.model.Photocard
 import encore.datastore.*
 import encore.datastore.collection.PlayerId
+import encore.datastore.collection.PlayerServerObjects
 import encore.datastore.collection.ServerObjects
 import kotlinx.coroutines.flow.firstOrNull
 import org.bson.codecs.pojo.annotations.BsonId
@@ -15,67 +16,45 @@ import org.bson.codecs.pojo.annotations.BsonId
 /**
  * Implementation of [PhotocardRepository] with Mongo.
  *
- * @property objects [ServerObjects] collection.
+ * @property psObj [PlayerServerObjects] collection.
+ * @property sObj [ServerObjects] collection.
  */
-class MongoPhotocardRepository(private val objects: MongoCollection<ServerObjects>) : PhotocardRepository {
+class MongoPhotocardRepository(
+    private val psObj: MongoCollection<PlayerServerObjects>,
+    private val sObj: MongoCollection<ServerObjects>,
+) : PhotocardRepository {
     override val name: String = "MongoPhotocardRepository"
 
     override suspend fun getAllPhotocards(playerId: PlayerId): Result<List<Photocard>> {
         return runMongoCatching {
-            val filter = Filters.and(
-                ServerObjectsFilter,
-                Filters.eq("acts.playerId", playerId)
-            )
-
-            val doc = objects
-                .find(filter)
-                .projection(Projections.elemMatch("acts", Filters.eq(FieldPlayerId, playerId)))
+            psObj
+                .withDocumentClass<QueryPhotocard>()
+                .find(Filters.eq(FieldPlayerId, playerId))
+                .projection(
+                    Projections.fields(
+                        Projections.include(FieldPhotocards),
+                        Projections.excludeId()
+                    )
+                )
                 .firstOrNull()
-
-            val act = doc?.acts?.singleOrNull { it.playerId == playerId }
-            act?.photocards ?: emptyList()
+                ?.photocards
         }
     }
 
     override suspend fun deletePhotocard(playerId: PlayerId, actId: String): Result<Unit> {
         return runMongoCatching {
-            val filter = Filters.and(
-                ServerObjectsFilter,
-                Filters.eq("acts.playerId", playerId)
-            )
-
-            val update = Updates.pull(
-                "acts.$[act].photocards",
-                Filters.eq("actId", actId)
-            )
-
-            val options = UpdateOptions().arrayFilters(
-                listOf(
-                    Filters.eq("act.playerId", playerId)
-                )
-            )
-
-            objects.updateOne(filter, update, options)
+            val filter = Filters.eq(FieldPlayerId, playerId)
+            val update = Updates.pull(FieldPhotocards, Filters.eq(FieldActId, actId))
+            psObj.updateOne(filter, update)
                 .throwIfNotModified("deletePhotocard", { filter }, { update })
         }
     }
 
     override suspend fun savePhotocard(playerId: PlayerId, photocard: Photocard): Result<Unit> {
         return runMongoCatching {
-            val filter = Filters.and(
-                ServerObjectsFilter,
-                Filters.eq("acts.playerId", playerId)
-            )
-
-            val update = Updates.push("acts.$[act].photocards", photocard)
-
-            val options = UpdateOptions().arrayFilters(
-                listOf(
-                    Filters.eq("act.playerId", playerId)
-                )
-            )
-
-            objects.updateOne(filter, update, options)
+            val filter = Filters.eq(FieldPlayerId, playerId)
+            val update = Updates.push(FieldPhotocards, photocard)
+            psObj.updateOne(filter, update)
                 .throwIfNotModified("savePhotocard", { filter }, { update })
         }
     }
@@ -85,75 +64,65 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
         photocard: Photocard
     ): Result<Unit> {
         return runMongoCatching {
-            val filter = Filters.and(
-                ServerObjectsFilter,
-                Filters.eq("acts.playerId", playerId)
-            )
-
-            val update = Updates.set("acts.$[act].photocards.$[photocard]", photocard)
-
+            val filter = Filters.eq(FieldPlayerId, playerId)
+            val update = Updates.set("$FieldPhotocards.$[photocard]", photocard)
             val options = UpdateOptions().arrayFilters(
-                listOf(
-                    Filters.eq("act.playerId", playerId),
-                    Filters.eq("photocard.actId", photocard.actId)
-                )
+                listOf(Filters.eq("photocard.$FieldActId", photocard.actId))
             )
-
-            objects.updateOne(filter, update, options)
+            psObj.updateOne(filter, update, options)
                 .throwIfNotModified("updatePhotocard", { filter }, { update })
         }
     }
 
     override suspend fun getServerPhotocards(): Result<List<Photocard>> {
         return runMongoCatching {
-            objects
-                .withDocumentClass<QueryServerActs>()
+            sObj
+                .withDocumentClass<QueryPhotocard>()
                 .find(ServerObjectsFilter)
                 .projection(
                     Projections.fields(
-                        Projections.include(FieldServerActs),
+                        Projections.include(FieldPhotocards),
                         Projections.excludeId()
                     )
                 )
                 .firstOrNull()
-                ?.serverActs
+                ?.photocards
         }
     }
 
     override suspend fun deleteServerPhotocard(actId: String): Result<Unit> {
         return runMongoCatching {
-            val update = Updates.pull("serverActs", Filters.eq("actId", actId))
-            objects.updateOne(ServerObjectsFilter, update)
+            val update = Updates.pull(FieldPhotocards, Filters.eq(FieldActId, actId))
+            sObj.updateOne(ServerObjectsFilter, update)
                 .throwIfNotModified("deleteServerPhotocard", null, { update })
         }
     }
 
     override suspend fun saveServerPhotocard(photocard: Photocard): Result<Unit> {
         return runMongoCatching {
-            val update = Updates.push("serverActs", photocard)
-            objects.updateOne(ServerObjectsFilter, update)
+            val update = Updates.push(FieldPhotocards, photocard)
+            sObj.updateOne(ServerObjectsFilter, update)
                 .throwIfNotModified("saveServerPhotocard", null, { update })
         }
     }
 
     override suspend fun updateServerPhotocard(photocard: Photocard): Result<Unit> {
         return runMongoCatching {
-            val filter = Filters.and(
-                ServerObjectsFilter,
-                Filters.eq("serverActs.actId", photocard.actId)
+            val filter = ServerObjectsFilter
+            val update = Updates.set("$FieldPhotocards.$[photocard]", photocard)
+            val options = UpdateOptions().arrayFilters(
+                listOf(Filters.eq("photocard.$FieldActId", photocard.actId))
             )
-
-            val update = Updates.set("serverActs.$", photocard)
-            objects.updateOne(filter, update)
+            sObj.updateOne(filter, update, options)
                 .throwIfNotModified("updateServerPhotocard", { filter }, { update })
         }
     }
 }
 
 /**
- * Mongo projection class to query the [ServerObjects.serverActs].
+ * Mongo projection class to query the [PlayerServerObjects.photocards].
  */
-data class QueryServerActs(
+data class QueryPhotocard(
     @field:BsonId val id: String? = null,
-    val serverActs: List<Photocard>
+    val photocards: List<Photocard>
 )

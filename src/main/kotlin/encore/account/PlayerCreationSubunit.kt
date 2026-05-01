@@ -1,15 +1,12 @@
 package encore.account
 
+import encore.account.model.Profile
 import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
-import encore.datastore.collection.PlayerAccount
-import encore.datastore.collection.PlayerId
-import encore.datastore.collection.PlayerObjects
+import encore.datastore.collection.*
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.account.model.Profile
-import encore.account.model.ServerMetadata
 import encore.utils.Ids
 import encore.utils.hash
 import game.AdminData
@@ -17,6 +14,14 @@ import io.ktor.util.date.*
 
 /**
  * Server-scoped subunit responsible for player creation.
+ *
+ * This should handle the logic to create a player, which typically involves
+ * inserting default data to the three base collections: [PlayerAccount],
+ * [PlayerObjects], and [PlayerServerObjects].
+ *
+ * This subunit doesn't handle server data update in [ServerObjects]
+ * for the player. This should be handled separately via external orchestration
+ * (e.g., in the registration).
  *
  * Requires a [DataStore] to persist the newly created players.
  */
@@ -42,11 +47,11 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             email = email,
             hashedPassword = hash(password),
             profile = defaultProfile(playerId),
-            metadata = ServerMetadata()
         )
-        val objects = PlayerObjects.newGame(playerId)
+        val pObj = PlayerObjects.newGame(playerId)
+        val psObj = PlayerServerObjects.newGame(playerId)
 
-        val result = dataStore.create(account, objects)
+        val result = dataStore.create(account, pObj, psObj)
         if (result.isSuccess) {
             return playerId
         }
@@ -78,10 +83,11 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             email = AdminData.EMAIL,
             hashedPassword = AdminData.HASHED_PASSWORD,
             profile = defaultProfile(AdminData.PLAYER_ID),
-            metadata = ServerMetadata()
         )
+        val pObj = PlayerObjects.admin()
+        val psObj = PlayerServerObjects.admin()
 
-        val result = dataStore.create(account, PlayerObjects.admin())
+        val result = dataStore.create(account, pObj, psObj)
 
         if (result.isSuccess) {
             Fancam.info { "New admin account created" }
