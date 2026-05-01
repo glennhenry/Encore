@@ -53,8 +53,13 @@ class MongoPhotocardRepository(
     override suspend fun savePhotocard(playerId: PlayerId, photocard: Photocard): Result<Unit> {
         return runMongoCatching {
             val filter = Filters.eq(FieldPlayerId, playerId)
-            val update = Updates.push(FieldPhotocards, photocard)
-            psObj.updateOne(filter, update)
+            val update = Updates.combine(
+                Updates.setOnInsert(FieldPlayerId, playerId),
+                Updates.push(FieldPhotocards, photocard)
+            )
+            // upsert is actually not needed on runtime since account creation pre-inserts
+            val options = UpdateOptions().upsert(true)
+            psObj.updateOne(filter, update, options)
                 .throwIfNotModified("savePhotocard", { filter }, { update })
         }
     }

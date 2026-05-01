@@ -49,7 +49,7 @@ fun UpdateResult.throwIfNotModified(
     filter: (() -> Bson?)? = null,
     update: (() -> Bson?)? = null,
 ) {
-    if (matchedCount < 1) {
+    if (this.upsertedId == null && matchedCount < 1) {
         val filterStr = filter?.invoke()?.toBsonDocument()?.toJson()
         throw DocumentNotFoundException(
             "No document matched: $context\n" +
@@ -57,7 +57,7 @@ fun UpdateResult.throwIfNotModified(
         )
     }
 
-    if (modifiedCount < 1) {
+    if (this.upsertedId == null && modifiedCount < 1) {
         val filterStr = filter?.invoke()?.toBsonDocument()?.toJson()
         val updateStr = update?.invoke()?.toBsonDocument()?.toJson()
         throw DocumentNotUpdatedException(
