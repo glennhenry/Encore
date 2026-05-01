@@ -73,9 +73,10 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
         account: PlayerAccount
     ): Result<Unit> {
         return runMongoCatching {
+            val filter = Filters.eq(FieldPlayerId, playerId)
             accountCollection
-                .replaceOne(Filters.eq(FieldPlayerId, playerId), account)
-                .throwIfNotModified("updatePlayerAccount not updated for $playerId")
+                .replaceOne(filter, account)
+                .throwIfNotModified("updatePlayerAccount not updated for $playerId", { filter }, null)
         }
     }
 
@@ -84,12 +85,11 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
         profile: Profile
     ): Result<Unit> {
         return runMongoCatching {
+            val filter = Filters.eq(FieldPlayerId, playerId)
+            val update = Updates.set(FieldProfile, profile)
             accountCollection
-                .updateOne(
-                    Filters.eq(FieldPlayerId, playerId),
-                    Updates.set(FieldProfile, profile)
-                )
-                .throwIfNotModified("updateProfile not updated for $playerId")
+                .updateOne(filter, update)
+                .throwIfNotModified("updateProfile not updated for $playerId", { filter }, { update })
         }
     }
 
@@ -98,12 +98,11 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
         lastActivity: Long
     ): Result<Unit> {
         return runMongoCatching {
+            val filter = Filters.eq(FieldPlayerId, playerId)
+            val update = Updates.set(FieldProfileLastActive, lastActivity)
             accountCollection
-                .updateOne(
-                    Filters.eq(FieldPlayerId, playerId),
-                    Updates.set(FieldProfileLastActive, lastActivity)
-                )
-                .throwIfNotModified("updateLastActivity not updated for $playerId")
+                .updateOne(filter, update)
+                .throwIfNotModified("updateLastActivity not updated for $playerId", { filter }, { update })
         }
     }
 

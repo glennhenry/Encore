@@ -56,7 +56,7 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
             )
 
             objects.updateOne(filter, update, options)
-                .throwIfNotModified("deletePhotocard")
+                .throwIfNotModified("deletePhotocard", { filter }, { update })
         }
     }
 
@@ -76,7 +76,7 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
             )
 
             objects.updateOne(filter, update, options)
-                .throwIfNotModified("savePhotocard")
+                .throwIfNotModified("savePhotocard", { filter }, { update })
         }
     }
 
@@ -100,7 +100,7 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
             )
 
             objects.updateOne(filter, update, options)
-                .throwIfNotModified("updatePhotocard")
+                .throwIfNotModified("updatePhotocard", { filter }, { update })
         }
     }
 
@@ -124,7 +124,7 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
         return runMongoCatching {
             val update = Updates.pull("serverActs", Filters.eq("actId", actId))
             objects.updateOne(ServerObjectsFilter, update)
-                .throwIfNotModified("deleteServerPhotocard")
+                .throwIfNotModified("deleteServerPhotocard", null, { update })
         }
     }
 
@@ -132,7 +132,7 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
         return runMongoCatching {
             val update = Updates.push("serverActs", photocard)
             objects.updateOne(ServerObjectsFilter, update)
-                .throwIfNotModified("saveServerPhotocard")
+                .throwIfNotModified("saveServerPhotocard", null, { update })
         }
     }
 
@@ -145,7 +145,7 @@ class MongoPhotocardRepository(private val objects: MongoCollection<ServerObject
 
             val update = Updates.set("serverActs.$", photocard)
             objects.updateOne(filter, update)
-                .throwIfNotModified("updateServerPhotocard")
+                .throwIfNotModified("updateServerPhotocard", { filter }, { update })
         }
     }
 }
