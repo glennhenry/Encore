@@ -2,6 +2,7 @@ package encore.fancam.impl
 
 import encore.fancam.Fancam
 import encore.fancam.events.*
+import encore.fancam.formatter.toLimitedString
 import encore.serialization.toJsonElement
 import io.ktor.util.date.*
 import kotlinx.serialization.json.Json
@@ -54,7 +55,13 @@ class RehearsalFancam : FancamTemplate {
     private val json = Json { prettyPrint = false }
 
     private fun formatLog(event: LogEvent): String {
-        return "[${date.format(event.timestamp)}][${event.level.label()}] ${event.message()}"
+        return buildString {
+            append("[${date.format(event.timestamp)}][${event.level.label()}] ${event.message()}")
+            if (event.level == Level.Error && event.throwable != null) {
+                appendLine()
+                appendLine(event.throwable.toLimitedString(false))
+            }
+        }
     }
 
     private fun formatTrack(event: TrackEvent, level: Level): String {
