@@ -3,6 +3,7 @@ import encore.acts.CancellationReason
 import encore.acts.KillCancellationException
 import encore.acts.StageAct
 import encore.acts.StopCancellationException
+import encore.acts.director.ActScope
 import encore.acts.photocard.PhotocardSubunit
 import encore.acts.photocard.model.ActProgress
 import encore.acts.photocard.model.Photocard
