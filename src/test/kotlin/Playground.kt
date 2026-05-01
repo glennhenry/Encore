@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
+import kotlin.math.min
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -838,9 +839,19 @@ continous persistent: same method but no adjustion, but increase performCount by
 
  */
 
+
+
 class ContinuousPersistentChoreography(private val timeProvider: TimeProvider) {
     fun nextStep(setup: ActSetup, progress: ActProgress, resume: Boolean): Step {
         if (resume) {
+            val maxMissedRuns = when (setup.lifetimeMode) {
+                is LifetimeMode.Bound -> 1
+                is LifetimeMode.PausedPersistent -> 1
+                is LifetimeMode.ContinuousPersistent -> {
+                    setup.lifetimeMode.missedPerformPolicy.maxBatch
+                }
+            }
+
             when (setup.performMode) {
                 is PerformMode.Once -> {
                     // always 1
@@ -857,7 +868,9 @@ class ContinuousPersistentChoreography(private val timeProvider: TimeProvider) {
                     val missedRuns = (missedTime / setup.performMode.interval).toInt()
                     val newPerformCount = progress.performCount + missedRuns
                     val delay = calculateDelay(progress.firstPerformAt, newPerformCount, setup.performMode.interval)
-                    return Step(delay, missedRuns, isFinished(setup, newPerformCount))
+                    // the total runs to do is the missedRun (capped with maxMissedRuns)
+                    // and added with 1 which is the next new run
+                    return Step(delay, min(missedRuns, maxMissedRuns) + 1, isFinished(setup, newPerformCount))
                 }
 
                 is PerformMode.Forever -> {
@@ -868,7 +881,9 @@ class ContinuousPersistentChoreography(private val timeProvider: TimeProvider) {
                     val missedRuns = (missedTime / setup.performMode.interval).toInt()
                     val newPerformCount = progress.performCount + missedRuns
                     val delay = calculateDelay(progress.firstPerformAt, newPerformCount, setup.performMode.interval)
-                    return Step(delay, missedRuns, isFinished(setup, newPerformCount))
+                    // the total runs to do is the missedRun (capped with maxMissedRuns)
+                    // and added with 1 which is the next new run
+                    return Step(delay, min(missedRuns, maxMissedRuns) + 1, isFinished(setup, newPerformCount))
                 }
             }
         }
