@@ -3,6 +3,7 @@ package encore.datastore
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.datastore.collection.PlayerObjects
+import encore.datastore.collection.PlayerServerObjects
 import encore.datastore.collection.ServerObjects
 
 /**
@@ -38,6 +39,12 @@ interface DataStore {
     suspend fun getPlayerObjects(playerId: PlayerId): PlayerObjects?
 
     /**
+     * Returns the [PlayerServerObjects] (server-managed player data)
+     * for the given [playerId].
+     */
+    suspend fun getPlayerServerObjects(playerId: PlayerId): PlayerServerObjects?
+
+    /**
      * Returns the [ServerObjects] (global server data).
      */
     suspend fun getServerObjects(): ServerObjects?
@@ -47,7 +54,11 @@ interface DataStore {
      *
      * @return [Result] type denoting success or failure.
      */
-    suspend fun create(account: PlayerAccount, objects: PlayerObjects): Result<Unit>
+    suspend fun create(
+        account: PlayerAccount,
+        playerObjects: PlayerObjects,
+        playerServerObjects: PlayerServerObjects
+    ): Result<Unit>
 
     /**
      * Deletes a player associated with the [playerId].

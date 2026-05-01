@@ -60,6 +60,7 @@ import kotlin.time.Duration.Companion.seconds
 val MongoCollectionName = MongoCollectionName(
     playerAccount = "player_account",
     playerObjects = "player_objects",
+    playerServerObjects = "player_server_objects",
     serverObjects = "server_objects"
 )
 

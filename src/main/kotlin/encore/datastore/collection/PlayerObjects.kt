@@ -5,9 +5,9 @@ import game.AdminData
 /**
  * Root representation of all persistent game data for a player.
  *
- * This model is intended to hold core game data only. Server-level or
+ * This model is intended to hold core game data only. Server-managed or
  * administrative metadata (e.g., bans, flags, temporary states) should be
- * stored separately (see `ServerMetadata`).
+ * stored separately in [PlayerServerObjects].
  *
  * @property playerId Unique identifier of the player.
  */

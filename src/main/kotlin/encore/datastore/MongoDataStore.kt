@@ -6,6 +6,7 @@ import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.datastore.collection.PlayerObjects
+import encore.datastore.collection.PlayerServerObjects
 import encore.datastore.collection.ServerObjects
 import encore.fancam.Fancam
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ import kotlin.time.measureTime
 data class MongoCollectionName(
     val playerAccount: String,
     val playerObjects: String,
+    val playerServerObjects: String,
     val serverObjects: String
 )
 
@@ -28,6 +30,7 @@ data class MongoCollectionName(
 class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : DataStore {
     private val accounts = db.getCollection<PlayerAccount>(collectionName.playerAccount)
     private val playerObjects = db.getCollection<PlayerObjects>(collectionName.playerObjects)
+    private val playerServerObjects = db.getCollection<PlayerServerObjects>(collectionName.playerServerObjects)
     private val serverObjects = db.getCollection<ServerObjects>(collectionName.serverObjects)
 
     private val initJob = CoroutineScope(Dispatchers.IO).async { setupCollections() }
@@ -59,13 +62,9 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
     private suspend fun prepareServerObjects() {
         when (val count = serverObjects.estimatedDocumentCount()) {
             0L -> {
-                serverObjects.insertOne(
-                    ServerObjects(
-                        acts = emptyList(),
-                        serverActs = emptyList()
-                    )
-                )
+                serverObjects.insertOne(ServerObjects())
             }
+
             1L -> return
 
             else -> {
@@ -86,43 +85,55 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
         return playerObjects.find(Filters.eq(FieldPlayerId, playerId)).firstOrNull()
     }
 
+    override suspend fun getPlayerServerObjects(playerId: PlayerId): PlayerServerObjects? {
+        return playerServerObjects.find(Filters.eq(FieldPlayerId, playerId)).firstOrNull()
+    }
+
     override suspend fun getServerObjects(): ServerObjects {
         return serverObjects.find(Filters.eq("dbId", "sobjs")).firstOrNull()
             ?: throw NoSuchElementException("ServerObjects not found, please ensure ServerObjects creation.")
     }
 
-    override suspend fun create(account: PlayerAccount, objects: PlayerObjects): Result<Unit> {
+    override suspend fun create(
+        account: PlayerAccount,
+        playerObjects: PlayerObjects,
+        playerServerObjects: PlayerServerObjects
+    ): Result<Unit> {
         return try {
             val accountAck = accounts.insertOne(account).wasAcknowledged()
-            val objectsAck = playerObjects.insertOne(objects).wasAcknowledged()
+            val pObjAck = this.playerObjects.insertOne(playerObjects).wasAcknowledged()
+            val psObjAck = this.playerServerObjects.insertOne(playerServerObjects).wasAcknowledged()
 
-            if (accountAck && objectsAck) {
+            if (accountAck && pObjAck && psObjAck) {
                 Result.success(Unit)
             } else {
                 Fancam.error {
-                    "MongoDB creation not acknowledged: playerId=${account.playerId}, accountAck=$accountAck, objectsAck=$objectsAck"
+                    "MongoDB creation not acknowledged: playerId=${account.playerId}, accountAck=$accountAck, pObjAck=$pObjAck, psObjAck=$psObjAck"
                 }
                 Result.failure(
                     IllegalStateException("MongoDB insert not acknowledged")
                 )
             }
         } catch (e: Exception) {
-            Fancam.error { "MongoDB creation failed: playerId=${account.playerId}, error=$e" }
+            Fancam.error(e) { "MongoDB creation failed: playerId=${account.playerId}" }
             Result.failure(e)
         }
     }
 
     override suspend fun delete(playerId: PlayerId): Result<Unit> {
         return try {
-            val deleteAck = accounts.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
-            if (deleteAck) {
+            val accountAck = accounts.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
+            val pObjAck = playerObjects.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
+            val psObjAck = playerServerObjects.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
+
+            if (accountAck && pObjAck && psObjAck) {
                 Result.success(Unit)
             } else {
-                Fancam.error { "MongoDB deletion not acknowledged: playerId=$playerId" }
+                Fancam.error { "MongoDB deletion not acknowledged: playerId=$playerId, accountAck=$accountAck, pObjAck=$pObjAck, psObjAck=$psObjAck" }
                 Result.failure(IllegalStateException("MongoDB deletion not acknowledged"))
             }
         } catch (e: Exception) {
-            Fancam.error { "MongoDB deletion failed: playerId=$playerId, error=$e" }
+            Fancam.error(e) { "MongoDB deletion failed: playerId=$playerId" }
             Result.failure(e)
         }
     }

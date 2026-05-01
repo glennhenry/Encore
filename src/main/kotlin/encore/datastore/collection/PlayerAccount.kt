@@ -1,7 +1,6 @@
 package encore.datastore.collection
 
 import kotlinx.serialization.Serializable
-import encore.account.model.ServerMetadata
 import encore.account.model.Profile
 
 /**
@@ -14,7 +13,6 @@ import encore.account.model.Profile
  * @property email Email address associated with this account.
  * @property hashedPassword Hashed version of the account's password.
  * @property profile Representation of the player's profile.
- * @property metadata Extra information of the player.
  */
 @Serializable
 data class PlayerAccount(
@@ -23,7 +21,6 @@ data class PlayerAccount(
     val email: String,
     val hashedPassword: String,
     val profile: Profile,
-    val metadata: ServerMetadata
 )
 
 /**

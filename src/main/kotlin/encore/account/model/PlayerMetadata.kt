@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  * any other metadata for temporary or administrative purposes.
  */
 @Serializable
-data class ServerMetadata(
+data class PlayerMetadata(
     val flags: Map<String, Boolean> = emptyMap(),
     val extra: Map<String, String> = emptyMap(),
 )
