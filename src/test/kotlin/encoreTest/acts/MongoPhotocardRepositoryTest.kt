@@ -85,7 +85,7 @@ class MongoPhotocardRepositoryTest {
     }
 
     private fun photocard(id: String? = null): Photocard {
-        return Photocard(id ?: Ids.uuid(), randstr(), ActProgress(0, 0, 0, 0), emptyMap())
+        return Photocard(id ?: Ids.uuid(), randstr(), ActProgress(0, 0, 0), emptyMap())
     }
 
     private val charpool = ('a'..'z').toList()
