@@ -63,7 +63,7 @@ class PhotocardSubunit(private val photocardRepository: PhotocardRepository) : S
             }
     }
 
-    suspend fun updatePhotocard(photocard: Photocard) {
+    suspend fun updateServerPhotocard(photocard: Photocard) {
         photocardRepository.updateServerPhotocard(photocard)
             .onFailure {
                 Fancam.error(it) { "Failed to update server photocard with name=${photocard.name}, actId=${photocard.actId}" }
