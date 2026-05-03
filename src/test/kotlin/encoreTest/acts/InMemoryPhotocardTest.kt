@@ -1,45 +1,30 @@
 package encoreTest.acts
 
 import com.mongodb.assertions.Assertions.assertTrue
-import encore.acts.photocard.MongoPhotocardRepository
+import encore.acts.photocard.InMemoryPhotocardRepository
 import encore.acts.photocard.model.ActProgress
 import encore.acts.photocard.model.Photocard
-import encore.datastore.collection.PlayerServerObjects
-import encore.datastore.collection.ServerObjects
+import encore.datastore.collection.ServerId
 import encore.utils.Ids
 import kotlinx.coroutines.test.runTest
-import testHelper.TestMongoCollectionName
-import testHelper.initMongo
 import testHelper.randomString
-import kotlin.test.*
+import kotlin.collections.set
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
-class MongoPhotocardRepositoryTest {
+class InMemoryPhotocardTest {
     @Test
     fun `test all`() = runTest {
-        val mongoDb = initMongo()
-        val psobjCollection = mongoDb.getCollection<PlayerServerObjects>(TestMongoCollectionName.playerServerObjects)
-        val sobjCollection = mongoDb.getCollection<ServerObjects>(TestMongoCollectionName.serverObjects)
-        psobjCollection.drop()
-        sobjCollection.drop()
-        mongoDb.createCollection(TestMongoCollectionName.playerServerObjects)
-        mongoDb.createCollection(TestMongoCollectionName.serverObjects)
-
-        val repo = MongoPhotocardRepository(psobjCollection, sobjCollection)
-
-        psobjCollection.insertMany(
-            listOf(
-                PlayerServerObjects("player1", photocards = listOf(photocard("id1"), photocard("id2"))),
-                PlayerServerObjects("playerX", photocards = listOf(photocard(), photocard(), photocard())),
-                PlayerServerObjects("playerY", photocards = listOf(photocard(), photocard(), photocard())),
-                PlayerServerObjects("playerZ", photocards = listOf(photocard(), photocard(), photocard()))
-            )
-        )
-
-        sobjCollection.insertOne(
-            ServerObjects(
-                photocards = listOf(photocard("serverId1")),
-            )
-        )
+        val repo = InMemoryPhotocardRepository {
+            set("player1", mutableListOf(photocard("id1"), photocard("id2")))
+            set("playerX", mutableListOf(photocard(), photocard(), photocard()))
+            set("playerY", mutableListOf(photocard(), photocard(), photocard()))
+            set("playerZ", mutableListOf(photocard(), photocard(), photocard()))
+            set(ServerId, mutableListOf(photocard("serverId1")))
+        }
 
         // test getAllPhotocards
         val photocards1 = repo.getAllPhotocards("player1").getOrThrow()
@@ -93,4 +78,5 @@ class MongoPhotocardRepositoryTest {
     private fun randstr(): String {
         return randomString(8, charpool)
     }
+
 }
