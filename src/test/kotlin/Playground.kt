@@ -288,6 +288,29 @@ class Playground {
         Fancam.trace { "Forever timer started (will fire after ${initialDelay}ms, every ${interval}ms)." }
         return id
     }
+
+
+    private fun runPausedPersistentTimer(time: Long, identity: Map<String, String>, scope: TestScope): String {
+        val director = StageActDirector(
+            PhotocardSubunit.createForTest(),
+            VirtualTimeProvider(scope)
+        )
+
+        val id = director.run(
+            act = PausedPersistentTimerAct(),
+            concept = PausedPersistentTimerActConcept(time, identity) {
+                Fancam.trace { "TestScope.currentTime=${scope.currentTime} (identity=$identity)" }
+                assertEquals(scope.currentTime, time)
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope-$identity"
+                override val coroutineScope: CoroutineScope = scope
+            }
+        )
+
+        Fancam.trace { "Paused persistent timer started (will fire after ${time}ms)." }
+        return id
+    }
 }
 
 data class TimerActConcept(
@@ -364,6 +387,36 @@ class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
     }
 
     override suspend fun perform(concept: ForeverTimerActConcept, performNumber: Int, batch: Int) {
+        concept.onPerform(performNumber)
+    }
+}
+
+data class PausedPersistentTimerActConcept(
+    val initialDelay: Long,
+    val identity: Map<String, String>,
+    val onPerform: (Int) -> Unit
+) : ActConcept
+
+class PausedPersistentTimerAct : StageAct<PausedPersistentTimerActConcept> {
+    override val name: String = "PausedPersistentTimerAct"
+
+    override fun createId(concept: PausedPersistentTimerActConcept): String {
+        return Ids.uuid()
+    }
+
+    override fun createIdentity(concept: PausedPersistentTimerActConcept): Map<String, String> {
+        return concept.identity
+    }
+
+    override fun createSetup(concept: PausedPersistentTimerActConcept): ActSetup {
+        return ActSetup(
+            initialDelay = concept.initialDelay,
+            performMode = PerformMode.Once,
+            lifetimeMode = LifetimeMode.PausedPersistent
+        )
+    }
+
+    override suspend fun perform(concept: PausedPersistentTimerActConcept, performNumber: Int, batch: Int) {
         concept.onPerform(performNumber)
     }
 }
