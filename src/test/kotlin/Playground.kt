@@ -734,6 +734,9 @@ class StageActDirector(
                 deleteAct(scope.ownerId, id)
             } finally {
                 activeActs.remove(id)
+                if (finished) {
+                    deleteAct(scope.ownerId, id)
+                }
             }
         }
 
@@ -806,6 +809,9 @@ class StageActDirector(
                 deleteAct(scope.ownerId, id)
             } finally {
                 activeActs.remove(id)
+                if (finished) {
+                    deleteAct(scope.ownerId, id)
+                }
             }
         }
 
