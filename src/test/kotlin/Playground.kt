@@ -485,7 +485,7 @@ class StageActDirector(
     ): String {
         val id = act.createId(concept)
 
-        val job = scope.coroutineScope.launch {
+        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             val progress = ActProgress(
                 firstPerformAt = timeProvider.now() + setup.initialDelay,
                 performCount = 0,
@@ -517,7 +517,9 @@ class StageActDirector(
                 // since bound act "cannot" be killed, to guarantee correctness
                 // CancellationReason.Stopped is passed directly
                 if (!finished) {
-                    act.onCancelled(concept, CancellationReason.Stopped)
+                    withContext(NonCancellable) {
+                        act.onCancelled(concept, CancellationReason.Stopped)
+                    }
                 }
             } catch (e: Exception) {
                 Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
@@ -535,7 +537,7 @@ class StageActDirector(
     ): String {
         val id = act.createId(concept)
 
-        val job = scope.coroutineScope.launch {
+        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             val progress = ActProgress(
                 firstPerformAt = timeProvider.now() + setup.initialDelay,
                 performCount = 0,
@@ -564,14 +566,15 @@ class StageActDirector(
                 act.onEndingFairy(concept)
             } catch (e: CancellationException) {
                 if (!finished) {
-                    val now = timeProvider.now()
-                    act.onCancelled(concept, e.toCancellationReason())
-                    // for persistent acts, cancelled act that isn't finished
-                    // should be persisted to DB (unless they are killed)
-                    when (e) {
-                        is KillCancellationException -> {
-                            deleteAct(scope.ownerId, id)
-                        }
+                    withContext(NonCancellable) {
+                        val now = timeProvider.now()
+                        act.onCancelled(concept, e.toCancellationReason())
+                        // for persistent acts, cancelled act that isn't finished
+                        // should be persisted to DB (unless they are killed)
+                        when (e) {
+                            is KillCancellationException -> {
+                                deleteAct(scope.ownerId, id)
+                            }
 
                         else -> {
                             // this includes StopCancellationException
@@ -601,7 +604,7 @@ class StageActDirector(
     ): String {
         val id = act.createId(concept)
 
-        val job = scope.coroutineScope.launch {
+        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             val progress = ActProgress(
                 firstPerformAt = timeProvider.now() + setup.initialDelay,
                 performCount = 0,
@@ -638,14 +641,15 @@ class StageActDirector(
                 act.onEndingFairy(concept)
             } catch (e: CancellationException) {
                 if (!finished) {
-                    val now = timeProvider.now()
-                    act.onCancelled(concept, e.toCancellationReason())
-                    // for persistent acts, cancelled act that isn't finished
-                    // should be persisted to DB (unless they are killed)
-                    when (e) {
-                        is KillCancellationException -> {
-                            deleteAct(scope.ownerId, id)
-                        }
+                    withContext(NonCancellable) {
+                        val now = timeProvider.now()
+                        act.onCancelled(concept, e.toCancellationReason())
+                        // for persistent acts, cancelled act that isn't finished
+                        // should be persisted to DB (unless they are killed)
+                        when (e) {
+                            is KillCancellationException -> {
+                                deleteAct(scope.ownerId, id)
+                            }
 
                         else -> {
                             // this includes StopCancellationException
@@ -677,7 +681,7 @@ class StageActDirector(
         val id = photocard.actId
         val progress = photocard.progress
 
-        val job = scope.coroutineScope.launch {
+        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             var finished = false
 
             try {
@@ -701,14 +705,15 @@ class StageActDirector(
                 act.onEndingFairy(concept)
             } catch (e: CancellationException) {
                 if (!finished) {
-                    val now = timeProvider.now()
-                    act.onCancelled(concept, e.toCancellationReason())
-                    // for persistent acts, cancelled act that isn't finished
-                    // should be persisted to DB (unless they are killed)
-                    when (e) {
-                        is KillCancellationException -> {
-                            deleteAct(scope.ownerId, id)
-                        }
+                    withContext(NonCancellable) {
+                        val now = timeProvider.now()
+                        act.onCancelled(concept, e.toCancellationReason())
+                        // for persistent acts, cancelled act that isn't finished
+                        // should be persisted to DB (unless they are killed)
+                        when (e) {
+                            is KillCancellationException -> {
+                                deleteAct(scope.ownerId, id)
+                            }
 
                         else -> {
                             // this includes StopCancellationException
@@ -739,7 +744,7 @@ class StageActDirector(
         val id = photocard.actId
         val progress = photocard.progress
 
-        val job = scope.coroutineScope.launch {
+        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             var finished = false
 
             try {
@@ -771,14 +776,15 @@ class StageActDirector(
                 act.onEndingFairy(concept)
             } catch (e: CancellationException) {
                 if (!finished) {
-                    val now = timeProvider.now()
-                    act.onCancelled(concept, e.toCancellationReason())
-                    // for persistent acts, cancelled act that isn't finished
-                    // should be persisted to DB (unless they are killed)
-                    when (e) {
-                        is KillCancellationException -> {
-                            deleteAct(scope.ownerId, id)
-                        }
+                    withContext(NonCancellable) {
+                        val now = timeProvider.now()
+                        act.onCancelled(concept, e.toCancellationReason())
+                        // for persistent acts, cancelled act that isn't finished
+                        // should be persisted to DB (unless they are killed)
+                        when (e) {
+                            is KillCancellationException -> {
+                                deleteAct(scope.ownerId, id)
+                            }
 
                         else -> {
                             // this includes StopCancellationException
