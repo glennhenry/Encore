@@ -576,12 +576,13 @@ class StageActDirector(
                                 deleteAct(scope.ownerId, id)
                             }
 
-                        else -> {
-                            // this includes StopCancellationException
-                            persistAct(
-                                id, scope.ownerId, act.name,
-                                act.createIdentity(concept), progress, now
-                            )
+                            else -> {
+                                // this includes StopCancellationException
+                                persistAct(
+                                    false, id, scope.ownerId, act.name,
+                                    act.createIdentity(concept), progress, now
+                                )
+                            }
                         }
                     }
                 }
@@ -651,12 +652,13 @@ class StageActDirector(
                                 deleteAct(scope.ownerId, id)
                             }
 
-                        else -> {
-                            // this includes StopCancellationException
-                            persistAct(
-                                id, scope.ownerId, act.name,
-                                act.createIdentity(concept), progress, now
-                            )
+                            else -> {
+                                // this includes StopCancellationException
+                                persistAct(
+                                    false, id, scope.ownerId, act.name,
+                                    act.createIdentity(concept), progress, now
+                                )
+                            }
                         }
                     }
                 }
@@ -715,12 +717,13 @@ class StageActDirector(
                                 deleteAct(scope.ownerId, id)
                             }
 
-                        else -> {
-                            // this includes StopCancellationException
-                            persistAct(
-                                id, scope.ownerId, act.name,
-                                act.createIdentity(concept), progress, now
-                            )
+                            else -> {
+                                // this includes StopCancellationException
+                                persistAct(
+                                    true, id, scope.ownerId, act.name,
+                                    act.createIdentity(concept), progress, now
+                                )
+                            }
                         }
                     }
                 }
@@ -786,12 +789,13 @@ class StageActDirector(
                                 deleteAct(scope.ownerId, id)
                             }
 
-                        else -> {
-                            // this includes StopCancellationException
-                            persistAct(
-                                id, scope.ownerId, act.name,
-                                act.createIdentity(concept), progress, now
-                            )
+                            else -> {
+                                // this includes StopCancellationException
+                                persistAct(
+                                    true, id, scope.ownerId, act.name,
+                                    act.createIdentity(concept), progress, now
+                                )
+                            }
                         }
                     }
                 }
@@ -810,6 +814,7 @@ class StageActDirector(
     }
 
     private suspend fun persistAct(
+        update: Boolean,
         actId: String,
         ownerId: String,
         name: String,
@@ -824,9 +829,16 @@ class StageActDirector(
             data = identity
         )
 
-        when (ownerId) {
-            ServerId -> photocardSubunit.saveServerPhotocard(photocard)
-            else -> photocardSubunit.savePhotocard(ownerId, photocard)
+        if (update) {
+            when (ownerId) {
+                ServerId -> photocardSubunit.updateServerPhotocard(photocard)
+                else -> photocardSubunit.updatePhotocard(ownerId, photocard)
+            }
+        } else {
+            when (ownerId) {
+                ServerId -> photocardSubunit.saveServerPhotocard(photocard)
+                else -> photocardSubunit.savePhotocard(ownerId, photocard)
+            }
         }
     }
 
