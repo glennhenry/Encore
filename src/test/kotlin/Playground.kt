@@ -1,5 +1,6 @@
 import encore.acts.*
 import encore.acts.director.ActScope
+import encore.acts.photocard.InMemoryPhotocardRepository
 import encore.acts.photocard.PhotocardSubunit
 import encore.acts.photocard.model.ActProgress
 import encore.acts.photocard.model.Photocard
@@ -21,6 +22,7 @@ import testHelper.VirtualTimeProvider
 import kotlin.math.min
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.measureTime
 
 /**
  * Playground for quick testing and code run
@@ -215,6 +217,231 @@ class Playground {
         }
     }
 
+    @Test
+    fun `persistent once`() = runTest {
+        runPausedPersistentTimer(3000, mapOf("1" to "1"), this)
+    }
+
+    @Test
+    fun `persistent act stop successfully stops it and is resumable accurately`() = runBlocking {
+        val subunit = PhotocardSubunit(InMemoryPhotocardRepository())
+        val director = StageActDirector(subunit, SystemTime)
+        val pid = "owner123"
+        val scope = object : ActScope {
+            override val ownerId: String = "owner123"
+            override val coroutineScope: CoroutineScope = this@runBlocking
+        }
+
+        var executed = false
+
+        val time = measureTime {
+            // run the task
+            val id = director.run(
+                act = PausedPersistentTimerAct(),
+                concept = PausedPersistentTimerActConcept(1000, mapOf("1" to "1")) {
+                    executed = true
+                },
+                scope = scope
+            )
+
+            // wait a little
+            delay(300.milliseconds)
+
+            // stop it before it finishes
+            assertTrue(director.stop(id))
+            assertFalse(executed)
+
+            // wait for longer than the actual task completion
+            delay(800.milliseconds)
+
+            // resume
+            val photocards = subunit.getAllPhotocards(pid)
+            assertEquals(1, photocards.size)
+            val pc = photocards.first()
+
+            director.resume(
+                act = PausedPersistentTimerAct(),
+                concept = PausedPersistentTimerActConcept(1000, mapOf("1" to "1")) {
+                    executed = true
+                },
+                photocard = pc,
+                scope = scope
+            )
+        }
+
+        // shouldn't finish yet because we stopped it at 0.3s
+        assertFalse(executed)
+        assertTrue { time >= 1100.milliseconds }
+        println("time=$time")
+
+        // wait until it finishes
+        delay(800.milliseconds)
+        assertTrue(executed)
+    }
+
+    @Test
+    fun `multiple persistent act stop and resumable accurately`() = runBlocking {
+        val subunit = PhotocardSubunit(InMemoryPhotocardRepository())
+        val director = StageActDirector(subunit, SystemTime)
+        val pid = "owner123"
+        val scope = object : ActScope {
+            override val ownerId: String = "owner123"
+            override val coroutineScope: CoroutineScope = this@runBlocking
+        }
+
+        var executed1 = false
+        var executed2 = false
+        var executed3 = false
+        var task2Id = ""
+
+        val time = measureTime {
+            val id1 = director.run(
+                act = PausedPersistentTimerAct(),
+                concept = PausedPersistentTimerActConcept(1000, mapOf("A" to "1")) {
+                    executed1 = true
+                },
+                scope = scope
+            )
+
+            val id2 = director.run(
+                act = PausedPersistentTimerAct(),
+                concept = PausedPersistentTimerActConcept(1500, mapOf("A" to "2")) {
+                    executed2 = true
+                },
+                scope = scope
+            )
+
+            director.run(
+                act = PausedPersistentTimerAct(),
+                concept = PausedPersistentTimerActConcept(500, mapOf("A" to "3")) {
+                    executed3 = true
+                },
+                scope = scope
+            )
+
+            // wait until task 3 finishes
+            delay(600.milliseconds)
+            assertTrue(executed3)
+
+            // stop other tasks before they finish
+            assertTrue(director.stop(id1))
+            assertTrue(director.stop(id2))
+            assertFalse(executed1)
+            assertFalse(executed2)
+
+            // wait for longer than the actual task completion
+            delay(800.milliseconds)
+
+            // resume
+            val photocards = subunit.getAllPhotocards(pid)
+            assertEquals(2, photocards.size)
+
+            for (pc in photocards) {
+                if (pc.data["A"] == "1") {
+                    director.resume(
+                        act = PausedPersistentTimerAct(),
+                        concept = PausedPersistentTimerActConcept(1000, mapOf("A" to "1")) {
+                            executed1 = true
+                        },
+                        photocard = pc,
+                        scope = scope
+                    )
+                } else {
+                    task2Id = director.resume(
+                        act = PausedPersistentTimerAct(),
+                        concept = PausedPersistentTimerActConcept(1500, mapOf("A" to "2")) {
+                            executed2 = true
+                        },
+                        photocard = pc,
+                        scope = scope
+                    )
+                }
+            }
+        }
+
+        // task 1 and 2 should have 0.4s and 0.9s remaining
+        assertFalse(executed1)
+        assertFalse(executed2)
+        assertTrue { time >= 1400.milliseconds }
+        println("time=$time")
+
+        // wait until task 1 finishes
+        delay(500.milliseconds)
+        assertTrue(executed1)
+
+        // stop task 2
+        assertTrue(director.stop(task2Id))
+        assertFalse(executed2)
+
+        delay(200.milliseconds)
+
+        // resume again
+        val photocards = subunit.getAllPhotocards(pid)
+        assertEquals(1, photocards.size)
+        val pc = photocards.first()
+
+        director.resume(
+            act = PausedPersistentTimerAct(),
+            concept = PausedPersistentTimerActConcept(1500, mapOf("A" to "2")) {
+                executed2 = true
+            },
+            photocard = pc,
+            scope = scope
+        )
+
+        // wait until task 2 finishes (0.4s remaining)
+        delay(500.milliseconds)
+        assertTrue(executed2)
+
+        val photocards2 = subunit.getAllPhotocards(pid)
+        assertEquals(0, photocards2.size)
+    }
+
+    @Test
+    fun `persistent act gets killed no longer in photocards`() = runBlocking {
+        val subunit = PhotocardSubunit(InMemoryPhotocardRepository())
+        val director = StageActDirector(subunit, SystemTime)
+        val pid = "owner321"
+
+        val id = director.run(
+            act = PausedPersistentTimerAct(),
+            concept = PausedPersistentTimerActConcept(3000, mapOf("A" to "1")) {
+                throw RuntimeException("Crossed here")
+            },
+            scope = object : ActScope {
+                override val ownerId: String = pid
+                override val coroutineScope: CoroutineScope = this@runBlocking
+            }
+        )
+
+        delay(100.milliseconds)
+        director.stop(id)
+        delay(100.milliseconds)
+
+        val photocards = subunit.getAllPhotocards(pid)
+        assertEquals(1, photocards.size)
+        val pc = photocards.first()
+
+        director.resume(
+            act = PausedPersistentTimerAct(),
+            concept = PausedPersistentTimerActConcept(3000, mapOf("A" to "1")) {
+                throw RuntimeException("Crossed here")
+            },
+            photocard = pc,
+            scope = object : ActScope {
+                override val ownerId: String = pid
+                override val coroutineScope: CoroutineScope = this@runBlocking
+            }
+        )
+
+        delay(100.milliseconds)
+        director.kill(id)
+        delay(100.milliseconds)
+
+        val photocards2 = subunit.getAllPhotocards(pid)
+        assertEquals(0, photocards2.size)
+    }
+
     private fun runTimer(time: Long, scope: TestScope): String {
         val director = StageActDirector(
             PhotocardSubunit.createForTest(),
@@ -315,7 +542,7 @@ class Playground {
 
 data class TimerActConcept(
     val delay: Long,
-    val onPerform: (Int) -> Unit
+    val onPerform: suspend (Int) -> Unit
 ) : ActConcept
 
 class TimerAct : StageAct<TimerActConcept> {
@@ -342,7 +569,7 @@ data class RepeatTimerActConcept(
     val initialDelay: Long,
     val interval: Long,
     val repetition: Int,
-    val onPerform: (Int) -> Unit
+    val onPerform: suspend (Int) -> Unit
 ) : ActConcept
 
 class RepeatTimerAct : StageAct<RepeatTimerActConcept> {
@@ -368,7 +595,7 @@ class RepeatTimerAct : StageAct<RepeatTimerActConcept> {
 data class ForeverTimerActConcept(
     val initialDelay: Long,
     val interval: Long,
-    val onPerform: (Int) -> Unit
+    val onPerform: suspend (Int) -> Unit
 ) : ActConcept
 
 class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
@@ -394,7 +621,7 @@ class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
 data class PausedPersistentTimerActConcept(
     val initialDelay: Long,
     val identity: Map<String, String>,
-    val onPerform: (Int) -> Unit
+    val onPerform: suspend (Int) -> Unit
 ) : ActConcept
 
 class PausedPersistentTimerAct : StageAct<PausedPersistentTimerActConcept> {
