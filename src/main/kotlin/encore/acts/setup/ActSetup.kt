@@ -10,10 +10,8 @@ import encore.acts.StageAct
  * @property initialDelay The amount of delay carried out before the act
  *                        performs for the first time.
  * @property performMode Defines the execution portion.
- * @property lifetimeMode Defines the act's existence.
  */
 data class ActSetup(
     val initialDelay: Long,
     val performMode: PerformMode,
-    val lifetimeMode: LifetimeMode,
 )

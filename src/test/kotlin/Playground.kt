@@ -1,13 +1,7 @@
 import encore.acts.*
 import encore.acts.director.ActScope
-import encore.acts.photocard.InMemoryPhotocardRepository
-import encore.acts.photocard.PhotocardSubunit
-import encore.acts.photocard.model.ActProgress
-import encore.acts.photocard.model.Photocard
 import encore.acts.setup.ActSetup
-import encore.acts.setup.LifetimeMode
 import encore.acts.setup.PerformMode
-import encore.datastore.collection.ServerId
 import encore.fancam.Fancam
 import encore.utils.Ids
 import encore.utils.SystemTime
@@ -19,10 +13,8 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
-import kotlin.math.min
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.measureTime
 
 /**
  * Playground for quick testing and code run
@@ -63,7 +55,6 @@ class Playground {
     @Test
     fun `isActive works as expected`() = runTest {
         val director = StageActDirector(
-            PhotocardSubunit.createForTest(),
             VirtualTimeProvider(this)
         )
 
@@ -99,7 +90,7 @@ class Playground {
 
     @Test
     fun `bound act stop successfully stops it`() = runBlocking {
-        val director = StageActDirector(PhotocardSubunit.createForTest(), SystemTime)
+        val director = StageActDirector(SystemTime)
 
         val id = director.run(
             act = TimerAct(),
@@ -130,7 +121,6 @@ class Playground {
     @Test
     fun `bound act error gets terminated`() = runTest {
         val director = StageActDirector(
-            PhotocardSubunit.createForTest(),
             VirtualTimeProvider(this)
         )
 
@@ -177,7 +167,7 @@ class Playground {
 
     @Test
     fun `bound repeat stop successfully stops it`() = runBlocking {
-        val director = StageActDirector(PhotocardSubunit.createForTest(), SystemTime)
+        val director = StageActDirector(SystemTime)
         var performCount = 0
 
         val id = director.run(
@@ -217,234 +207,8 @@ class Playground {
         }
     }
 
-    @Test
-    fun `persistent once`() = runTest {
-        runPausedPersistentTimer(3000, mapOf("1" to "1"), this)
-    }
-
-    @Test
-    fun `persistent act stop successfully stops it and is resumable accurately`() = runBlocking {
-        val subunit = PhotocardSubunit(InMemoryPhotocardRepository())
-        val director = StageActDirector(subunit, SystemTime)
-        val pid = "owner123"
-        val scope = object : ActScope {
-            override val ownerId: String = "owner123"
-            override val coroutineScope: CoroutineScope = this@runBlocking
-        }
-
-        var executed = false
-
-        val time = measureTime {
-            // run the task
-            val id = director.run(
-                act = PausedPersistentTimerAct(),
-                concept = PausedPersistentTimerActConcept(1000, mapOf("1" to "1")) {
-                    executed = true
-                },
-                scope = scope
-            )
-
-            // wait a little
-            delay(300.milliseconds)
-
-            // stop it before it finishes
-            assertTrue(director.stop(id))
-            assertFalse(executed)
-
-            // wait for longer than the actual task completion
-            delay(800.milliseconds)
-
-            // resume
-            val photocards = subunit.getAllPhotocards(pid)
-            assertEquals(1, photocards.size)
-            val pc = photocards.first()
-
-            director.resume(
-                act = PausedPersistentTimerAct(),
-                concept = PausedPersistentTimerActConcept(1000, mapOf("1" to "1")) {
-                    executed = true
-                },
-                photocard = pc,
-                scope = scope
-            )
-        }
-
-        // shouldn't finish yet because we stopped it at 0.3s
-        assertFalse(executed)
-        assertTrue { time >= 1100.milliseconds }
-        println("time=$time")
-
-        // wait until it finishes
-        delay(800.milliseconds)
-        assertTrue(executed)
-    }
-
-    @Test
-    fun `multiple persistent act stop and resumable accurately`() = runBlocking {
-        val subunit = PhotocardSubunit(InMemoryPhotocardRepository())
-        val director = StageActDirector(subunit, SystemTime)
-        val pid = "owner123"
-        val scope = object : ActScope {
-            override val ownerId: String = "owner123"
-            override val coroutineScope: CoroutineScope = this@runBlocking
-        }
-
-        var executed1 = false
-        var executed2 = false
-        var executed3 = false
-        var task2Id = ""
-
-        val time = measureTime {
-            val id1 = director.run(
-                act = PausedPersistentTimerAct(),
-                concept = PausedPersistentTimerActConcept(1000, mapOf("A" to "1")) {
-                    executed1 = true
-                },
-                scope = scope
-            )
-
-            val id2 = director.run(
-                act = PausedPersistentTimerAct(),
-                concept = PausedPersistentTimerActConcept(1500, mapOf("A" to "2")) {
-                    executed2 = true
-                },
-                scope = scope
-            )
-
-            director.run(
-                act = PausedPersistentTimerAct(),
-                concept = PausedPersistentTimerActConcept(500, mapOf("A" to "3")) {
-                    executed3 = true
-                },
-                scope = scope
-            )
-
-            // wait until task 3 finishes
-            delay(600.milliseconds)
-            assertTrue(executed3)
-
-            // stop other tasks before they finish
-            assertTrue(director.stop(id1))
-            assertTrue(director.stop(id2))
-            assertFalse(executed1)
-            assertFalse(executed2)
-
-            // wait for longer than the actual task completion
-            delay(800.milliseconds)
-
-            // resume
-            val photocards = subunit.getAllPhotocards(pid)
-            assertEquals(2, photocards.size)
-
-            for (pc in photocards) {
-                if (pc.data["A"] == "1") {
-                    director.resume(
-                        act = PausedPersistentTimerAct(),
-                        concept = PausedPersistentTimerActConcept(1000, mapOf("A" to "1")) {
-                            executed1 = true
-                        },
-                        photocard = pc,
-                        scope = scope
-                    )
-                } else {
-                    task2Id = director.resume(
-                        act = PausedPersistentTimerAct(),
-                        concept = PausedPersistentTimerActConcept(1500, mapOf("A" to "2")) {
-                            executed2 = true
-                        },
-                        photocard = pc,
-                        scope = scope
-                    )
-                }
-            }
-        }
-
-        // task 1 and 2 should have 0.4s and 0.9s remaining
-        assertFalse(executed1)
-        assertFalse(executed2)
-        assertTrue { time >= 1400.milliseconds }
-        println("time=$time")
-
-        // wait until task 1 finishes
-        delay(500.milliseconds)
-        assertTrue(executed1)
-
-        // stop task 2
-        assertTrue(director.stop(task2Id))
-        assertFalse(executed2)
-
-        delay(200.milliseconds)
-
-        // resume again
-        val photocards = subunit.getAllPhotocards(pid)
-        assertEquals(1, photocards.size)
-        val pc = photocards.first()
-
-        director.resume(
-            act = PausedPersistentTimerAct(),
-            concept = PausedPersistentTimerActConcept(1500, mapOf("A" to "2")) {
-                executed2 = true
-            },
-            photocard = pc,
-            scope = scope
-        )
-
-        // wait until task 2 finishes (0.4s remaining)
-        delay(500.milliseconds)
-        assertTrue(executed2)
-
-        val photocards2 = subunit.getAllPhotocards(pid)
-        assertEquals(0, photocards2.size)
-    }
-
-    @Test
-    fun `persistent act gets killed no longer in photocards`() = runBlocking {
-        val subunit = PhotocardSubunit(InMemoryPhotocardRepository())
-        val director = StageActDirector(subunit, SystemTime)
-        val pid = "owner321"
-
-        val id = director.run(
-            act = PausedPersistentTimerAct(),
-            concept = PausedPersistentTimerActConcept(3000, mapOf("A" to "1")) {
-                throw RuntimeException("Crossed here")
-            },
-            scope = object : ActScope {
-                override val ownerId: String = pid
-                override val coroutineScope: CoroutineScope = this@runBlocking
-            }
-        )
-
-        delay(100.milliseconds)
-        director.stop(id)
-        delay(100.milliseconds)
-
-        val photocards = subunit.getAllPhotocards(pid)
-        assertEquals(1, photocards.size)
-        val pc = photocards.first()
-
-        director.resume(
-            act = PausedPersistentTimerAct(),
-            concept = PausedPersistentTimerActConcept(3000, mapOf("A" to "1")) {
-                throw RuntimeException("Crossed here")
-            },
-            photocard = pc,
-            scope = object : ActScope {
-                override val ownerId: String = pid
-                override val coroutineScope: CoroutineScope = this@runBlocking
-            }
-        )
-
-        delay(100.milliseconds)
-        director.kill(id)
-        delay(100.milliseconds)
-
-        val photocards2 = subunit.getAllPhotocards(pid)
-        assertEquals(0, photocards2.size)
-    }
-
     private fun runTimer(time: Long, scope: TestScope): String {
         val director = StageActDirector(
-            PhotocardSubunit.createForTest(),
             VirtualTimeProvider(scope)
         )
 
@@ -469,7 +233,6 @@ class Playground {
         interval: Long, scope: TestScope, assertHook: ((Int) -> Unit)?
     ): String {
         val director = StageActDirector(
-            PhotocardSubunit.createForTest(),
             VirtualTimeProvider(scope)
         )
 
@@ -495,7 +258,6 @@ class Playground {
         scope: TestScope, assertHook: ((Int) -> Unit)?
     ): String {
         val director = StageActDirector(
-            PhotocardSubunit.createForTest(),
             VirtualTimeProvider(scope)
         )
 
@@ -515,29 +277,6 @@ class Playground {
         Fancam.trace { "Forever timer started (will fire after ${initialDelay}ms, every ${interval}ms)." }
         return id
     }
-
-
-    private fun runPausedPersistentTimer(time: Long, identity: Map<String, String>, scope: TestScope): String {
-        val director = StageActDirector(
-            PhotocardSubunit.createForTest(),
-            VirtualTimeProvider(scope)
-        )
-
-        val id = director.run(
-            act = PausedPersistentTimerAct(),
-            concept = PausedPersistentTimerActConcept(time, identity) {
-                Fancam.trace { "TestScope.currentTime=${scope.currentTime} (identity=$identity)" }
-                assertEquals(scope.currentTime, time)
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope-$identity"
-                override val coroutineScope: CoroutineScope = scope
-            }
-        )
-
-        Fancam.trace { "Paused persistent timer started (will fire after ${time}ms)." }
-        return id
-    }
 }
 
 data class TimerActConcept(
@@ -555,8 +294,7 @@ class TimerAct : StageAct<TimerActConcept> {
     override fun createSetup(concept: TimerActConcept): ActSetup {
         return ActSetup(
             initialDelay = concept.delay,
-            performMode = PerformMode.Once,
-            lifetimeMode = LifetimeMode.Bound
+            performMode = PerformMode.Once
         )
     }
 
@@ -582,8 +320,7 @@ class RepeatTimerAct : StageAct<RepeatTimerActConcept> {
     override fun createSetup(concept: RepeatTimerActConcept): ActSetup {
         return ActSetup(
             initialDelay = concept.initialDelay,
-            performMode = PerformMode.Repeat(concept.repetition, concept.interval),
-            lifetimeMode = LifetimeMode.Bound
+            performMode = PerformMode.Repeat(concept.repetition, concept.interval)
         )
     }
 
@@ -608,42 +345,11 @@ class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
     override fun createSetup(concept: ForeverTimerActConcept): ActSetup {
         return ActSetup(
             initialDelay = concept.initialDelay,
-            performMode = PerformMode.Forever(concept.interval),
-            lifetimeMode = LifetimeMode.Bound
+            performMode = PerformMode.Forever(concept.interval)
         )
     }
 
     override suspend fun perform(concept: ForeverTimerActConcept, performNumber: Int, batch: Int) {
-        concept.onPerform(performNumber)
-    }
-}
-
-data class PausedPersistentTimerActConcept(
-    val initialDelay: Long,
-    val identity: Map<String, String>,
-    val onPerform: suspend (Int) -> Unit
-) : ActConcept
-
-class PausedPersistentTimerAct : StageAct<PausedPersistentTimerActConcept> {
-    override val name: String = "PausedPersistentTimerAct"
-
-    override fun createId(concept: PausedPersistentTimerActConcept): String {
-        return Ids.uuid()
-    }
-
-    override fun createIdentity(concept: PausedPersistentTimerActConcept): Map<String, String> {
-        return concept.identity
-    }
-
-    override fun createSetup(concept: PausedPersistentTimerActConcept): ActSetup {
-        return ActSetup(
-            initialDelay = concept.initialDelay,
-            performMode = PerformMode.Once,
-            lifetimeMode = LifetimeMode.PausedPersistent
-        )
-    }
-
-    override suspend fun perform(concept: PausedPersistentTimerActConcept, performNumber: Int, batch: Int) {
         concept.onPerform(performNumber)
     }
 }
@@ -654,85 +360,31 @@ data class Step(
     val isFinished: Boolean
 )
 
-class StageActDirector(
-    private val photocardSubunit: PhotocardSubunit,
-    private val timeProvider: TimeProvider
-) {
+class StageActDirector(private val timeProvider: TimeProvider) {
     private val boundChoreo = BoundChoreography(timeProvider)
-    private val pausedPersistentChoreo = PausedPersistentChoreography(timeProvider)
-    private val continuousPersistentChoreo = ContinuousPersistentChoreography(timeProvider)
-
     private val activeActs = mutableMapOf<String, Job>()
 
     fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
-        val setup = act.createSetup(concept)
-
-        return when (setup.lifetimeMode) {
-            is LifetimeMode.Bound -> runBound(act, setup, concept, scope)
-            is LifetimeMode.PausedPersistent -> runPausedPersistent(act, setup, concept, scope)
-            is LifetimeMode.ContinuousPersistent -> runContinuousPersistent(act, setup, concept, scope)
-        }
-    }
-
-    fun <T : ActConcept> resume(act: StageAct<T>, concept: T, photocard: Photocard, scope: ActScope): String {
-        if (isActive(photocard.actId)) {
-            Fancam.warn { "Can't resume an already running act; id=${photocard.actId}, name=${photocard.name}." }
-        }
-
-        val setup = act.createSetup(concept)
-
-        return when (setup.lifetimeMode) {
-            is LifetimeMode.Bound -> {
-                error("LifetimeMode.Bound can't be resumed")
-            }
-
-            is LifetimeMode.PausedPersistent -> resumePausedPersistent(act, setup, concept, photocard, scope)
-            is LifetimeMode.ContinuousPersistent -> resumeContinuousPersistent(act, setup, concept, photocard, scope)
-        }
-    }
-
-    fun stop(actId: String): Boolean {
-        (activeActs[actId] ?: return false)
-            .cancel(StopCancellationException())
-        return true
-    }
-
-    fun kill(actId: String): Boolean {
-        (activeActs[actId] ?: return false)
-            .cancel(KillCancellationException())
-        return true
-    }
-
-    fun isActive(actId: String): Boolean {
-        return activeActs.containsKey(actId)
-    }
-
-    private fun <T : ActConcept> runBound(
-        act: StageAct<T>, setup: ActSetup, concept: T, scope: ActScope
-    ): String {
         val id = act.createId(concept)
+        val setup = act.createSetup(concept)
 
         val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            val progress = ActProgress(
-                firstPerformAt = timeProvider.now() + setup.initialDelay,
-                performCount = 0,
-                stoppedAt = null,
-            )
+            val firstPerformAt = timeProvider.now() + setup.initialDelay
+            var performCount = 0
             var finished = false
 
             try {
                 act.onStart(concept)
 
                 while (true) {
-                    val step = boundChoreo.nextStep(setup, progress)
+                    val step = boundChoreo.nextStep(setup, firstPerformAt, performCount)
 
                     if (step.delay > 0) {
                         delay(step.delay.milliseconds)
                     }
 
-                    // always 1 since no catch up will ever be done in bound acts
-                    act.perform(concept, progress.performCount + 1, 1)
-                    progress.performCount += 1
+                    act.perform(concept, performCount + 1, 1)
+                    performCount += 1
 
                     if (step.isFinished) break
                 }
@@ -759,550 +411,41 @@ class StageActDirector(
         return id
     }
 
-    private fun <T : ActConcept> runPausedPersistent(
-        act: StageAct<T>, setup: ActSetup, concept: T, scope: ActScope
-    ): String {
-        val id = act.createId(concept)
-
-        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            val progress = ActProgress(
-                firstPerformAt = timeProvider.now() + setup.initialDelay,
-                performCount = 0,
-                stoppedAt = null,
-            )
-            var finished = false
-
-            try {
-                act.onStart(concept)
-
-                while (true) {
-                    val step = pausedPersistentChoreo.nextStep(setup, progress, false)
-
-                    if (step.delay > 0) {
-                        delay(step.delay.milliseconds)
-                    }
-
-                    // always 1 since no catch up will ever be done in paused persistent acts
-                    act.perform(concept, progress.performCount + 1, 1)
-                    progress.performCount += 1
-
-                    if (step.isFinished) break
-                }
-
-                finished = true
-                act.onEndingFairy(concept)
-            } catch (e: CancellationException) {
-                if (!finished) {
-                    withContext(NonCancellable) {
-                        val now = timeProvider.now()
-                        act.onCancelled(concept, e.toCancellationReason())
-                        // for persistent acts, cancelled act that isn't finished
-                        // should be persisted to DB (unless they are killed)
-                        when (e) {
-                            is KillCancellationException -> {
-                                deleteAct(scope.ownerId, id)
-                            }
-
-                            else -> {
-                                // this includes StopCancellationException
-                                persistAct(
-                                    false, id, scope.ownerId, act.name,
-                                    act.createIdentity(concept), progress, now
-                                )
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
-                // when error happens, act is rendered as invalid
-                // thus should be removed from DB
-                deleteAct(scope.ownerId, id)
-            } finally {
-                activeActs.remove(id)
-            }
-        }
-
-        activeActs[id] = job
-        return id
+    fun stop(actId: String): Boolean {
+        (activeActs[actId] ?: return false)
+            .cancel(StopCancellationException())
+        return true
     }
 
-    private fun <T : ActConcept> runContinuousPersistent(
-        act: StageAct<T>, setup: ActSetup, concept: T, scope: ActScope
-    ): String {
-        val id = act.createId(concept)
-
-        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            val progress = ActProgress(
-                firstPerformAt = timeProvider.now() + setup.initialDelay,
-                performCount = 0,
-                stoppedAt = null,
-            )
-            var finished = false
-
-            try {
-                act.onStart(concept)
-
-                while (true) {
-                    val step = continuousPersistentChoreo.nextStep(setup, progress, false)
-
-                    if (step.runsTodo > 1) {
-                        // there were some missed runs, do it first without delay
-                        // runsTodo is only greater than 1 for continuous persistent
-                        act.perform(concept, progress.performCount + step.runsTodo - 1, step.runsTodo - 1)
-                        progress.performCount += step.runsTodo - 1
-                    }
-
-                    // delay for the current perform
-                    if (step.delay > 0) {
-                        delay(step.delay.milliseconds)
-                    }
-
-                    // this will always be one since missed runs calculation are above
-                    act.perform(concept, progress.performCount + 1, 1)
-                    progress.performCount += 1
-
-                    if (step.isFinished) break
-                }
-
-                finished = true
-                act.onEndingFairy(concept)
-            } catch (e: CancellationException) {
-                if (!finished) {
-                    withContext(NonCancellable) {
-                        val now = timeProvider.now()
-                        act.onCancelled(concept, e.toCancellationReason())
-                        // for persistent acts, cancelled act that isn't finished
-                        // should be persisted to DB (unless they are killed)
-                        when (e) {
-                            is KillCancellationException -> {
-                                deleteAct(scope.ownerId, id)
-                            }
-
-                            else -> {
-                                // this includes StopCancellationException
-                                persistAct(
-                                    false, id, scope.ownerId, act.name,
-                                    act.createIdentity(concept), progress, now
-                                )
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
-                // when error happens, act is rendered as invalid
-                // thus should be removed from DB
-                deleteAct(scope.ownerId, id)
-            } finally {
-                activeActs.remove(id)
-            }
-        }
-
-        activeActs[id] = job
-        return id
-    }
-
-
-    private fun <T : ActConcept> resumePausedPersistent(
-        act: StageAct<T>, setup: ActSetup, concept: T, photocard: Photocard, scope: ActScope
-    ): String {
-        val id = photocard.actId
-        val progress = photocard.progress
-
-        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            var finished = false
-
-            try {
-                act.onStart(concept)
-
-                while (true) {
-                    val step = pausedPersistentChoreo.nextStep(setup, progress, true)
-
-                    if (step.delay > 0) {
-                        delay(step.delay.milliseconds)
-                    }
-
-                    // always 1 since no catch up will ever be done in paused persistent acts
-                    act.perform(concept, progress.performCount + 1, 1)
-                    progress.performCount += 1
-
-                    if (step.isFinished) break
-                }
-
-                finished = true
-                act.onEndingFairy(concept)
-            } catch (e: CancellationException) {
-                if (!finished) {
-                    withContext(NonCancellable) {
-                        val now = timeProvider.now()
-                        act.onCancelled(concept, e.toCancellationReason())
-                        // for persistent acts, cancelled act that isn't finished
-                        // should be persisted to DB (unless they are killed)
-                        when (e) {
-                            is KillCancellationException -> {
-                                deleteAct(scope.ownerId, id)
-                            }
-
-                            else -> {
-                                // this includes StopCancellationException
-                                persistAct(
-                                    true, id, scope.ownerId, act.name,
-                                    act.createIdentity(concept), progress, now
-                                )
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
-                // when error happens, act is rendered as invalid
-                // thus should be removed from DB
-                deleteAct(scope.ownerId, id)
-            } finally {
-                activeActs.remove(id)
-                if (finished) {
-                    deleteAct(scope.ownerId, id)
-                }
-            }
-        }
-
-        activeActs[id] = job
-        return id
-    }
-
-    private fun <T : ActConcept> resumeContinuousPersistent(
-        act: StageAct<T>, setup: ActSetup, concept: T, photocard: Photocard, scope: ActScope
-    ): String {
-        val id = photocard.actId
-        val progress = photocard.progress
-
-        val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            var finished = false
-
-            try {
-                act.onStart(concept)
-
-                while (true) {
-                    val step = continuousPersistentChoreo.nextStep(setup, progress, false)
-
-                    if (step.runsTodo > 1) {
-                        // there were some missed runs, do it first without delay
-                        // runsTodo is only greater than 1 for continuous persistent
-                        act.perform(concept, progress.performCount + step.runsTodo - 1, step.runsTodo - 1)
-                        progress.performCount += step.runsTodo - 1
-                    }
-
-                    // delay for the current perform
-                    if (step.delay > 0) {
-                        delay(step.delay.milliseconds)
-                    }
-
-                    // this will always be one since missed runs calculation are above
-                    act.perform(concept, progress.performCount + 1, 1)
-                    progress.performCount += 1
-
-                    if (step.isFinished) break
-                }
-
-                finished = true
-                act.onEndingFairy(concept)
-            } catch (e: CancellationException) {
-                if (!finished) {
-                    withContext(NonCancellable) {
-                        val now = timeProvider.now()
-                        act.onCancelled(concept, e.toCancellationReason())
-                        // for persistent acts, cancelled act that isn't finished
-                        // should be persisted to DB (unless they are killed)
-                        when (e) {
-                            is KillCancellationException -> {
-                                deleteAct(scope.ownerId, id)
-                            }
-
-                            else -> {
-                                // this includes StopCancellationException
-                                persistAct(
-                                    true, id, scope.ownerId, act.name,
-                                    act.createIdentity(concept), progress, now
-                                )
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
-                // when error happens, act is rendered as invalid
-                // thus should be removed from DB
-                deleteAct(scope.ownerId, id)
-            } finally {
-                activeActs.remove(id)
-                if (finished) {
-                    deleteAct(scope.ownerId, id)
-                }
-            }
-        }
-
-        activeActs[id] = job
-        return id
-    }
-
-    private suspend fun persistAct(
-        update: Boolean,
-        actId: String,
-        ownerId: String,
-        name: String,
-        identity: Map<String, String>,
-        progress: ActProgress,
-        stoppedAt: Long
-    ) {
-        val photocard = Photocard(
-            actId = actId,
-            name = name,
-            progress = progress.copy(stoppedAt = stoppedAt),
-            data = identity
-        )
-
-        if (update) {
-            when (ownerId) {
-                ServerId -> photocardSubunit.updateServerPhotocard(photocard)
-                else -> photocardSubunit.updatePhotocard(ownerId, photocard)
-            }
-        } else {
-            when (ownerId) {
-                ServerId -> photocardSubunit.saveServerPhotocard(photocard)
-                else -> photocardSubunit.savePhotocard(ownerId, photocard)
-            }
-        }
-    }
-
-    private suspend fun deleteAct(ownerId: String, actId: String) {
-        when (ownerId) {
-            ServerId -> photocardSubunit.deleteServerPhotocard(actId)
-            else -> photocardSubunit.deletePhotocard(ownerId, actId)
-        }
+    fun isActive(actId: String): Boolean {
+        return activeActs.containsKey(actId)
     }
 }
 
-
-/* time model for bound and paused persistent
-class Schedule
-
-startedAt = 0
-firstPerformAt = startedAt + initialDelay = 5
-
-timeToNextExecution = if performCount == 0 time = initialDelay
-                    ; now = 1
-                    ; time = 5
-                    ; delay = 4
-                    ; if performCount != 0 time = firstPerformAt + (interval * performCount)
-                    ; now = 6
-                    ; time = 15 (5 + (10 * 1))
-                    ; delay = 9
-
-class Progress
-    performCount = 1
-    lastActiveAt = 9
-
-now = 30
-missedTime = 21 (now - lastActiveAt) 30 - 9
-
-re-sync time model by adding missedTime to firstPerformAt
-
-5 + 21 = 26
-
-timeToNextExecution = time = firstPerformAt + (interval * performCount)
-                    ; now = 30
-                    ; time = 36 (26 + (10 * 1))
-                    ; delay = 6
-
-for continous persistent, no need to re-sync time model
-
-5  15  25  35
-  c      30
-
-performCount = 1
-
-missedTime = now - lastActiveAt = 30 - 9 = 21
-
-floor(missedTime / interval) = 2 missed runs
-
-expectedPerformCount = performCount + missedRuns = 3
-
-timeToNextExecution = time = firstPerformAt + (interval * performCount)
-                    ; now = 30
-                    ; time = 35 (5 + (10 * 3))
-                    ; delay = 5
-
--=-=-==-
-every types can use the same method and model
-paused persistent: have to adjusted firstPerformAt on resume (newFirstPerformAt = firstPerformAt + missedTime)
-continous persistent: same method but no adjustion, but increase performCount by missedRuns
-
-
--=-=-==
-
- */
-
-
-
-class ContinuousPersistentChoreography(private val timeProvider: TimeProvider) {
-    fun nextStep(setup: ActSetup, progress: ActProgress, resume: Boolean): Step {
-        if (resume) {
-            val maxMissedRuns = when (setup.lifetimeMode) {
-                is LifetimeMode.Bound -> 1
-                is LifetimeMode.PausedPersistent -> 1
-                is LifetimeMode.ContinuousPersistent -> {
-                    setup.lifetimeMode.missedPerformPolicy.maxBatch
-                }
-            }
-
-            when (setup.performMode) {
-                is PerformMode.Once -> {
-                    // always 1
-                    val newPerformCount = 1
-                    val delay = calculateDelay(progress.firstPerformAt, newPerformCount, 0)
-                    return Step(delay, 1, isFinished(setup, newPerformCount))
-                }
-
-                is PerformMode.Repeat -> {
-                    val stoppedAt = requireNotNull(progress.stoppedAt) {
-                        "Progress.stoppedAt is null for ContinuousPersistent.Repeat on resume."
-                    }
-                    val missedTime = timeProvider.now() - stoppedAt
-                    val missedRuns = (missedTime / setup.performMode.interval).toInt()
-                    val newPerformCount = progress.performCount + missedRuns
-                    val delay = calculateDelay(progress.firstPerformAt, newPerformCount, setup.performMode.interval)
-                    // the total runs to do is the missedRun (capped with maxMissedRuns)
-                    // and added with 1 which is the next new run
-                    return Step(delay, min(missedRuns, maxMissedRuns) + 1, isFinished(setup, newPerformCount))
-                }
-
-                is PerformMode.Forever -> {
-                    val stoppedAt = requireNotNull(progress.stoppedAt) {
-                        "Progress.stoppedAt is null for ContinuousPersistent.Repeat on resume."
-                    }
-                    val missedTime = timeProvider.now() - stoppedAt
-                    val missedRuns = (missedTime / setup.performMode.interval).toInt()
-                    val newPerformCount = progress.performCount + missedRuns
-                    val delay = calculateDelay(progress.firstPerformAt, newPerformCount, setup.performMode.interval)
-                    // the total runs to do is the missedRun (capped with maxMissedRuns)
-                    // and added with 1 which is the next new run
-                    return Step(delay, min(missedRuns, maxMissedRuns) + 1, isFinished(setup, newPerformCount))
-                }
-            }
-        }
-
-        val delay = delayLeft(setup, progress)
-        return Step(delay, 1, isFinished(setup, progress.performCount + 1))
+class BoundChoreography(private val timeProvider: TimeProvider) {
+    fun nextStep(setup: ActSetup, firstPerformAt: Long, performCount: Int): Step {
+        val delay = delayLeft(setup, firstPerformAt, performCount)
+        return Step(delay, 1, isFinished(setup, performCount + 1))
     }
 
-    private fun delayLeft(setup: ActSetup, progress: ActProgress): Long {
+    private fun delayLeft(setup: ActSetup, firstPerformAt: Long, performCount: Int): Long {
         return when (setup.performMode) {
             is PerformMode.Once -> {
-                calculateDelay(progress.firstPerformAt, progress.performCount, 0)
+                calculateDelay(firstPerformAt, performCount, 0)
             }
 
             is PerformMode.Repeat -> {
-                calculateDelay(progress.firstPerformAt, progress.performCount, setup.performMode.interval)
+                calculateDelay(firstPerformAt, performCount, setup.performMode.interval)
             }
 
             is PerformMode.Forever -> {
-                calculateDelay(progress.firstPerformAt, progress.performCount, setup.performMode.interval)
+                calculateDelay(firstPerformAt, performCount, setup.performMode.interval)
             }
         }
     }
 
     private fun calculateDelay(firstPerformAt: Long, performCount: Int, interval: Long): Long {
         val nextPerformAt = firstPerformAt + performCount * interval
-        val timeLeftUntilNextPerform = nextPerformAt - timeProvider.now()
-        return timeLeftUntilNextPerform
-    }
-
-    private fun isFinished(setup: ActSetup, newPerformCount: Int): Boolean {
-        return when (setup.performMode) {
-            is PerformMode.Once -> true
-            is PerformMode.Repeat -> {
-                newPerformCount == setup.performMode.repetition + 1
-            }
-
-            is PerformMode.Forever -> false
-        }
-    }
-}
-
-class PausedPersistentChoreography(private val timeProvider: TimeProvider) {
-    fun nextStep(setup: ActSetup, progress: ActProgress, resume: Boolean): Step {
-        if (resume) {
-            // re-sync time
-            val stoppedAt = requireNotNull(progress.stoppedAt) {
-                "Progress.stoppedAt is null for PausedPersistent on resume."
-            }
-            val missedTime = timeProvider.now() - stoppedAt
-            progress.firstPerformAt += missedTime
-        }
-
-        val delay = delayLeft(setup, progress)
-        return Step(delay, 1, isFinished(setup, progress.performCount + 1))
-    }
-
-    private fun delayLeft(setup: ActSetup, progress: ActProgress): Long {
-        return when (setup.performMode) {
-            is PerformMode.Once -> {
-                calculateDelay(progress, 0)
-            }
-
-            is PerformMode.Repeat -> {
-                calculateDelay(progress, setup.performMode.interval)
-            }
-
-            is PerformMode.Forever -> {
-                calculateDelay(progress, setup.performMode.interval)
-            }
-        }
-    }
-
-    private fun calculateDelay(progress: ActProgress, interval: Long): Long {
-        val nextPerformAt = progress.firstPerformAt + progress.performCount * interval
-        val timeLeftUntilNextPerform = nextPerformAt - timeProvider.now()
-        return timeLeftUntilNextPerform
-    }
-
-    private fun isFinished(setup: ActSetup, newPerformCount: Int): Boolean {
-        return when (setup.performMode) {
-            is PerformMode.Once -> true
-            is PerformMode.Repeat -> {
-                newPerformCount == setup.performMode.repetition + 1
-            }
-
-            is PerformMode.Forever -> false
-        }
-    }
-}
-
-class BoundChoreography(private val timeProvider: TimeProvider) {
-    fun nextStep(setup: ActSetup, progress: ActProgress): Step {
-        val delay = delayLeft(setup, progress)
-        return Step(delay, 1, isFinished(setup, progress.performCount + 1))
-    }
-
-    private fun delayLeft(setup: ActSetup, progress: ActProgress): Long {
-        return when (setup.performMode) {
-            is PerformMode.Once -> {
-                calculateDelay(progress, 0)
-            }
-
-            is PerformMode.Repeat -> {
-                calculateDelay(progress, setup.performMode.interval)
-            }
-
-            is PerformMode.Forever -> {
-                calculateDelay(progress, setup.performMode.interval)
-            }
-        }
-    }
-
-    private fun calculateDelay(progress: ActProgress, interval: Long): Long {
-        val nextPerformAt = progress.firstPerformAt + progress.performCount * interval
         val timeLeftUntilNextPerform = nextPerformAt - timeProvider.now()
         return timeLeftUntilNextPerform
     }

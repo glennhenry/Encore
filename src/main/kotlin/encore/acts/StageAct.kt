@@ -1,9 +1,6 @@
 package encore.acts
 
-import encore.acts.photocard.model.Photocard
 import encore.acts.setup.ActSetup
-import encore.acts.setup.LifetimeMode
-import encore.acts.setup.MissedPerformPolicy
 import encore.acts.setup.PerformMode
 import encore.tasks.ServerTaskDispatcher
 
@@ -30,7 +27,7 @@ import encore.tasks.ServerTaskDispatcher
  * #### Configuration
  *
  * The execution behavior is defined by [createSetup], producing an [ActSetup] including
- * `initialDelay`, [PerformMode], and [LifetimeMode].
+ * `initialDelay`, and [PerformMode].
  *
  * #### Lifecycle
  *
