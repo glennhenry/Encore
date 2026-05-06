@@ -3,9 +3,12 @@ import encore.acts.director.ActScope
 import encore.acts.setup.ActSetup
 import encore.acts.setup.PerformMode
 import encore.fancam.Fancam
+import encore.utils.DayOfWeek
 import encore.utils.Ids
 import encore.utils.SystemTime
+import encore.utils.TimeOfDay
 import encore.utils.TimeProvider
+import encore.utils.nextOccurrence
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.TestScope
@@ -13,6 +16,7 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
+import java.time.ZoneId
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -470,6 +474,99 @@ class BoundChoreography(private val timeProvider: TimeProvider) {
         }
     }
 }
+
+val SystemTimezone: ZoneId = ZoneId.systemDefault()
+
+/**
+ * Defines how a [StageAct] is scheduled over time.
+ *
+ * This determines *when* an act should perform, but not *what* it does.
+ *
+ * Implementations:
+ * - [BasicChoreography]: Covers simple runtime scheduling based on an initial delay
+ *   and a fixed perform pattern (once, repeat, or forever).
+ * - [DailyChoreography]: Schedules perform at a fixed [TimeOfDay] every day.
+ * - [WeeklyChoreography]: Schedules perform at a fixed [DayOfWeek] and [TimeOfDay].
+ *
+ * For more advanced or dynamic scheduling behavior, implement [CustomChoreography].
+ */
+interface Choreography
+
+/**
+ * Basic scheduling configuration for a [StageAct].
+ *
+ * This model is suitable for simple tasks that:
+ * - start after a fixed delay, and
+ * - optionally repeat with a fixed interval.
+ *
+ * @property initialDelay The delay before the first performs.
+ * @property performMode Defines the act performs portion.
+ */
+data class BasicChoreography(
+    val initialDelay: Duration, val performMode: PerformMode
+) : Choreography
+
+/**
+ * Advanced scheduling model for a [StageAct].
+ *
+ * Implementations define their own time model by computing the next perform
+ * timestamp dynamically.
+ *
+ * This is useful for:
+ * - context-dependent schedules (e.g. player state)
+ * - dynamic intervals
+ * - non-uniform or staged perform patterns
+ *
+ * @param T The [ActConcept] associated with the [StageAct].
+ */
+interface CustomChoreography<T : ActConcept> : Choreography {
+    /**
+     * Computes the next perform time.
+     *
+     * The returned value must be an absolute timestamp (epoch milliseconds),
+     * not a delay. This ensures correct behavior across restarts and time shifts.
+     *
+     * @param currentPerformCount Number of times the act has already performed.
+     * @param concept The act input used to derive scheduling decisions.
+     * @param currentMillis The current time in epoch milliseconds.
+     *
+     * @return The next perform timestamp, or `null` if no further performs should occur.
+     */
+    fun next(currentPerformCount: Int, concept: T, currentMillis: Long): Long?
+}
+
+/**
+ * Schedules a [StageAct] to perform once per day at a fixed [TimeOfDay].
+ *
+ * Perform is aligned to wall-clock time and repeats indefinitely
+ * (unless explicitly stopped).
+ *
+ * @param T The [ActConcept] associated with the [StageAct].
+ * @property runAt The time of day at which the act should perform.
+ */
+data class DailyChoreography<T : ActConcept>(
+    val runAt: TimeOfDay
+) : CustomChoreography<T> {
+    override fun next(currentPerformCount: Int, concept: T, currentMillis: Long): Long {
+        return runAt.nextOccurrence(currentMillis, SystemTimezone)
+    }
+}
+
+/**
+ * Schedules a [StageAct] to perform once per week at a specific
+ * [DayOfWeek] and [TimeOfDay].
+ *
+ * Perform is aligned to wall-clock time and repeats indefinitely
+ * (unless explicitly stopped).
+ *
+ * @param T The [ActConcept] associated with the [StageAct].
+ * @property runAtDay The day of the week on which the act should perform.
+ * @property runAtTime The time of day at which the act should perform.
+ */
+data class WeeklyChoreography<T : ActConcept>(
+    val runAtDay: DayOfWeek,
+    val runAtTime: TimeOfDay
+)
 
 /*
 Time model and illustration
