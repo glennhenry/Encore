@@ -14,7 +14,10 @@ import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
 import kotlin.test.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 /**
  * Playground for quick testing and code run
@@ -30,7 +33,7 @@ class Playground {
 
     @Test
     fun `bound once`() = runTest {
-        runTimer(3000, this)
+        runTimer(3.seconds, this)
     }
 
     @Test
@@ -43,13 +46,13 @@ class Playground {
 
         // inside the coroutine, onStart is called, delay is started, perform is called,
         // and finally onEndingFairy is called
-        runTimer(3000L, this)  // finish at tick 3s
-        runTimer(3000L, this)  // finish at tick 3s
-        runTimer(3000L, this)  // finish at tick 3s
-        runTimer(2000L, this)  // finish at tick 2s
-        runTimer(3500L, this)  // finish at tick 3.5s
-        runTimer(3001L, this)  // finish at tick 3.001s
-        runTimer(60000L, this) // finish at tick 60s
+        runTimer(3.seconds, this)          // finish at tick 3s
+        runTimer(3.seconds, this)          // finish at tick 3s
+        runTimer(3.seconds, this)          // finish at tick 3s
+        runTimer(2.seconds, this)          // finish at tick 2s
+        runTimer(3500.milliseconds, this)  // finish at tick 3.5s
+        runTimer(3001.milliseconds, this)  // finish at tick 3.001s
+        runTimer(60.seconds, this)         // finish at tick 60s
     }
 
     @Test
@@ -60,7 +63,7 @@ class Playground {
 
         val id = director.run(
             act = TimerAct(),
-            concept = TimerActConcept(3000) {},
+            concept = TimerActConcept(3.seconds) {},
             scope = object : ActScope {
                 override val ownerId: String = "TestScope"
                 override val coroutineScope: CoroutineScope = this@runTest
@@ -76,7 +79,7 @@ class Playground {
         // runTest skips any delay, so must rely on another timer to assert
         director.run(
             act = TimerAct(),
-            concept = TimerActConcept(3100) {
+            concept = TimerActConcept(3100.milliseconds) {
                 val isActive = director.isActive(id)
                 assertFalse(isActive)
                 Fancam.trace { "isActive=${false}" }
@@ -94,7 +97,7 @@ class Playground {
 
         val id = director.run(
             act = TimerAct(),
-            concept = TimerActConcept(3000) {
+            concept = TimerActConcept(3.seconds) {
                 throw AssertionError("Executed here after 3 secs")
             },
             scope = object : ActScope {
@@ -127,7 +130,7 @@ class Playground {
         // create the error act
         val id = director.run(
             act = TimerAct(),
-            concept = TimerActConcept(5000) {
+            concept = TimerActConcept(5.seconds) {
                 throw RuntimeException("Exception inside perform")
             },
             scope = object : ActScope {
@@ -145,7 +148,7 @@ class Playground {
         // the error act should already throws before this
         director.run(
             act = TimerAct(),
-            concept = TimerActConcept(5001) {
+            concept = TimerActConcept(5001.milliseconds) {
                 // assert the error act is no longer active
                 // log should also have error message
                 val isActive = director.isActive(id)
@@ -161,8 +164,8 @@ class Playground {
 
     @Test
     fun `bound repeat`() = runTest {
-        // 3000, 5000, 7000, 9000, 11000, 13000
-        runRepeatTimer(3000L, 5, 2000L, this) {}
+        // 3s, 5s, 7s, 9s, 11s, 13s
+        runRepeatTimer(3.seconds, 5, 2.seconds, this) {}
     }
 
     @Test
@@ -172,7 +175,7 @@ class Playground {
 
         val id = director.run(
             act = RepeatTimerAct(),
-            concept = RepeatTimerActConcept(500, 500, 3) { count ->
+            concept = RepeatTimerActConcept(500.milliseconds, 500.milliseconds, 3) { count ->
                 Fancam.trace { "[run=$count] (${500 + (count - 1) * 500}ms)" }
                 performCount += 1
             },
@@ -196,7 +199,7 @@ class Playground {
     @Test
     fun `bound forever`() = runTest {
         var performCount = 0
-        runForeverTimer(0L, 2000L, this) { count ->
+        runForeverTimer(Duration.ZERO, 2.seconds, this) { count ->
             performCount += 1
 
             // stopping timer without director.stop by throwing CancellationException
@@ -207,7 +210,7 @@ class Playground {
         }
     }
 
-    private fun runTimer(time: Long, scope: TestScope): String {
+    private fun runTimer(time: Duration, scope: TestScope): String {
         val director = StageActDirector(
             VirtualTimeProvider(scope)
         )
@@ -216,7 +219,7 @@ class Playground {
             act = TimerAct(),
             concept = TimerActConcept(time) {
                 Fancam.trace { "TestScope.currentTime=${scope.currentTime}" }
-                assertEquals(scope.currentTime, time)
+                assertEquals(scope.currentTime.milliseconds, time)
             },
             scope = object : ActScope {
                 override val ownerId: String = "TestScope"
@@ -229,8 +232,8 @@ class Playground {
     }
 
     private fun runRepeatTimer(
-        initialDelay: Long, repetition: Int,
-        interval: Long, scope: TestScope, assertHook: ((Int) -> Unit)?
+        initialDelay: Duration, repetition: Int,
+        interval: Duration, scope: TestScope, assertHook: ((Int) -> Unit)?
     ): String {
         val director = StageActDirector(
             VirtualTimeProvider(scope)
@@ -240,7 +243,10 @@ class Playground {
             act = RepeatTimerAct(),
             concept = RepeatTimerActConcept(initialDelay, interval, repetition) { performNumber ->
                 Fancam.trace { "[run=$performNumber] TestScope.currentTime=${scope.currentTime}" }
-                assertEquals(scope.currentTime, initialDelay + (performNumber - 1) * interval)
+                assertEquals(
+                    scope.currentTime,
+                    initialDelay.inWholeMilliseconds + (performNumber - 1) * interval.inWholeMilliseconds
+                )
                 assertHook?.invoke(performNumber)
             },
             scope = object : ActScope {
@@ -254,7 +260,7 @@ class Playground {
     }
 
     private fun runForeverTimer(
-        initialDelay: Long, interval: Long,
+        initialDelay: Duration, interval: Duration,
         scope: TestScope, assertHook: ((Int) -> Unit)?
     ): String {
         val director = StageActDirector(
@@ -265,7 +271,10 @@ class Playground {
             act = ForeverTimerAct(),
             concept = ForeverTimerActConcept(initialDelay, interval) { performNumber ->
                 Fancam.trace { "[run=$performNumber] TestScope.currentTime=${scope.currentTime}" }
-                assertEquals(scope.currentTime, initialDelay + (performNumber - 1) * interval)
+                assertEquals(
+                    scope.currentTime,
+                    initialDelay.inWholeMilliseconds + (performNumber - 1) * interval.inWholeMilliseconds
+                )
                 assertHook?.invoke(performNumber)
             },
             scope = object : ActScope {
@@ -280,7 +289,7 @@ class Playground {
 }
 
 data class TimerActConcept(
-    val delay: Long,
+    val delay: Duration,
     val onPerform: suspend (Int) -> Unit
 ) : ActConcept
 
@@ -304,8 +313,8 @@ class TimerAct : StageAct<TimerActConcept> {
 }
 
 data class RepeatTimerActConcept(
-    val initialDelay: Long,
-    val interval: Long,
+    val initialDelay: Duration,
+    val interval: Duration,
     val repetition: Int,
     val onPerform: suspend (Int) -> Unit
 ) : ActConcept
@@ -330,8 +339,8 @@ class RepeatTimerAct : StageAct<RepeatTimerActConcept> {
 }
 
 data class ForeverTimerActConcept(
-    val initialDelay: Long,
-    val interval: Long,
+    val initialDelay: Duration,
+    val interval: Duration,
     val onPerform: suspend (Int) -> Unit
 ) : ActConcept
 
@@ -369,7 +378,7 @@ class StageActDirector(private val timeProvider: TimeProvider) {
         val setup = act.createSetup(concept)
 
         val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            val firstPerformAt = timeProvider.now() + setup.initialDelay
+            val firstPerformAt = timeProvider.now() + setup.initialDelay.toLong(DurationUnit.MILLISECONDS)
             var performCount = 0
             var finished = false
 
@@ -431,7 +440,7 @@ class BoundChoreography(private val timeProvider: TimeProvider) {
     private fun delayLeft(setup: ActSetup, firstPerformAt: Long, performCount: Int): Long {
         return when (setup.performMode) {
             is PerformMode.Once -> {
-                calculateDelay(firstPerformAt, performCount, 0)
+                calculateDelay(firstPerformAt, performCount, Duration.ZERO)
             }
 
             is PerformMode.Repeat -> {
@@ -444,8 +453,8 @@ class BoundChoreography(private val timeProvider: TimeProvider) {
         }
     }
 
-    private fun calculateDelay(firstPerformAt: Long, performCount: Int, interval: Long): Long {
-        val nextPerformAt = firstPerformAt + performCount * interval
+    private fun calculateDelay(firstPerformAt: Long, performCount: Int, interval: Duration): Long {
+        val nextPerformAt = firstPerformAt + performCount * (interval.inWholeMilliseconds)
         val timeLeftUntilNextPerform = nextPerformAt - timeProvider.now()
         return timeLeftUntilNextPerform
     }
