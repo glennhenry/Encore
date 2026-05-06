@@ -1,6 +1,7 @@
 package encore.acts.setup
 
 import encore.acts.StageAct
+import kotlin.time.Duration
 
 /**
  * Describes [StageAct] performs portion.
@@ -26,14 +27,14 @@ sealed class PerformMode {
      * - `repetition = 1` is executed twice in total
      *
      * @property repetition Number of additional executions after the first run.
-     * @property interval Interval between executions, in milliseconds.
+     * @property interval Interval between executions, in [Duration].
      */
-    data class Repeat(val repetition: Int, val interval: Long) : PerformMode()
+    data class Repeat(val repetition: Int, val interval: Duration) : PerformMode()
 
     /**
      * The stage act is performed indefinitely at a fixed interval.
      *
-     * @property interval Interval between executions, in milliseconds.
+     * @property interval Interval between executions, in [Duration].
      */
-    data class Forever(val interval: Long) : PerformMode()
+    data class Forever(val interval: Duration) : PerformMode()
 }

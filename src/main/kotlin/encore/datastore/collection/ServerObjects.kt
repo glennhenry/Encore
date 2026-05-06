@@ -1,7 +1,6 @@
 package encore.datastore.collection
 
 import encore.acts.director.ActScope
-import encore.acts.photocard.model.Photocard
 import kotlinx.serialization.Serializable
 
 /**
@@ -17,12 +16,10 @@ import kotlinx.serialization.Serializable
  *
  * @property dbId Unique identifier. Since only one instance of `ServerObjects`
  *                exists, this acts as a fixed key.
- * @property photocards Contains server-owned photocards.
  */
 @Serializable
 data class ServerObjects(
-    val dbId: String = ServerObjectsId,
-    val photocards: List<Photocard> = emptyList()
+    val dbId: String = ServerObjectsId
 )
 
 const val ServerObjectsId = "sobjs"

@@ -2,9 +2,7 @@ package encore.datastore
 
 import com.mongodb.client.model.Filters
 import encore.account.model.Profile
-import encore.acts.photocard.model.Photocard
 import encore.datastore.collection.PlayerAccount
-import encore.datastore.collection.PlayerServerObjects
 import encore.datastore.collection.ServerObjects
 import encore.datastore.collection.ServerObjectsId
 import org.bson.conversions.Bson
@@ -29,12 +27,6 @@ val FieldProfile = PlayerAccount::profile.name
 
 /** `profile.lastActiveAt`*/
 val FieldProfileLastActive = "$FieldProfile.${Profile::lastActiveAt.name}"
-
-/** `actId`*/
-val FieldActId = Photocard::actId.name
-
-/** `photocards`*/
-val FieldPhotocards = PlayerServerObjects::photocards.name
 
 /** `dbId`*/
 val ServerObjectsDbId = ServerObjects::dbId.name
