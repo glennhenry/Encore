@@ -54,6 +54,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import org.bson.Document
 import java.io.File
+import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 
@@ -63,6 +64,8 @@ val MongoCollectionName = MongoCollectionName(
     playerServerObjects = "player_server_objects",
     serverObjects = "server_objects"
 )
+
+val SystemTimezone: ZoneId = ZoneId.systemDefault()
 
 fun main() {
     Venue.prepare()

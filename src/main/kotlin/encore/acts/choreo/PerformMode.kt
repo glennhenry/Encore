@@ -1,4 +1,4 @@
-package encore.acts.setup
+package encore.acts.choreo
 
 import encore.acts.StageAct
 import kotlin.time.Duration

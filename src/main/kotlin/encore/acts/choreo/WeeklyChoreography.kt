@@ -1,0 +1,28 @@
+package encore.acts.choreo
+
+import SystemTimezone
+import encore.acts.ActConcept
+import encore.acts.StageAct
+import encore.utils.DayOfWeek
+import encore.utils.TimeOfDay
+import encore.utils.nextOccurrence
+
+/**
+ * Schedules a [StageAct] to perform once per week at a specific
+ * [DayOfWeek] and [TimeOfDay].
+ *
+ * Perform is aligned to wall-clock time and repeats indefinitely
+ * (unless explicitly stopped).
+ *
+ * @param T The [ActConcept] associated with the [StageAct].
+ * @property runAtDay The day of the week on which the act should perform.
+ * @property runAtTime The time of day at which the act should perform.
+ */
+data class WeeklyChoreography<T : ActConcept>(
+    val runAtDay: DayOfWeek,
+    val runAtTime: TimeOfDay
+): CustomChoreography<T> {
+    override fun next(currentPerformCount: Int, concept: T, currentMillis: Long): Long {
+        return runAtDay.nextOccurrence(runAtTime, currentMillis, SystemTimezone)
+    }
+}
