@@ -610,3 +610,55 @@ The task then continues with the newRemainingDelay
 
 With the pause model, no performs will be missed and the remainingDelay will still be 6.
 */
+
+/**
+ * Runtime lookup store for active [StageAct] identifiers.
+ *
+ * This component allows externally locating a running act through
+ * application-defined identities, typically derived from one or more
+ * fields of the corresponding [ActConcept].
+ *
+ * Common examples include:
+ * - `"playerId-buildingId"`
+ * - `"playerId-upgradeType"`
+ */
+class ActIdStore {
+    private val identities = mutableMapOf<String, String>()
+    private val actIds = mutableMapOf<String, String>()
+
+    /**
+     * Associates an [identity] with an active [actId].
+     *
+     * This allows the act to later be located through [find].
+     *
+     * @param actId Unique identifier of the running [StageAct].
+     * @param identity Application-defined runtime identity.
+     */
+    fun bind(actId: String, identity: String) {
+        actIds[actId] = identity
+        identities[identity] = actId
+    }
+
+    /**
+     * Removes the identity association of the specified [actId].
+     *
+     * This should typically be called when the corresponding act
+     * completes, fails, or is cancelled.
+     */
+    fun unbind(actId: String) {
+        val identity = actIds.remove(actId)
+            ?: return
+
+        identities.remove(identity)
+    }
+
+    /**
+     * Finds the associated `actId` for the specified [identity].
+     *
+     * @param identity Application-defined runtime identity.
+     * @return The associated `actId`, or `null` if no active act is bound.
+     */
+    fun find(identity: String): String? {
+        return identities[identity]
+    }
+}
