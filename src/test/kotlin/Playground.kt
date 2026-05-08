@@ -12,6 +12,8 @@ import encore.utils.SystemTime
 import encore.utils.TimeOfDay
 import encore.utils.TimeProvider
 import encore.utils.nextOccurrence
+import encore.utils.safely
+import encore.utils.safelySuspend
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.TestScope
@@ -385,7 +387,9 @@ class StageActDirector(private val timeProvider: TimeProvider) {
             var finished = false
 
             try {
-                act.onStart(concept)
+                withContext(NonCancellable) {
+                    act.onStart(concept)
+                }
 
                 while (true) {
                     val delay = when (choreo) {
@@ -425,16 +429,24 @@ class StageActDirector(private val timeProvider: TimeProvider) {
                 }
 
                 finished = true
-                act.onEndingFairy(concept)
+                withContext(NonCancellable) {
+                    act.onEndingFairy(concept)
+                }
             } catch (_: CancellationException) {
                 if (!finished) {
                     withContext(NonCancellable) {
-                        act.onCancelled(concept)
+                        safelySuspend {
+                            act.onCancelled(concept)
+                        }
                     }
                 }
             } catch (e: Exception) {
                 Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
-                act.onError(concept, e)
+                withContext(NonCancellable) {
+                    safelySuspend {
+                        act.onError(concept, e)
+                    }
+                }
             } finally {
                 activeActs.remove(id)
             }
