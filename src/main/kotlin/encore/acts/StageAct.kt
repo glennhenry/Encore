@@ -1,7 +1,8 @@
 package encore.acts
 
-import encore.acts.setup.ActSetup
-import encore.acts.setup.PerformMode
+import encore.acts.choreo.Choreography
+import encore.acts.choreo.BasicChoreography
+import encore.acts.choreo.PerformMode
 import encore.tasks.ServerTaskDispatcher
 
 /**
@@ -14,99 +15,97 @@ import encore.tasks.ServerTaskDispatcher
  * a building construction that completes after 5 minutes can be modeled as a `StageAct`
  * with a 5 minutes delay, and will notify player of its completion inside [perform].
  *
- * #### Identification
+ * #### Scheduling
  *
- * Each stage act must define a unique identifier via [createId]. This ID must be globally
- * unique across all stage act instances. It is typically derived from domain-specific
- * identifiers (e.g., `playerId`, `buildingId`).
- *
- * [createIdentity] provides additional key-value data to distinguish multiple instances
- * of the same `StageAct` type. For example, multiple construction tasks may share the
- * same type but differ by `buildingId` and `buildDuration`.
- *
- * #### Configuration
- *
- * The execution behavior is defined by [createSetup], producing an [ActSetup] including
- * `initialDelay`, and [PerformMode].
+ * The execution behavior is defined by [choreography] that produces a [Choreography]
+ * instance. For example, implementation may return a [BasicChoreography] that will
+ * define the execution schedule based on `initialDelay` and [PerformMode].
  *
  * #### Lifecycle
  *
  * The stage act system offers 4 lifecycles:
  * - [onStart]: Invoked once when the act is first scheduled to run
  *              (e.g., by calling [ServerTaskDispatcher.runTask]).
- * - [perform]: The main execution step. Invoked once or repeatedly depending on [PerformMode].
+ * - [perform]: The main execution step. Invoked once or repeatedly depending on [Choreography].
  * - [onEndingFairy]: Invoked once when the act completes all scheduled executions.
- *     - [PerformMode.Once]: called immediately after [perform]
- *     - [PerformMode.Repeat]: called after the final [perform]
- *     - [PerformMode.Forever]: never called
+ *                    For acts that runs forever, this will never be called.
+ *                    A cancellation will instead call the [onCancelled].
  * - [onCancelled]: Invoked if the act is cancelled before normal completion
-(e.g., via [ServerTaskDispatcher.stopTask]).
+ *                  (e.g., via [ServerTaskDispatcher.stopTask]).
  *
  * @param T The type of [ActConcept] for this stage act.
  */
 interface StageAct<T : ActConcept> {
     /**
-     * The name of this `StageAct`, used for debugging and identification on [Photocard.name].
+     * The name of this `StageAct`, used for debugging purposes.
      */
     val name: String
 
     /**
-     * Produces a globally unique identifier for this act instance.
+     * Produces the choreography for this act.
      */
-    fun createId(concept: T): String
-
-    /**
-     * Produces additional identity data for distinguishing instances of the same act type.
-     */
-    fun createIdentity(concept: T): Map<String, String> = emptyMap()
-
-    /**
-     * Produces the execution configuration for this act.
-     */
-    fun createSetup(concept: T): ActSetup
+    fun choreography(concept: T): Choreography
 
     /**
      * Called once when the act is first scheduled.
-     * Use for initialization or side effects (e.g., notifying a client).
+     * Use for initialization such as:
+     * - notify client
+     * - persisting initial progress data
      */
     suspend fun onStart(concept: T) = Unit
 
     /**
      * Main execution body of the act.
      *
-     * ###### runNumber
+     * ###### performNumber
      *
      * Indicates the current perform number (1-based).
      *
-     * For example, if an act has 3 repetitions (4 total runs including the initial run),
-     * then on the 2nd repetition this value will be `3`, meaning it is the third performance.
+     * For example,
+     * ```
+     * 3 repetitions
+     * performNumber = 1 | initialRun
+     * performNumber = 2 | repeat 1
+     * performNumber = 3 | repeat 2
+     * performNumber = 4 | repeat 3
+     * ```
      *
      * This value is always `1` for [PerformMode.Once].
      *
-     * ###### batch
-     *
-     * Represents how many unit of executions should be processed in this invocation.
-     *
-     * For example, if 6 performs were missed and [MissedPerformPolicy.CatchUp] is applied,
-     * `batch` will be `6`. Under normal conditions (no missed performs), `batch` is typically `1`.
-     *
-     * Implementations should handle arbitrary `batch` sizes unless the [MissedPerformPolicy]
-     * guarantees otherwise (e.g. skip or last-only behavior).
-     *
      * @param performNumber Current perform number (1-based).
-     * @param batch Number of executions to process in this call.
      */
-    suspend fun perform(concept: T, performNumber: Int, batch: Int)
+    suspend fun perform(concept: T, performNumber: Int)
 
     /**
      * Called once when the act completes all scheduled executions successfully.
+     * Use for closing or clean up such as:
+     * - notify client
+     * - deleting persistent progress data
      */
     suspend fun onEndingFairy(concept: T) = Unit
 
     /**
      * Called if the act is cancelled before completing normally.
+     * Use for progress save or rollback such as:
+     * - notify client
+     * - invalidating unfinished result
+     * - saving current progress data
      *
      * @param reason The cause of cancellation.
      */
     suspend fun onCancelled(concept: T, reason: CancellationReason) = Unit
+
+    /**
+     * Called when an exception was thrown during any of the lifecycles
+     * except [onCancelled] and [onError] itself. Exceptions thrown from
+     * [onCancelled] and [onError] itself are safely caught and logged.
+     *
+     * Use for clean up or rollback such as:
+     * - notify client
+     * - marking state as invalid
+     * - deleting persisted data
+     *
+     * @param cause The cause of error.
+     */
+    suspend fun onError(concept: T, cause: Exception) = Unit
 }

@@ -12,19 +12,14 @@ import kotlinx.coroutines.CoroutineScope
  * The owner can be a particular player or the server itself.
  *
  * For example, if an act is bound to a player and their connection is dead,
- * the act will seen as invalid, and thus cancelled. This is typically determined
+ * the act will seen as invalid, and thus cancelled. This is determined
  * through the owner's [coroutineScope].
- *
- * **Important:** The [ownerId] is required for acts with [LifetimeMode.PausedPersistent]
- * or [LifetimeMode.ContinuousPersistent]; as it is used for identification
- * in saving and resuming acts.
  */
 interface ActScope {
     /**
      * The globally unique identifier of the [StageAct] owner.
      *
-     * This should be assigned properly for acts with [LifetimeMode.PausedPersistent]
-     * or [LifetimeMode.ContinuousPersistent].
+     * This is used for debugging and diagnostic purpose.
      *
      * For player this should be [PlayerId].
      * Server-owned acts should use the [ServerId].
@@ -32,7 +27,7 @@ interface ActScope {
     val ownerId: String
 
     /**
-     * The coroutine scope the act will run on.
+     * The coroutine scope which the act will run on.
      */
     val coroutineScope: CoroutineScope
 }
