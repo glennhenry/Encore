@@ -1,18 +1,11 @@
-import encore.acts.*
-import encore.acts.choreo.BasicChoreography
-import encore.acts.choreo.Choreography
-import encore.acts.choreo.ChoreographyContext
-import encore.acts.choreo.CustomChoreography
+import encore.acts.ActConcept
+import encore.acts.StageAct
+import encore.acts.choreo.*
 import encore.acts.director.ActScope
-import encore.acts.choreo.PerformMode
 import encore.fancam.Fancam
-import encore.utils.DayOfWeek
 import encore.utils.Ids
 import encore.utils.SystemTime
-import encore.utils.TimeOfDay
 import encore.utils.TimeProvider
-import encore.utils.nextOccurrence
-import encore.utils.safely
 import encore.utils.safelySuspend
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -21,12 +14,10 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
-import java.time.ZoneId
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
 /**
  * Playground for quick testing and code run
@@ -67,7 +58,8 @@ class Playground {
     @Test
     fun `isActive works as expected`() = runTest {
         val director = StageActDirector(
-            VirtualTimeProvider(this)
+            VirtualTimeProvider(this),
+            ActIdStore()
         )
 
         val id = director.run(
@@ -102,7 +94,7 @@ class Playground {
 
     @Test
     fun `bound act stop successfully stops it`() = runBlocking {
-        val director = StageActDirector(SystemTime)
+        val director = StageActDirector(SystemTime, ActIdStore())
 
         val id = director.run(
             act = TimerAct(),
@@ -133,7 +125,8 @@ class Playground {
     @Test
     fun `bound act error gets terminated`() = runTest {
         val director = StageActDirector(
-            VirtualTimeProvider(this)
+            VirtualTimeProvider(this),
+            ActIdStore()
         )
 
         // create the error act
@@ -179,7 +172,7 @@ class Playground {
 
     @Test
     fun `bound repeat stop successfully stops it`() = runBlocking {
-        val director = StageActDirector(SystemTime)
+        val director = StageActDirector(SystemTime, ActIdStore())
         var performCount = 0
 
         val id = director.run(
@@ -221,7 +214,8 @@ class Playground {
 
     private fun runTimer(time: Duration, scope: TestScope): String {
         val director = StageActDirector(
-            VirtualTimeProvider(scope)
+            VirtualTimeProvider(scope),
+            ActIdStore()
         )
 
         val id = director.run(
@@ -245,7 +239,8 @@ class Playground {
         interval: Duration, scope: TestScope, assertHook: ((Int) -> Unit)?
     ): String {
         val director = StageActDirector(
-            VirtualTimeProvider(scope)
+            VirtualTimeProvider(scope),
+            ActIdStore()
         )
 
         val id = director.run(
@@ -273,7 +268,8 @@ class Playground {
         scope: TestScope, assertHook: ((Int) -> Unit)?
     ): String {
         val director = StageActDirector(
-            VirtualTimeProvider(scope)
+            VirtualTimeProvider(scope),
+            ActIdStore()
         )
 
         val id = director.run(
@@ -305,18 +301,14 @@ data class TimerActConcept(
 class TimerAct : StageAct<TimerActConcept> {
     override val name: String = "TimerAct"
 
-    override fun createId(concept: TimerActConcept): String {
-        return Ids.uuid()
-    }
-
-    override fun createSetup(concept: TimerActConcept): ActSetup {
-        return ActSetup(
+    override fun choreography(concept: TimerActConcept): Choreography<TimerActConcept> {
+        return BasicChoreography(
             initialDelay = concept.delay,
             performMode = PerformMode.Once
         )
     }
 
-    override suspend fun perform(concept: TimerActConcept, performNumber: Int, batch: Int) {
+    override suspend fun perform(concept: TimerActConcept, performNumber: Int) {
         concept.onPerform(performNumber)
     }
 }
@@ -331,18 +323,14 @@ data class RepeatTimerActConcept(
 class RepeatTimerAct : StageAct<RepeatTimerActConcept> {
     override val name: String = "RepeatTimerAct"
 
-    override fun createId(concept: RepeatTimerActConcept): String {
-        return Ids.uuid()
-    }
-
-    override fun createSetup(concept: RepeatTimerActConcept): ActSetup {
-        return ActSetup(
+    override fun choreography(concept: RepeatTimerActConcept): Choreography<RepeatTimerActConcept> {
+        return BasicChoreography(
             initialDelay = concept.initialDelay,
             performMode = PerformMode.Repeat(concept.repetition, concept.interval)
         )
     }
 
-    override suspend fun perform(concept: RepeatTimerActConcept, performNumber: Int, batch: Int) {
+    override suspend fun perform(concept: RepeatTimerActConcept, performNumber: Int) {
         concept.onPerform(performNumber)
     }
 }
@@ -356,18 +344,14 @@ data class ForeverTimerActConcept(
 class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
     override val name: String = "ForeverTimerAct"
 
-    override fun createId(concept: ForeverTimerActConcept): String {
-        return Ids.uuid()
-    }
-
-    override fun createSetup(concept: ForeverTimerActConcept): ActSetup {
-        return ActSetup(
+    override fun choreography(concept: ForeverTimerActConcept): Choreography<ForeverTimerActConcept> {
+        return BasicChoreography(
             initialDelay = concept.initialDelay,
             performMode = PerformMode.Forever(concept.interval)
         )
     }
 
-    override suspend fun perform(concept: ForeverTimerActConcept, performNumber: Int, batch: Int) {
+    override suspend fun perform(concept: ForeverTimerActConcept, performNumber: Int) {
         concept.onPerform(performNumber)
     }
 }
