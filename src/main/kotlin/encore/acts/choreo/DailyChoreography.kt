@@ -18,7 +18,7 @@ import encore.utils.nextOccurrence
 data class DailyChoreography<T : ActConcept>(
     val runAt: TimeOfDay
 ) : CustomChoreography<T> {
-    override fun next(currentPerformCount: Int, concept: T, currentMillis: Long): Long {
-        return runAt.nextOccurrence(currentMillis, SystemTimezone)
+    override fun next(concept: T, context: ChoreographyContext): Long {
+        return runAt.nextOccurrence(context.currentMillis, SystemTimezone)
     }
 }

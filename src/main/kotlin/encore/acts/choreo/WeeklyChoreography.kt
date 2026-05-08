@@ -22,7 +22,7 @@ data class WeeklyChoreography<T : ActConcept>(
     val runAtDay: DayOfWeek,
     val runAtTime: TimeOfDay
 ): CustomChoreography<T> {
-    override fun next(currentPerformCount: Int, concept: T, currentMillis: Long): Long {
-        return runAtDay.nextOccurrence(runAtTime, currentMillis, SystemTimezone)
+    override fun next(concept: T, context: ChoreographyContext): Long {
+        return runAtDay.nextOccurrence(runAtTime, context.currentMillis, SystemTimezone)
     }
 }
