@@ -16,7 +16,7 @@ import encore.acts.StageAct
  *
  * @param T The [ActConcept] associated with the [StageAct].
  */
-interface CustomChoreography<T : ActConcept> : Choreography {
+interface CustomChoreography<T : ActConcept> : Choreography<T> {
     /**
      * Computes the next perform time.
      *

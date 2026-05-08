@@ -1,5 +1,6 @@
 package encore.acts.choreo
 
+import encore.acts.ActConcept
 import encore.acts.StageAct
 import kotlin.time.Duration
 
@@ -13,6 +14,6 @@ import kotlin.time.Duration
  * @property initialDelay The delay before the first performs.
  * @property performMode Defines the act performs portion.
  */
-data class BasicChoreography(
+data class BasicChoreography<T : ActConcept>(
     val initialDelay: Duration, val performMode: PerformMode
-) : Choreography
+) : Choreography<T>

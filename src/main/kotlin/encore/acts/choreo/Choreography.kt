@@ -1,5 +1,6 @@
 package encore.acts.choreo
 
+import encore.acts.ActConcept
 import encore.acts.StageAct
 import encore.utils.DayOfWeek
 import encore.utils.TimeOfDay
@@ -16,5 +17,7 @@ import encore.utils.TimeOfDay
  * - [WeeklyChoreography]: Schedules perform at a fixed [DayOfWeek] and [TimeOfDay].
  *
  * For more advanced or dynamic scheduling behavior, implement [CustomChoreography].
+ *
+ * @param T the type of [ActConcept] which must be same as the one defined in [StageAct].
  */
-interface Choreography
+interface Choreography<T : ActConcept>
