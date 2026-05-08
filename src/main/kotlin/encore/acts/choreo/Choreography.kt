@@ -10,14 +10,43 @@ import encore.utils.TimeOfDay
  *
  * This determines *when* an act should perform, but not *what* it does.
  *
- * Implementations:
+ * Built-in implementations:
  * - [BasicChoreography]: Covers simple runtime scheduling based on an initial delay
  *   and a fixed perform pattern (once, repeat, or forever).
  * - [DailyChoreography]: Schedules perform at a fixed [TimeOfDay] every day.
  * - [WeeklyChoreography]: Schedules perform at a fixed [DayOfWeek] and [TimeOfDay].
  *
- * For more advanced or dynamic scheduling behavior, implement [CustomChoreography].
+ * More advanced or dynamic scheduling requires manual implementation.
  *
  * @param T the type of [ActConcept] which must be same as the one defined in [StageAct].
  */
-interface Choreography<T : ActConcept>
+interface Choreography<T : ActConcept> {
+    /**
+     * Computes the next perform time.
+     *
+     * The returned value must be an absolute timestamp (epoch milliseconds),
+     * not a delay. This ensures correct behavior across restarts and time shifts.
+     *
+     * @param concept The act input used to derive scheduling decisions.
+     * @param context Execution and timing information.
+     *
+     * @return The next perform timestamp, or `null` if no further performs should occur.
+     */
+    fun next(concept: T, context: ChoreographyContext): Long?
+}
+
+/**
+ * Execution and time context for [Choreography].
+ *
+ * @property currentMillis The current time in epoch milliseconds.
+ * @property performCount Number of times the act has already performed so far.
+ * @property previousPerformAt Epoch millis of when previous perform was called.
+ *                             `null` if this is the first.
+ * @property startedAt Epoch millis of when the act was called to run.
+ */
+data class ChoreographyContext(
+    val currentMillis: Long,
+    val performCount: Int,
+    val previousPerformAt: Long?,
+    val startedAt: Long
+)
