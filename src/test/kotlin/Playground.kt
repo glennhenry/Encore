@@ -360,7 +360,6 @@ class StageActDirector(
     private val timeProvider: TimeProvider,
     private val actStore: ActIdStore
 ) {
-    private val scheduler = BasicChoreographyScheduler(timeProvider)
     private val activeActs = mutableMapOf<String, Job>()
 
     fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
@@ -379,31 +378,17 @@ class StageActDirector(
                 }
 
                 while (true) {
-                    val delay = when (choreo) {
-                        is BasicChoreography -> {
-                            val firstPerformAt = startedAt + choreo.initialDelay.inWholeMilliseconds
-                            scheduler.next(choreo, firstPerformAt, performCount) ?: break
-                        }
-
-                        is CustomChoreography -> {
-                            val now = timeProvider.now()
-                            val delay = choreo.next(
-                                concept = concept,
-                                context = ChoreographyContext(
-                                    currentMillis = timeProvider.now(),
-                                    performCount = performCount,
-                                    previousPerformAt = previousPerformAt,
-                                    startedAt = startedAt,
-                                )
-                            )
-                            previousPerformAt = now
-                            delay
-                        }
-
-                        else -> {
-                            error("Unknown choreography: ${choreo::class.simpleName}")
-                        }
-                    }
+                    val now = timeProvider.now()
+                    val delay = choreo.next(
+                        concept = concept,
+                        context = ChoreographyContext(
+                            currentMillis = now,
+                            performCount = performCount,
+                            previousPerformAt = previousPerformAt,
+                            startedAt = startedAt,
+                        )
+                    )
+                    previousPerformAt = now
 
                     if (delay == null) break
 
@@ -452,49 +437,6 @@ class StageActDirector(
 
     fun isActive(actId: String): Boolean {
         return activeActs.containsKey(actId)
-    }
-}
-
-class BasicChoreographyScheduler(private val timeProvider: TimeProvider) {
-    fun next(choreo: BasicChoreography<*>, firstPerformAt: Long, performCount: Int): Long? {
-        if (isFinished(choreo, performCount + 1)) {
-            return null
-        }
-
-        return delayLeft(choreo, firstPerformAt, performCount)
-    }
-
-    private fun delayLeft(setup: BasicChoreography<*>, firstPerformAt: Long, performCount: Int): Long {
-        return when (setup.performMode) {
-            is PerformMode.Once -> {
-                calculateDelay(firstPerformAt, performCount, Duration.ZERO)
-            }
-
-            is PerformMode.Repeat -> {
-                calculateDelay(firstPerformAt, performCount, setup.performMode.interval)
-            }
-
-            is PerformMode.Forever -> {
-                calculateDelay(firstPerformAt, performCount, setup.performMode.interval)
-            }
-        }
-    }
-
-    private fun calculateDelay(firstPerformAt: Long, performCount: Int, interval: Duration): Long {
-        val nextPerformAt = firstPerformAt + performCount * (interval.inWholeMilliseconds)
-        val timeLeftUntilNextPerform = nextPerformAt - timeProvider.now()
-        return timeLeftUntilNextPerform
-    }
-
-    private fun isFinished(choreo: BasicChoreography<*>, newPerformCount: Int): Boolean {
-        return when (choreo.performMode) {
-            is PerformMode.Once -> true
-            is PerformMode.Repeat -> {
-                newPerformCount == choreo.performMode.repetition + 1
-            }
-
-            is PerformMode.Forever -> false
-        }
     }
 }
 
