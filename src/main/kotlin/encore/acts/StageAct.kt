@@ -1,7 +1,7 @@
 package encore.acts
 
-import encore.acts.choreo.Choreography
 import encore.acts.choreo.BasicChoreography
+import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
 import encore.tasks.ServerTaskDispatcher
 
@@ -32,6 +32,31 @@ import encore.tasks.ServerTaskDispatcher
  *                    A cancellation will instead call the [onCancelled].
  * - [onCancelled]: Invoked if the act is cancelled before normal completion
  *                  (e.g., via [ServerTaskDispatcher.stopTask]).
+ *
+ * #### Continuation
+ *
+ * The stage act system acts solely as a runtime scheduler and executor.
+ * It does not automatically persist or resume unfinished acts.
+ *
+ * Continuation is handled explicitly by the application by:
+ * - persisting the required progress data, and
+ * - re-running the act with updated scheduling information.
+ *
+ * This is typically achieved by [ActConcept] taking data which is
+ * then used by [choreography] to derive the execution's timing.
+ *
+ * ##### Progress persistence
+ *
+ * Stage act implementations may persist progress data within their
+ * lifecycle hooks. For instance:
+ * - saving `actFinishedAt`
+ * - storing remaining duration
+ * - marking finished state
+ *
+ * During player's reconnection or application recovery, the application may:
+ * - load the persisted progress data,
+ * - reconstruct the corresponding act instance, and
+ * - re-run the act with the updated scheduling logic.
  *
  * @param T The type of [ActConcept] for this stage act.
  */

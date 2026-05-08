@@ -372,7 +372,10 @@ class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
     }
 }
 
-class StageActDirector(private val timeProvider: TimeProvider) {
+class StageActDirector(
+    private val timeProvider: TimeProvider,
+    private val actStore: ActIdStore
+) {
     private val scheduler = BasicChoreographyScheduler(timeProvider)
     private val activeActs = mutableMapOf<String, Job>()
 
@@ -449,6 +452,7 @@ class StageActDirector(private val timeProvider: TimeProvider) {
                 }
             } finally {
                 activeActs.remove(id)
+                actStore.unbind(id)
             }
         }
 
@@ -456,7 +460,7 @@ class StageActDirector(private val timeProvider: TimeProvider) {
         return id
     }
 
-    fun stop(actId: String): Boolean {
+    fun stop(actId: String?): Boolean {
         (activeActs[actId] ?: return false)
             .cancel(CancellationException("Act was stopped"))
         return true
@@ -510,59 +514,26 @@ class BasicChoreographyScheduler(private val timeProvider: TimeProvider) {
     }
 }
 
-/*
-Time model and illustration
-
-initialDelay = 5s
-interval     = 10s
-repetition   = 3
-
-0      5    9      15         25    30    35
-S -----!----T------!----------!-----N-----!
-    5  ! 4     6   !    10    !  5     5  !
-
-startedAt        : S = 0
-accumulatedDelay : T = 9
-performCount     : C = 1
-now              : N = 30
-lastActiveAt     : T = 9
-
-This task already performs 1 time, where lastActive was at tick 9.
-Now in tick 30.
-
-expectedPerformCountNow = (now - firstPerformAt) / interval + 1          (3  = floor((30 - 5) / 10 + 1))
-missedPerformCount      = expectedPerformCountNow - performCount         (2  = 3 - 1)
-remainingPerformCount   = repetition - performCount                      (2  = 3 - 1)
-performsTodo            = min(missedperformCount, remainingPerformCount) (2  = min(2, 2))
-
-This means that the task need to be performed 2 repeats in batch to compensate the miss.
-
-firstPerformAt          = startedAt + initialDelay                           (5  = 0 + 5)
-nextPerformIndex        = performCount + 1                                   (2  = 1 + 1)
-nextPerformAt           = firstPerformAt + (nextPerformIndex - 1) * interval (15 = 5 + (2 - 1) * 10)
-oldRemainingDelay       = nextPerformAt - accumulatedDelay                   (6  = 15 - 9)
-
-delayJump               = (nextPerformIndex - 1) * interval                                    (10 = 2 - 1 * 10)
-inactiveTime            = now - lastActiveAt                                                   (21 = 30 - 9)
-newPerformCount         = performCount + performsTodo                                          (3  = 1 + 2)
-newRemainingDelay       = inactiveTime - oldRemainingDelay - delayJump                         (5  = 21 - 6 - 10)
-newAccumulatedDelay     = accumulatedDelay + oldRemainingDelay + newRemainingDelay + delayJump (30 = 9 + 6 + 10 + 5)
-
-The task then continues with the newRemainingDelay
-
-With the pause model, no performs will be missed and the remainingDelay will still be 6.
-*/
-
 /**
  * Runtime lookup store for active [StageAct] identifiers.
  *
  * This component allows externally locating a running act through
- * application-defined identities, typically derived from one or more
+ * application-defined string identities, typically derived from one or more
  * fields of the corresponding [ActConcept].
  *
  * Common examples include:
  * - `"playerId-buildingId"`
  * - `"playerId-upgradeType"`
+ *
+ * Usage:
+ * - [bind] and [unbind] to associate an identity with an `actId`.
+ * - [find] to get the `actId` from identity.
+ *
+ * Note:
+ * - `bind` should be manually invoked by the caller that initiates the act.
+ *   The director does not have the responsibility to bind any running tasks,
+ *   because not every acts aims to be cancellable manually.
+ * - `unbind` will be called automatically by the director.
  */
 class ActIdStore {
     private val identities = mutableMapOf<String, String>()
