@@ -44,7 +44,7 @@ interface StageAct<T : ActConcept> {
     /**
      * Produces the choreography for this act.
      */
-    fun choreography(concept: T): Choreography
+    fun choreography(concept: T): Choreography<T>
 
     /**
      * Called once when the act is first scheduled.
@@ -90,10 +90,8 @@ interface StageAct<T : ActConcept> {
      * - notify client
      * - invalidating unfinished result
      * - saving current progress data
-     *
-     * @param reason The cause of cancellation.
      */
-    suspend fun onCancelled(concept: T, reason: CancellationReason) = Unit
+    suspend fun onCancelled(concept: T) = Unit
 
     /**
      * Called when an exception was thrown during any of the lifecycles
