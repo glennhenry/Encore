@@ -23,11 +23,26 @@ interface CustomChoreography<T : ActConcept> : Choreography<T> {
      * The returned value must be an absolute timestamp (epoch milliseconds),
      * not a delay. This ensures correct behavior across restarts and time shifts.
      *
-     * @param currentPerformCount Number of times the act has already performed.
      * @param concept The act input used to derive scheduling decisions.
-     * @param currentMillis The current time in epoch milliseconds.
+     * @param context Execution and timing information.
      *
      * @return The next perform timestamp, or `null` if no further performs should occur.
      */
-    fun next(currentPerformCount: Int, concept: T, currentMillis: Long): Long?
+    fun next(concept: T, context: ChoreographyContext): Long?
 }
+
+/**
+ * Execution and time context for [CustomChoreography].
+ *
+ * @property currentMillis The current time in epoch milliseconds.
+ * @property performCount Number of times the act has already performed.
+ * @property previousPerformAt Epoch millis of when previous perform was called.
+ *                             `null` if this is the first.
+ * @property startedAt Epoch millis of when the act was called to run.
+ */
+data class ChoreographyContext(
+    val currentMillis: Long,
+    val performCount: Int,
+    val previousPerformAt: Long?,
+    val startedAt: Long
+)
