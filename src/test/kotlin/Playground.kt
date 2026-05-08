@@ -1,4 +1,8 @@
 import encore.acts.*
+import encore.acts.choreo.BasicChoreography
+import encore.acts.choreo.Choreography
+import encore.acts.choreo.ChoreographyContext
+import encore.acts.choreo.CustomChoreography
 import encore.acts.director.ActScope
 import encore.acts.choreo.PerformMode
 import encore.fancam.Fancam
@@ -366,54 +370,71 @@ class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
     }
 }
 
-data class Step(
-    val delay: Long,
-    val runsTodo: Int,
-    val isFinished: Boolean
-)
-
 class StageActDirector(private val timeProvider: TimeProvider) {
-    private val boundChoreo = BoundChoreography(timeProvider)
+    private val scheduler = BasicChoreographyScheduler(timeProvider)
     private val activeActs = mutableMapOf<String, Job>()
 
     fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
-        val id = act.createId(concept)
-        val setup = act.createSetup(concept)
+        val startedAt = timeProvider.now()
+        val id = Ids.uuid()
+        val choreo = act.choreography(concept)
 
         val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            val firstPerformAt = timeProvider.now() + setup.initialDelay.toLong(DurationUnit.MILLISECONDS)
             var performCount = 0
+            var previousPerformAt: Long? = null
             var finished = false
 
             try {
                 act.onStart(concept)
 
                 while (true) {
-                    val step = boundChoreo.nextStep(setup, firstPerformAt, performCount)
+                    val delay = when (choreo) {
+                        is BasicChoreography -> {
+                            val firstPerformAt = startedAt + choreo.initialDelay.inWholeMilliseconds
+                            scheduler.next(choreo, firstPerformAt, performCount) ?: break
+                        }
 
-                    if (step.delay > 0) {
-                        delay(step.delay.milliseconds)
+                        is CustomChoreography -> {
+                            val now = timeProvider.now()
+                            val delay = choreo.next(
+                                concept = concept,
+                                context = ChoreographyContext(
+                                    currentMillis = timeProvider.now(),
+                                    performCount = performCount,
+                                    previousPerformAt = previousPerformAt,
+                                    startedAt = startedAt,
+                                )
+                            )
+                            previousPerformAt = now
+                            delay
+                        }
+
+                        else -> {
+                            error("Unknown choreography: ${choreo::class.simpleName}")
+                        }
                     }
 
-                    act.perform(concept, performCount + 1, 1)
-                    performCount += 1
+                    if (delay == null) break
 
-                    if (step.isFinished) break
+                    if (delay > 0) {
+                        delay(delay.milliseconds)
+                    }
+
+                    act.perform(concept, performCount + 1)
+                    performCount += 1
                 }
 
                 finished = true
                 act.onEndingFairy(concept)
             } catch (_: CancellationException) {
-                // cancel reason is either stopped or killed
-                // since bound act "cannot" be killed, to guarantee correctness
-                // CancellationReason.Stopped is passed directly
                 if (!finished) {
                     withContext(NonCancellable) {
-                        act.onCancelled(concept, CancellationReason.Stopped)
+                        act.onCancelled(concept)
                     }
                 }
             } catch (e: Exception) {
                 Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
+                act.onError(concept, e)
             } finally {
                 activeActs.remove(id)
             }
@@ -425,7 +446,7 @@ class StageActDirector(private val timeProvider: TimeProvider) {
 
     fun stop(actId: String): Boolean {
         (activeActs[actId] ?: return false)
-            .cancel(StopCancellationException())
+            .cancel(CancellationException("Act was stopped"))
         return true
     }
 
@@ -434,13 +455,16 @@ class StageActDirector(private val timeProvider: TimeProvider) {
     }
 }
 
-class BoundChoreography(private val timeProvider: TimeProvider) {
-    fun nextStep(setup: ActSetup, firstPerformAt: Long, performCount: Int): Step {
-        val delay = delayLeft(setup, firstPerformAt, performCount)
-        return Step(delay, 1, isFinished(setup, performCount + 1))
+class BasicChoreographyScheduler(private val timeProvider: TimeProvider) {
+    fun next(choreo: BasicChoreography<*>, firstPerformAt: Long, performCount: Int): Long? {
+        if (isFinished(choreo, performCount + 1)) {
+            return null
+        }
+
+        return delayLeft(choreo, firstPerformAt, performCount)
     }
 
-    private fun delayLeft(setup: ActSetup, firstPerformAt: Long, performCount: Int): Long {
+    private fun delayLeft(setup: BasicChoreography<*>, firstPerformAt: Long, performCount: Int): Long {
         return when (setup.performMode) {
             is PerformMode.Once -> {
                 calculateDelay(firstPerformAt, performCount, Duration.ZERO)
@@ -462,29 +486,17 @@ class BoundChoreography(private val timeProvider: TimeProvider) {
         return timeLeftUntilNextPerform
     }
 
-    private fun isFinished(setup: ActSetup, newPerformCount: Int): Boolean {
-        return when (setup.performMode) {
+    private fun isFinished(choreo: BasicChoreography<*>, newPerformCount: Int): Boolean {
+        return when (choreo.performMode) {
             is PerformMode.Once -> true
             is PerformMode.Repeat -> {
-                newPerformCount == setup.performMode.repetition + 1
+                newPerformCount == choreo.performMode.repetition + 1
             }
 
             is PerformMode.Forever -> false
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
 Time model and illustration
