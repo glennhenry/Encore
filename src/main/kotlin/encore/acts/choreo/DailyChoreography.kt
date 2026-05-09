@@ -19,6 +19,8 @@ data class DailyChoreography<T : ActConcept>(
     val runAt: TimeOfDay
 ) : Choreography<T> {
     override fun next(concept: T, context: ChoreographyContext): Long {
-        return runAt.nextOccurrence(context.currentMillis, SystemTimezone)
+        val nextOccurence = runAt.nextOccurrence(context.currentMillis, SystemTimezone)
+        val timeUntilNextOccurence = nextOccurence - context.currentMillis
+        return timeUntilNextOccurence
     }
 }

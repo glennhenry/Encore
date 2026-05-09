@@ -22,15 +22,11 @@ import encore.utils.TimeOfDay
  */
 interface Choreography<T : ActConcept> {
     /**
-     * Computes the next perform time.
-     *
-     * The returned value must be an absolute timestamp (epoch milliseconds),
-     * not a delay. This ensures correct behavior across restarts and time shifts.
+     * Computes the delay time until the next perform.
      *
      * @param concept The act input used to derive scheduling decisions.
      * @param context Execution and timing information.
-     *
-     * @return The next perform timestamp, or `null` if no further performs should occur.
+     * @return The delay amount, or `null` if no further performs should occur.
      */
     fun next(concept: T, context: ChoreographyContext): Long?
 }
