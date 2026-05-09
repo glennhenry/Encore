@@ -1,19 +1,19 @@
 import encore.acts.ActConcept
 import encore.acts.ActIdStore
+import encore.acts.ActScope
 import encore.acts.StageAct
 import encore.acts.choreo.BasicChoreography
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.acts.choreo.PerformMode
-import encore.acts.ActScope
 import encore.fancam.Fancam
 import encore.utils.Ids
-import encore.utils.SystemTime
 import encore.utils.TimeProvider
 import encore.utils.safelySuspend
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
@@ -36,12 +36,12 @@ class Playground {
     }
 
     @Test
-    fun `bound once`() = runTest {
+    fun `act run once`() = runTest {
         runTimer(3.seconds, this)
     }
 
     @Test
-    fun `bound once multiple acts`() = runTest {
+    fun `multiple acts run once`() = runTest {
         // all these acts should start instantly since
         // director.run launches a coroutine and returns the act ID immediately
 
@@ -81,7 +81,8 @@ class Playground {
         Fancam.trace { "Timer started and isActive=${true}" }
 
         // assert that the act is no longer active after it finishes
-        // runTest skips any delay, so must rely on another timer to assert
+        // runTest skips any delay and can't wait 3 seconds before this assertation
+        // rely on another timer which finishes later to assert
         director.run(
             act = TimerAct(),
             concept = TimerActConcept(3100.milliseconds) {
@@ -97,8 +98,8 @@ class Playground {
     }
 
     @Test
-    fun `bound act stop successfully stops it`() = runBlocking {
-        val director = StageActDirector(SystemTime, ActIdStore())
+    fun `act stop successfully stops it`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
 
         val id = director.run(
             act = TimerAct(),
@@ -107,27 +108,23 @@ class Playground {
             },
             scope = object : ActScope {
                 override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = this@runBlocking
+                override val coroutineScope: CoroutineScope = this@runTest
             }
         )
 
-        // must be active after run
         val isActive = director.isActive(id)
         assertTrue(isActive)
-        Fancam.trace { "Timer started and isActive=${true}" }
 
-        // must rely on real time because stop or job.cancel() takes some time
-        // that can't be awaited with runTest
-        delay(200.milliseconds)
+        // stop and wait cancellation to finish
         assertTrue(director.stop(id))
-        delay(200.milliseconds)
+        advanceUntilIdle()
+
         val isActive2 = director.isActive(id)
         assertFalse(isActive2)
-        Fancam.trace { "isActive=${false}" }
     }
 
     @Test
-    fun `bound act error gets terminated`() = runTest {
+    fun `act throw error should stop it`() = runTest {
         val director = StageActDirector(
             VirtualTimeProvider(this),
             ActIdStore()
@@ -144,11 +141,6 @@ class Playground {
                 override val coroutineScope: CoroutineScope = this@runTest
             }
         )
-
-        // assert active
-        val isActive = director.isActive(id)
-        assertTrue(isActive)
-        Fancam.trace { "Timer started and isActive=${true}" }
 
         // rely on another timer to assert
         // the error act should already throws before this
@@ -169,14 +161,13 @@ class Playground {
     }
 
     @Test
-    fun `bound repeat`() = runTest {
-        // 3s, 5s, 7s, 9s, 11s, 13s
+    fun `act run repeat`() = runTest {
         runRepeatTimer(3.seconds, 5, 2.seconds, this) {}
     }
 
     @Test
-    fun `bound repeat stop successfully stops it`() = runBlocking {
-        val director = StageActDirector(SystemTime, ActIdStore())
+    fun `act repeat stop successfully stops it`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
         var performCount = 0
 
         val id = director.run(
@@ -187,18 +178,23 @@ class Playground {
             },
             scope = object : ActScope {
                 override val ownerId: String = "Test"
-                override val coroutineScope: CoroutineScope = this@runBlocking
+                override val coroutineScope: CoroutineScope = this@runTest
             }
         )
 
-        // must rely on real time because stop or job.cancel() takes some time
-        // that can't be awaited with runTest
-        // 500ms -> performCount = 1
-        // 1000ms -> performCount = 2
-        // 1500ms -> performCount = 3
-        // 1700ms -> performCount = 3 (stopped)
-        delay(1700.milliseconds)
-        assertTrue(director.stop(id))
+        // rely on another timer to stop the task at certain point
+        director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(1700.milliseconds) {
+                assertTrue(director.stop(id))
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "Test"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+
+        advanceUntilIdle()
         assertEquals(3, performCount)
     }
 
