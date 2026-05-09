@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -58,6 +59,28 @@ class Playground {
         runTimer(3500.milliseconds, this)  // finish at tick 3.5s
         runTimer(3001.milliseconds, this)  // finish at tick 3.001s
         runTimer(60.seconds, this)         // finish at tick 60s
+    }
+
+    private fun runTimer(time: Duration, scope: TestScope): String {
+        val director = StageActDirector(
+            VirtualTimeProvider(scope),
+            ActIdStore()
+        )
+
+        val id = director.run(
+            act = TimerAct(),
+            concept = TimerActConcept(time) {
+                Fancam.trace { "TestScope.currentTime=${scope.currentTime}" }
+                assertEquals(scope.currentTime.milliseconds, time)
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = scope
+            }
+        )
+
+        Fancam.trace { "Timer started (will fire after ${time}ms)." }
+        return id
     }
 
     @Test
@@ -163,7 +186,29 @@ class Playground {
 
     @Test
     fun `act run repeat`() = runTest {
-        runRepeatTimer(3.seconds, 5, 2.seconds, this) {}
+        val director = StageActDirector(
+            VirtualTimeProvider(this),
+            ActIdStore()
+        )
+        val initialDelay = 3.seconds
+        val interval = 2.seconds
+
+        director.run(
+            act = RepeatTimerAct(),
+            concept = RepeatTimerActConcept(initialDelay, 5, interval) { performNumber ->
+                Fancam.trace { "[run=$performNumber] TestScope.currentTime=${this.currentTime}" }
+                assertEquals(
+                    this.currentTime,
+                    initialDelay.inWholeMilliseconds + (performNumber - 1) * interval.inWholeMilliseconds
+                )
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = this@runTest
+            }
+        )
+
+        Fancam.trace { "Repeat timer started (will fire after ${initialDelay}ms, every ${interval}ms for 1 + 5 repeats)." }
     }
 
     @Test
@@ -173,7 +218,7 @@ class Playground {
 
         val id = director.run(
             act = RepeatTimerAct(),
-            concept = RepeatTimerActConcept(500.milliseconds, 500.milliseconds, 3) { count ->
+            concept = RepeatTimerActConcept(500.milliseconds, 3, 500.milliseconds) { count ->
                 Fancam.trace { "[run=$count] (${500 + (count - 1) * 500}ms)" }
                 performCount += 1
             },
@@ -201,16 +246,33 @@ class Playground {
 
     @Test
     fun `act runs forever`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
         var performCount = 0
-        runForeverTimer(Duration.ZERO, 2.seconds, this) { count ->
-            performCount += 1
 
-            // stopping timer without director.stop by throwing CancellationException
-            if (count == 50) {
-                assertEquals(50, performCount)
-                throw CancellationException("Manual stop")
+        val interval = 2.seconds
+        director.run(
+            act = ForeverTimerAct(),
+            concept = ForeverTimerActConcept(Duration.ZERO, interval) { performNumber ->
+                Fancam.trace { "[run=$performNumber] TestScope.currentTime=${this.currentTime}" }
+                assertEquals(
+                    this.currentTime,
+                    0L + (performNumber - 1) * interval.inWholeMilliseconds
+                )
+                performCount += 1
+
+                // stopping timer without director.stop by throwing CancellationException
+                if (performNumber == 50) {
+                    assertEquals(50, performCount)
+                    throw CancellationException("Manual stop")
+                }
+            },
+            scope = object : ActScope {
+                override val ownerId: String = "TestScope"
+                override val coroutineScope: CoroutineScope = this@runTest
             }
-        }
+        )
+
+        Fancam.trace { "Forever timer started (will fire after 0ms, every ${interval.inWholeMilliseconds}ms)." }
     }
 
     @Test
@@ -358,87 +420,46 @@ class Playground {
             scope
         )
     }
-
-    private fun runTimer(time: Duration, scope: TestScope): String {
-        val director = StageActDirector(
-            VirtualTimeProvider(scope),
-            ActIdStore()
-        )
-
-        val id = director.run(
-            act = TimerAct(),
-            concept = TimerActConcept(time) {
-                Fancam.trace { "TestScope.currentTime=${scope.currentTime}" }
-                assertEquals(scope.currentTime.milliseconds, time)
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = scope
-            }
-        )
-
-        Fancam.trace { "Timer started (will fire after ${time}ms)." }
-        return id
-    }
-
-    private fun runRepeatTimer(
-        initialDelay: Duration, repetition: Int,
-        interval: Duration, scope: TestScope, assertHook: ((Int) -> Unit)?
-    ): String {
-        val director = StageActDirector(
-            VirtualTimeProvider(scope),
-            ActIdStore()
-        )
-
-        val id = director.run(
-            act = RepeatTimerAct(),
-            concept = RepeatTimerActConcept(initialDelay, interval, repetition) { performNumber ->
-                Fancam.trace { "[run=$performNumber] TestScope.currentTime=${scope.currentTime}" }
-                assertEquals(
-                    scope.currentTime,
-                    initialDelay.inWholeMilliseconds + (performNumber - 1) * interval.inWholeMilliseconds
-                )
-                assertHook?.invoke(performNumber)
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = scope
-            }
-        )
-
-        Fancam.trace { "Repeat timer started (will fire after ${initialDelay}ms, every ${interval}ms for 1 + $repetition repeats)." }
-        return id
-    }
-
-    private fun runForeverTimer(
-        initialDelay: Duration, interval: Duration,
-        scope: TestScope, assertHook: ((Int) -> Unit)?
-    ): String {
-        val director = StageActDirector(
-            VirtualTimeProvider(scope),
-            ActIdStore()
-        )
-
-        val id = director.run(
-            act = ForeverTimerAct(),
-            concept = ForeverTimerActConcept(initialDelay, interval) { performNumber ->
-                Fancam.trace { "[run=$performNumber] TestScope.currentTime=${scope.currentTime}" }
-                assertEquals(
-                    scope.currentTime,
-                    initialDelay.inWholeMilliseconds + (performNumber - 1) * interval.inWholeMilliseconds
-                )
-                assertHook?.invoke(performNumber)
-            },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = scope
-            }
-        )
-
-        Fancam.trace { "Forever timer started (will fire after ${initialDelay}ms, every ${interval}ms)." }
-        return id
-    }
 }
+
+fun StageActDirector.runTimer(duration: Duration, scope: ActScope, block: suspend () -> Unit): String {
+    return run(
+        act = TimerAct(),
+        concept = TimerActConcept(duration) {
+            block()
+        },
+        scope = scope
+    )
+}
+
+fun StageActDirector.runRepeatingTimer(
+    initialDelay: Duration, repetition: Int, interval: Duration,
+    scope: ActScope,
+    block: suspend (Int) -> Unit
+): String {
+    return run(
+        act = RepeatTimerAct(),
+        concept = RepeatTimerActConcept(initialDelay, repetition, interval) {
+            block(it)
+        },
+        scope = scope
+    )
+}
+
+fun StageActDirector.runForeverTimer(
+    initialDelay: Duration, interval: Duration,
+    scope: ActScope,
+    block: suspend (Int) -> Unit
+): String {
+    return run(
+        act = ForeverTimerAct(),
+        concept = ForeverTimerActConcept(initialDelay, interval) {
+            block(it)
+        },
+        scope = scope
+    )
+}
+
 
 data class TimerWithOnStartConcept(
     val delay: Duration,
@@ -514,8 +535,8 @@ class TimerAct : StageAct<TimerActConcept> {
 
 data class RepeatTimerActConcept(
     val initialDelay: Duration,
-    val interval: Duration,
     val repetition: Int,
+    val interval: Duration,
     val onPerform: suspend (Int) -> Unit
 ) : ActConcept
 
