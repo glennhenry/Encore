@@ -9,10 +9,16 @@ import encore.datastore.collection.ServerObjects
 /**
  * A suspendable persistence component that provides access to player and server data.
  *
+ * The data is separated into four core collections:
+ * - [PlayerAccount]: player's account data.
+ * - [PlayerObjects]: player's game data.
+ * - [PlayerServerObjects]: player's non-game, server related data.
+ * - [ServerObjects]: server's operational or game data.
+ *
  * Implementation exposes way to retrieve the core collections and player creation.
  *
- * Higher-level operations such as player creation or alteration of certain player objects
- * fields should be handled by subunits.
+ * Higher-level operations such as player creation or alteration of certain player
+ * or server objects fields should be handled by subunits separately per-domain.
  */
 interface DataStore {
     /**

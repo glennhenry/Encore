@@ -23,9 +23,12 @@ data class MongoCollectionName(
 )
 
 /**
- * Implementation of [DataStore] based on the MongoDB database.
+ * Implementation of [DataStore] with Kotlin MongoDB coroutine driver.
  *
- * Uses Kotlin MongoDB coroutine driver.
+ * The four core collections are implemented as one collection each.
+ * Separating data per-domain to different collections may result better for
+ * scalability and performance. However, for simplicity, data is unified
+ * to reduce domain modelling decision and to keep implementation faster to write.
  */
 class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : DataStore {
     private val accounts = db.getCollection<PlayerAccount>(collectionName.playerAccount)
