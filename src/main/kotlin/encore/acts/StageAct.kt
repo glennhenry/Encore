@@ -33,6 +33,19 @@ import encore.tasks.ServerTaskDispatcher
  * - [onCancelled]: Invoked if the act is cancelled before normal completion
  *                  (e.g., via [ServerTaskDispatcher.stopTask]).
  *
+ * Stage acts are cancellable during any lifecycle phase.
+ *
+ * This means that if `stopTask` is invoked while the act is executing
+ * logic inside a lifecycle such as `onStart`, the execution may be
+ * interrupted and cancelled immediately.
+ *
+ * The chance of mid-execution cancellation increases when a lifecycle
+ * contains long-running or suspending operations.
+ *
+ * Implementations may protect critical sections using
+ * `withContext(NonCancellable)` to ensure atomic execution of important
+ * operations such as persistence updates or consistency-sensitive state changes.
+ *
  * #### Continuation
  *
  * The stage act system acts solely as a runtime scheduler and executor.

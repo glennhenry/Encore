@@ -8,6 +8,7 @@ import encore.acts.choreo.ChoreographyContext
 import encore.acts.choreo.PerformMode
 import encore.fancam.Fancam
 import encore.utils.Ids
+import encore.utils.SystemTime
 import encore.utils.TimeProvider
 import encore.utils.safelySuspend
 import io.ktor.utils.io.CancellationException
@@ -392,9 +393,7 @@ class StageActDirector(
 
             try {
                 if (callOnStart) {
-                    withContext(NonCancellable) {
-                        act.onStart(concept)
-                    }
+                    act.onStart(concept)
                 }
 
                 if (performDirectly) {
@@ -424,23 +423,17 @@ class StageActDirector(
                 }
 
                 finished = true
-                withContext(NonCancellable) {
-                    act.onEndingFairy(concept)
-                }
+                act.onEndingFairy(concept)
             } catch (_: CancellationException) {
                 if (!finished) {
-                    withContext(NonCancellable) {
-                        safelySuspend {
-                            act.onCancelled(concept)
-                        }
+                    safelySuspend {
+                        act.onCancelled(concept)
                     }
                 }
             } catch (e: Exception) {
                 Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
-                withContext(NonCancellable) {
-                    safelySuspend {
-                        act.onError(concept, e)
-                    }
+                safelySuspend {
+                    act.onError(concept, e)
                 }
             } finally {
                 activeActs.remove(id)
