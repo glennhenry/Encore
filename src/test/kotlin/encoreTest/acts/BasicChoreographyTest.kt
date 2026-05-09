@@ -18,7 +18,7 @@ class BasicChoreographyTest {
         val now = 0L
 
         val actual = BasicChoreography<ActConcept>(3.minutes, PerformMode.Once)
-            .next(concept, ChoreographyContext(now, 0, null, 0L))
+            .next(concept, ChoreographyContext(now, 0, 0, null, null))
 
         val expected = (3.minutes).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -30,7 +30,7 @@ class BasicChoreographyTest {
         val now = 1000L
 
         val actual = BasicChoreography<ActConcept>(3.minutes, PerformMode.Once)
-            .next(concept, ChoreographyContext(now, 0, null, startedAt = 0L))
+            .next(concept, ChoreographyContext(now, 0, startedAt = 0L, null, null))
 
         val expected = (3.minutes - now.milliseconds).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -42,7 +42,7 @@ class BasicChoreographyTest {
         val now = 0L
 
         val actual = BasicChoreography<ActConcept>(3.minutes, PerformMode.Once)
-            .next(concept, ChoreographyContext(now, 1, null, 0))
+            .next(concept, ChoreographyContext(now, 1, 0, null, null))
 
         val expected = null
         assertEquals(expected, actual)
@@ -54,7 +54,7 @@ class BasicChoreographyTest {
         val now = 0L
 
         val actual = BasicChoreography<ActConcept>(3.minutes, PerformMode.Repeat(3, 1.minutes))
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0, 0, null, null))
 
         val expected = (3.minutes).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -67,7 +67,7 @@ class BasicChoreographyTest {
         val now = (3.minutes + 2.minutes).inWholeMilliseconds
 
         val actual = BasicChoreography<ActConcept>(3.minutes, PerformMode.Repeat(3, 1.minutes))
-            .next(concept, ChoreographyContext(now, 3, null, 0))
+            .next(concept, ChoreographyContext(now, 3, 0, null, null))
 
         val expected = (1.minutes).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -79,7 +79,7 @@ class BasicChoreographyTest {
         val now = 0L
 
         val actual = BasicChoreography<ActConcept>(3.minutes, PerformMode.Repeat(3, 1.minutes))
-            .next(concept, ChoreographyContext(now, 4, null, 0))
+            .next(concept, ChoreographyContext(now, 4, 0, null, null))
 
         val expected = null
         assertEquals(expected, actual)

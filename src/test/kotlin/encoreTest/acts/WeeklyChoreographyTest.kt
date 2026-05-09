@@ -34,7 +34,7 @@ class WeeklyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = WeeklyChoreography<ActConcept>(DayOfWeek.Monday, 15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         val expected = (1.hours).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -51,7 +51,7 @@ class WeeklyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = WeeklyChoreography<ActConcept>(DayOfWeek.Tuesday, 15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         val expected = (1.days + 1.hours).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -68,7 +68,7 @@ class WeeklyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = WeeklyChoreography<ActConcept>(DayOfWeek.Monday, 15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         val expected = (7.days - 1.hours).inWholeMilliseconds
         assertEquals(expected, actual)

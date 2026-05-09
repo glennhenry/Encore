@@ -24,7 +24,7 @@ class DailyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = DailyChoreography<ActConcept>(15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         val expected = (1.hours + 30.minutes).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -41,7 +41,7 @@ class DailyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = DailyChoreography<ActConcept>(15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         val expected = (1.seconds).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -58,7 +58,7 @@ class DailyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = DailyChoreography<ActConcept>(15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         val expected = (23.hours).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -75,7 +75,7 @@ class DailyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = DailyChoreography<ActConcept>(15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         val expected = (24.hours - 1.seconds).inWholeMilliseconds
         assertEquals(expected, actual)
@@ -92,7 +92,7 @@ class DailyChoreographyTest {
         ).toInstant().toEpochMilli()
 
         val actual = DailyChoreography<ActConcept>(15.at(30), zone)
-            .next(concept, ChoreographyContext(now, 0, null, 0))
+            .next(concept, ChoreographyContext(now, 0,  0, null, null))
 
         assertEquals(0L, actual)
     }

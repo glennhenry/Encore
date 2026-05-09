@@ -22,7 +22,7 @@ data class BasicChoreography<T : ActConcept>(
             return null
         }
 
-        val firstPerformAt = context.startedAt + initialDelay.inWholeMilliseconds
+        val firstPerformAt = context.firstPerformAt ?: (context.startedAt + initialDelay.inWholeMilliseconds)
         return delayLeft(firstPerformAt, context.currentMillis, context.performCount)
     }
 

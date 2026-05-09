@@ -36,13 +36,16 @@ interface Choreography<T : ActConcept> {
  *
  * @property currentMillis The current time in epoch milliseconds.
  * @property performCount Number of times the act has already performed so far by `onPerform` call.
+ * @property startedAt Epoch millis of when the act was called to run.
+ * @property firstPerformAt Epoch millis of the first time when perform was called.
+ *                          `null` if it hasn't been called before.
  * @property previousPerformAt Epoch millis of when previous perform was called.
  *                             `null` if this is the first.
- * @property startedAt Epoch millis of when the act was called to run.
  */
 data class ChoreographyContext(
     val currentMillis: Long,
     val performCount: Int,
-    val previousPerformAt: Long?,
-    val startedAt: Long
+    val startedAt: Long,
+    val firstPerformAt: Long?,
+    val previousPerformAt: Long?
 )
