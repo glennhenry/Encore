@@ -1,8 +1,5 @@
-package encore.acts.director
+package encore.acts
 
-import encore.acts.StageAct
-import encore.datastore.collection.PlayerId
-import encore.datastore.collection.ServerId
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -21,8 +18,8 @@ interface ActScope {
      *
      * This is used for debugging and diagnostic purpose.
      *
-     * For player this should be [PlayerId].
-     * Server-owned acts should use the [ServerId].
+     * For player this should be [encore.datastore.collection.PlayerId].
+     * Server-owned acts should use the [encore.datastore.collection.ServerId].
      */
     val ownerId: String
 

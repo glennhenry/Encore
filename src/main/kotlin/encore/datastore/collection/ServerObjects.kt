@@ -1,6 +1,6 @@
 package encore.datastore.collection
 
-import encore.acts.director.ActScope
+import encore.acts.ActScope
 import kotlinx.serialization.Serializable
 
 /**
