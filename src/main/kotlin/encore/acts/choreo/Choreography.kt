@@ -35,7 +35,7 @@ interface Choreography<T : ActConcept> {
  * Execution and time context for [Choreography].
  *
  * @property currentMillis The current time in epoch milliseconds.
- * @property performCount Number of times the act has already performed so far.
+ * @property performCount Number of times the act has already performed so far by `onPerform` call.
  * @property previousPerformAt Epoch millis of when previous perform was called.
  *                             `null` if this is the first.
  * @property startedAt Epoch millis of when the act was called to run.

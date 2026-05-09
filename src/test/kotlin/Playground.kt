@@ -363,6 +363,24 @@ class StageActDirector(
     private val activeActs = mutableMapOf<String, Job>()
 
     fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
+        return launchAct(act, concept, scope, callOnStart = true, performDirectly = false)
+    }
+
+    fun <T : ActConcept> runContinue(act: StageAct<T>, concept: T, scope: ActScope): String {
+        return launchAct(act, concept, scope, callOnStart = false, performDirectly = false)
+    }
+
+    fun <T : ActConcept> executeAndContinue(act: StageAct<T>, concept: T, scope: ActScope): String {
+        return launchAct(act, concept, scope, callOnStart = false, performDirectly = true)
+    }
+
+    private fun <T : ActConcept> launchAct(
+        act: StageAct<T>,
+        concept: T,
+        scope: ActScope,
+        callOnStart: Boolean,
+        performDirectly: Boolean
+    ): String {
         val startedAt = timeProvider.now()
         val id = Ids.uuid()
         val choreo = act.choreography(concept)
@@ -373,8 +391,17 @@ class StageActDirector(
             var finished = false
 
             try {
-                withContext(NonCancellable) {
-                    act.onStart(concept)
+                if (callOnStart) {
+                    withContext(NonCancellable) {
+                        act.onStart(concept)
+                    }
+                }
+
+                if (performDirectly) {
+                    val now = timeProvider.now()
+                    previousPerformAt = now
+                    act.perform(concept, 1)
+                    performCount = 1
                 }
 
                 while (true) {
@@ -391,13 +418,9 @@ class StageActDirector(
                     previousPerformAt = now
 
                     if (delay == null) break
+                    if (delay > 0) delay(delay.milliseconds)
 
-                    if (delay > 0) {
-                        delay(delay.milliseconds)
-                    }
-
-                    act.perform(concept, performCount + 1)
-                    performCount += 1
+                    act.perform(concept, ++performCount)
                 }
 
                 finished = true
