@@ -213,6 +213,152 @@ class Playground {
         }
     }
 
+    @Test
+    fun `act with slow onStart shouldn't drift execution`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val scope = object : ActScope {
+            override val ownerId: String = "TestScope"
+            override val coroutineScope: CoroutineScope = this@runTest
+        }
+
+        director.run(
+            TimerWithOnStartAct(),
+            TimerWithOnStartConcept(
+                3.seconds,
+                onStart = { delay(1.seconds) },
+                onPerform = { assertEquals(this.currentTime, 3000L) }),
+            scope
+        )
+    }
+
+    @Test
+    fun `act should be cancellable during non-perform lifecycle`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val scope = object : ActScope {
+            override val ownerId: String = "TestScope"
+            override val coroutineScope: CoroutineScope = this@runTest
+        }
+
+        // onStart very slow
+        val id = director.run(
+            TimerWithOnStartAct(),
+            TimerWithOnStartConcept(
+                delay = 3.seconds,
+                onStart = { delay(5.seconds) },
+                onPerform = { }),
+            scope
+        )
+
+        // should start immediately and cancel the first act after one second.
+        director.run(
+            TimerWithOnStartAct(),
+            TimerWithOnStartConcept(
+                delay = 1.seconds,
+                onStart = {},
+                onPerform = {
+                    assertTrue(director.stop(id))
+                    advanceUntilIdle()
+                    assertFalse(director.isActive(id))
+                }),
+            scope
+        )
+    }
+
+    @Test
+    fun `director should unbind actId after task is stopped`() = runTest {
+        val store = ActIdStore()
+        val director = StageActDirector(SystemTime, store)
+        val scope = object : ActScope {
+            override val ownerId: String = "TestScope"
+            override val coroutineScope: CoroutineScope = this@runTest
+        }
+
+        val id = director.run(
+            TimerAct(),
+            TimerActConcept(
+                delay = 3.seconds,
+                onPerform = { }),
+            scope
+        )
+        store.bind(id, "hello123")
+
+        director.run(
+            TimerAct(),
+            TimerActConcept(
+                delay = 1.seconds,
+                onPerform = {
+                    // should be same for finish or error since we use finally block
+                    assertNotNull(store.find("hello123"))
+                    assertTrue(director.stop(id))
+                    advanceUntilIdle()
+                    assertFalse(director.isActive(id))
+                    assertNull(store.find("hello123"))
+                }),
+            scope
+        )
+    }
+
+    @Test
+    fun `runContinue skips onStart`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val scope = object : ActScope {
+            override val ownerId: String = "TestScope"
+            override val coroutineScope: CoroutineScope = this@runTest
+        }
+
+        director.runContinue(
+            TimerWithOnStartAct(),
+            TimerWithOnStartConcept(
+                delay = 1.seconds,
+                onStart = { throw AssertionError("onStart was executed") },
+                onPerform = { }),
+            scope
+        )
+    }
+
+    @Test
+    fun `executeAndContinue skips onStart and executes directly`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val scope = object : ActScope {
+            override val ownerId: String = "TestScope"
+            override val coroutineScope: CoroutineScope = this@runTest
+        }
+
+        director.executeAndContinue(
+            TimerWithOnStartAct(),
+            TimerWithOnStartConcept(
+                delay = 1.seconds,
+                onStart = { throw AssertionError("onStart was executed") },
+                onPerform = { assertEquals(0, currentTime) }),
+            scope
+        )
+    }
+
+    @Test
+    fun `executeAndContinue skips onStart, executes directly, and continue normal flow`() = runTest {
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val scope = object : ActScope {
+            override val ownerId: String = "TestScope"
+            override val coroutineScope: CoroutineScope = this@runTest
+        }
+
+        director.executeAndContinue(
+            RepeatTimerWithOnStartAct(),
+            RepeatTimerWithOnStartConcept(
+                initialDelay = 1.seconds,
+                repeat = 3,
+                interval = 1.seconds,
+                onStart = { throw AssertionError("onStart was executed") },
+                onPerform = { count ->
+                    // with executeAndContinue,
+                    // run would be 0, 1, 2, 3
+                    // instead of 1, 2, 3, 4
+                    assertEquals(1000L * (count - 1), currentTime)
+                }),
+            scope
+        )
+    }
+
     private fun runTimer(time: Duration, scope: TestScope): String {
         val director = StageActDirector(
             VirtualTimeProvider(scope),
