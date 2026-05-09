@@ -388,6 +388,7 @@ class StageActDirector(
 
         val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             var performCount = 0
+            var firstPerformAt: Long? = null
             var previousPerformAt: Long? = null
             var finished = false
 
@@ -398,6 +399,7 @@ class StageActDirector(
 
                 if (performDirectly) {
                     val now = timeProvider.now()
+                    firstPerformAt = now
                     previousPerformAt = now
                     act.perform(concept, 1)
                     performCount = 1
@@ -410,14 +412,16 @@ class StageActDirector(
                         context = ChoreographyContext(
                             currentMillis = now,
                             performCount = performCount,
-                            previousPerformAt = previousPerformAt,
                             startedAt = startedAt,
+                            firstPerformAt = firstPerformAt,
+                            previousPerformAt = previousPerformAt,
                         )
                     )
                     previousPerformAt = now
 
                     if (delay == null) break
                     if (delay > 0) delay(delay.milliseconds)
+                    if (firstPerformAt == null) firstPerformAt = timeProvider.now()
 
                     act.perform(concept, ++performCount)
                 }
