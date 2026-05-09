@@ -200,7 +200,7 @@ class Playground {
     }
 
     @Test
-    fun `bound forever`() = runTest {
+    fun `act runs forever`() = runTest {
         var performCount = 0
         runForeverTimer(Duration.ZERO, 2.seconds, this) { count ->
             performCount += 1
@@ -291,6 +291,58 @@ class Playground {
 
         Fancam.trace { "Forever timer started (will fire after ${initialDelay}ms, every ${interval}ms)." }
         return id
+    }
+}
+
+data class TimerWithOnStartConcept(
+    val delay: Duration,
+    val onStart: suspend () -> Unit,
+    val onPerform: suspend (Int) -> Unit
+) : ActConcept
+
+class TimerWithOnStartAct : StageAct<TimerWithOnStartConcept> {
+    override val name: String = "TimerWithOnStartAct"
+
+    override suspend fun onStart(concept: TimerWithOnStartConcept) {
+        concept.onStart()
+    }
+
+    override fun choreography(concept: TimerWithOnStartConcept): Choreography<TimerWithOnStartConcept> {
+        return BasicChoreography(
+            initialDelay = concept.delay,
+            performMode = PerformMode.Once
+        )
+    }
+
+    override suspend fun perform(concept: TimerWithOnStartConcept, performNumber: Int) {
+        concept.onPerform(performNumber)
+    }
+}
+
+data class RepeatTimerWithOnStartConcept(
+    val initialDelay: Duration,
+    val repeat: Int,
+    val interval: Duration,
+    val onStart: suspend () -> Unit,
+    val onPerform: suspend (Int) -> Unit
+) : ActConcept
+
+class RepeatTimerWithOnStartAct : StageAct<RepeatTimerWithOnStartConcept> {
+    override val name: String = "RepeatTimerWithOnStartAct"
+
+    override suspend fun onStart(concept: RepeatTimerWithOnStartConcept) {
+        concept.onStart()
+    }
+
+    override fun choreography(concept: RepeatTimerWithOnStartConcept): Choreography<RepeatTimerWithOnStartConcept> {
+        return BasicChoreography(
+            initialDelay = concept.initialDelay,
+            performMode = PerformMode.Repeat(concept.repeat, concept.interval)
+        )
+    }
+
+    override suspend fun perform(concept: RepeatTimerWithOnStartConcept, performNumber: Int) {
+        concept.onPerform(performNumber)
     }
 }
 
