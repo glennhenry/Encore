@@ -43,6 +43,7 @@ fun Int.at(minute: Int): TimeOfDay {
  * For example, if `TimeOfDay` represents 15:00:
  * - If [now] is 14:00, this returns today at 15:00.
  * - If [now] is 16:00, this returns tomorrow at 15:00.
+ * - If [now] is exactly 15:00 at second rate, this returns today at 15:00.
  *
  * The returned value is an absolute timestamp (epoch millis), not a delay.
  *
@@ -52,14 +53,13 @@ fun Int.at(minute: Int): TimeOfDay {
  */
 fun TimeOfDay.nextOccurrence(now: Long, timezone: ZoneId): Long {
     val currentTime = Instant.ofEpochMilli(now).atZone(timezone)
-
     val targetTime = currentTime
         .withHour(hour)
         .withMinute(minute)
         .withSecond(0)
         .withNano(0)
 
-    val next = if (targetTime.isAfter(currentTime)) {
+    val next = if (!targetTime.isBefore(currentTime)) {
         targetTime
     } else {
         targetTime.plusDays(1)
@@ -105,6 +105,7 @@ fun DayOfWeek.toJavaDayOfWeek(): java.time.DayOfWeek {
  * For example, if `DayOfWeek` and `TimeOfDay` represents Wednesday 15:00:
  * - If [now] is Tuesday 14:00, this returns tomorrow at 15:00.
  * - If [now] is Wednesday 16:00, this returns next week at 15:00.
+ * - If [now] is Wednesday 15:00 at second rate, this returns today at 15:00.
  *
  * The returned value is an absolute timestamp (epoch millis), not a delay.
  *
@@ -120,16 +121,18 @@ fun DayOfWeek.nextOccurrence(timeOfDay: TimeOfDay, now: Long, timezone: ZoneId):
 
     val daysToAdd = (targetDay.value - currentDay.value + 7) % 7
 
-    var targetTime = currentTime
+    val targetTime = currentTime
         .plusDays(daysToAdd.toLong())
         .withHour(timeOfDay.hour)
         .withMinute(timeOfDay.minute)
         .withSecond(0)
         .withNano(0)
 
-    if (!targetTime.isAfter(currentTime)) {
-        targetTime = targetTime.plusWeeks(1)
+    val next = if (!targetTime.isBefore(currentTime)) {
+        targetTime
+    } else {
+        targetTime.plusWeeks(1)
     }
 
-    return targetTime.toInstant().toEpochMilli()
+    return next.toInstant().toEpochMilli()
 }

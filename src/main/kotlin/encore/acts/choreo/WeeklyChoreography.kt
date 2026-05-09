@@ -6,6 +6,7 @@ import encore.acts.StageAct
 import encore.utils.DayOfWeek
 import encore.utils.TimeOfDay
 import encore.utils.nextOccurrence
+import java.time.ZoneId
 
 /**
  * Schedules a [StageAct] to perform once per week at a specific
@@ -20,10 +21,11 @@ import encore.utils.nextOccurrence
  */
 data class WeeklyChoreography<T : ActConcept>(
     val runAtDay: DayOfWeek,
-    val runAtTime: TimeOfDay
+    val runAtTime: TimeOfDay,
+    val timezone: ZoneId = SystemTimezone
 ) : Choreography<T> {
     override fun next(concept: T, context: ChoreographyContext): Long {
-        val nextOccurence = runAtDay.nextOccurrence(runAtTime, context.currentMillis, SystemTimezone)
+        val nextOccurence = runAtDay.nextOccurrence(runAtTime, context.currentMillis, timezone)
         val timeUntilNextOccurence = nextOccurence - context.currentMillis
         return timeUntilNextOccurence
     }
