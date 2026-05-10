@@ -8,6 +8,7 @@ import encore.acts.StageActDirector
 import encore.acts.choreo.BasicChoreography
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
+import encore.acts.template.runTimer
 import encore.fancam.Fancam
 import encore.utils.TimeProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,7 +17,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import runTimer
 import testHelper.VirtualTimeProvider
 import kotlin.test.*
 import kotlin.time.Duration
