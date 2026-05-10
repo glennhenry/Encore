@@ -23,13 +23,14 @@ import encore.activity.PlayerActivitySubunit
 import encore.network.server.Server
 import encore.network.messaging.format.MessageFormat
 import encore.network.messaging.format.MessageFormatRegistry
-import encore.tasks.ServerTaskDispatcher
-import encore.tasks.TaskName
 import encore.account.MongoAccountRepository
+import encore.acts.ActIdStore
+import encore.acts.StageActDirector
 import encore.auth.AuthSubunit
 import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.session.SessionSubunit
 import encore.utils.Ids
+import encore.utils.SystemTime
 import encore.venue.Venue
 import encore.ws.WebSocketManager
 import game.AdminData
@@ -165,7 +166,7 @@ suspend fun Application.module() {
     val contextTracker = DefaultContextTracker()
     val playerLifecycleHandler = PlayerLifecycleHandler()
     val messageFormatRegistry = MessageFormatRegistry()
-    val serverTaskDispatcher = ServerTaskDispatcher()
+    val serverTaskDispatcher = StageActDirector(SystemTime, ActIdStore())
     val commandDispatcher = CommandDispatcher()
     val webSocketManager = WebSocketManager()
 
@@ -234,15 +235,6 @@ suspend fun Application.module() {
     }
 
     val gameServer = GameServer(gameServerConfig) { socketDispatcher, serverContext ->
-        // REPLACE
-        serverContext.serverTaskDispatcher.registerTask(
-            name = TaskName.DummyName,
-            stopFactory = {},
-            deriveTaskId = { playerId, name, _ ->
-                // RTD-playerId123-unit
-                "${name.code}-$playerId-unit"
-            }
-        )
         // REPLACE ADD
         val possibleFormats = listOf<MessageFormat<*>>(
 
