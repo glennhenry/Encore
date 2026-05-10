@@ -3,7 +3,6 @@ package encore.acts
 import encore.acts.choreo.BasicChoreography
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
-import encore.tasks.ServerTaskDispatcher
 
 /**
  * Represents a scheduled server-side task.
@@ -15,6 +14,8 @@ import encore.tasks.ServerTaskDispatcher
  * a building construction that completes after 5 minutes can be modeled as a `StageAct`
  * with a 5 minutes delay, and will notify player of its completion inside [perform].
  *
+ * Stage acts can be run via [StageActDirector].
+ *
  * #### Scheduling
  *
  * The execution behavior is defined by [choreography] that produces a [Choreography]
@@ -24,52 +25,15 @@ import encore.tasks.ServerTaskDispatcher
  * #### Lifecycle
  *
  * The stage act system offers 4 lifecycles:
- * - [onStart]: Invoked once when the act is first scheduled to run
- *              (e.g., by calling [ServerTaskDispatcher.runTask]).
+ * - [onStart]: Invoked once when the act is first scheduled to run.
  * - [perform]: The main execution step. Invoked once or repeatedly depending on [Choreography].
  * - [onEndingFairy]: Invoked once when the act completes all scheduled executions.
  *                    For acts that runs forever, this will never be called.
- *                    A cancellation will instead call the [onCancelled].
- * - [onCancelled]: Invoked if the act is cancelled before normal completion
- *                  (e.g., via [ServerTaskDispatcher.stopTask]).
- *
- * Stage acts are cancellable during any lifecycle phase.
- *
- * This means that if `stopTask` is invoked while the act is executing
- * logic inside a lifecycle such as `onStart`, the execution may be
- * interrupted and cancelled immediately.
- *
- * The chance of mid-execution cancellation increases when a lifecycle
- * contains long-running or suspending operations.
- *
- * Implementations may protect critical sections using
- * `withContext(NonCancellable)` to ensure atomic execution of important
- * operations such as persistence updates or consistency-sensitive state changes.
- *
- * #### Continuation
- *
- * The stage act system acts solely as a runtime scheduler and executor.
- * It does not automatically persist or resume unfinished acts.
- *
- * Continuation is handled explicitly by the application by:
- * - persisting the required progress data, and
- * - re-running the act with updated scheduling information.
- *
- * This is typically achieved by [ActConcept] taking data which is
- * then used by [choreography] to derive the execution's timing.
- *
- * ##### Progress persistence
- *
- * Stage act implementations may persist progress data within their
- * lifecycle hooks. For instance:
- * - saving `actFinishedAt`
- * - storing remaining duration
- * - marking finished state
- *
- * During player's reconnection or application recovery, the application may:
- * - load the persisted progress data,
- * - reconstruct the corresponding act instance, and
- * - re-run the act with the updated scheduling logic.
+ *                    Stop or cancellation will instead call the [onCancelled].
+ * - [onCancelled]: Invoked if the act is stopped before normal completion.
+ * - [onError]: Invoked when error was thrown throughout act lifecycle
+ *              which includes `onStart`, `perform`, `onEndingFairy`, or inside
+ *              logic like [Choreography.next].
  *
  * @param T The type of [ActConcept] for this stage act.
  */

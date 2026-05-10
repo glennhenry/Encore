@@ -1,10 +1,10 @@
 package example
 
-import StageActDirector
 import encore.acts.ActConcept
 import encore.acts.ActIdStore
 import encore.acts.ActScope
 import encore.acts.StageAct
+import encore.acts.StageActDirector
 import encore.acts.choreo.BasicChoreography
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
