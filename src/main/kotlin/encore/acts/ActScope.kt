@@ -1,5 +1,7 @@
 package encore.acts
 
+import encore.datastore.collection.PlayerId
+import encore.datastore.collection.ServerId
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -12,19 +14,19 @@ import kotlinx.coroutines.CoroutineScope
  * the act will seen as invalid, and thus cancelled. This is determined
  * through the owner's [coroutineScope].
  */
-interface ActScope {
+data class ActScope(
     /**
      * The globally unique identifier of the [StageAct] owner.
      *
      * This is used for debugging and diagnostic purpose.
      *
-     * For player this should be [encore.datastore.collection.PlayerId].
-     * Server-owned acts should use the [encore.datastore.collection.ServerId].
+     * For player this should be [PlayerId].
+     * Server-owned acts should use the [ServerId].
      */
-    val ownerId: String
+    val ownerId: String,
 
     /**
      * The coroutine scope which the act will run on.
      */
     val coroutineScope: CoroutineScope
-}
+)

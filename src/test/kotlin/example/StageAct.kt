@@ -46,10 +46,7 @@ class ExampleStageAct {
         val time = VirtualTimeProvider(this)
         val director = StageActDirector(time, ActIdStore())
         val repo = BuildingRepo()
-        val scope = object : ActScope {
-            override val ownerId: String = pid
-            override val coroutineScope: CoroutineScope = this@runTest
-        }
+        val scope = ActScope(pid, this)
 
         val id = director.run(
             act = BuildingConstructionAct(repo, time),
@@ -98,7 +95,7 @@ class ExampleStageAct {
             )
         } else {
             // has finished
-            director.executeAndContinue(
+            director.performAndContinue(
                 act = BuildingConstructionAct(repo, time),
                 concept = BuildingConstructionConcept(
                     playerId = pid,

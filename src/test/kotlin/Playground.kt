@@ -19,7 +19,6 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -73,10 +72,7 @@ class Playground {
                 Fancam.trace { "TestScope.currentTime=${scope.currentTime}" }
                 assertEquals(scope.currentTime.milliseconds, time)
             },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = scope
-            }
+            scope = ActScope("TestScope", scope)
         )
 
         Fancam.trace { "Timer started (will fire after ${time}ms)." }
@@ -93,10 +89,7 @@ class Playground {
         val id = director.run(
             act = TimerAct(),
             concept = TimerActConcept(3.seconds) {},
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
 
         // must be active after run is called
@@ -114,10 +107,7 @@ class Playground {
                 assertFalse(isActive)
                 Fancam.trace { "isActive=${false}" }
             },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope-reassert"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
     }
 
@@ -130,10 +120,7 @@ class Playground {
             concept = TimerActConcept(3.seconds) {
                 throw AssertionError("Executed here after 3 secs")
             },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
 
         val isActive = director.isActive(id)
@@ -160,10 +147,7 @@ class Playground {
             concept = TimerActConcept(5.seconds) {
                 throw RuntimeException("Exception inside perform")
             },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
 
         // rely on another timer to assert
@@ -177,10 +161,7 @@ class Playground {
                 assertFalse(isActive)
                 Fancam.trace { "isActive=${false}" }
             },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
     }
 
@@ -202,10 +183,7 @@ class Playground {
                     initialDelay.inWholeMilliseconds + (performNumber - 1) * interval.inWholeMilliseconds
                 )
             },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
 
         Fancam.trace { "Repeat timer started (will fire after ${initialDelay}ms, every ${interval}ms for 1 + 5 repeats)." }
@@ -222,10 +200,7 @@ class Playground {
                 Fancam.trace { "[run=$count] (${500 + (count - 1) * 500}ms)" }
                 performCount += 1
             },
-            scope = object : ActScope {
-                override val ownerId: String = "Test"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
 
         // rely on another timer to stop the task at certain point
@@ -234,10 +209,7 @@ class Playground {
             concept = TimerActConcept(1700.milliseconds) {
                 assertTrue(director.stop(id))
             },
-            scope = object : ActScope {
-                override val ownerId: String = "Test"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
 
         advanceUntilIdle()
@@ -266,10 +238,7 @@ class Playground {
                     throw CancellationException("Manual stop")
                 }
             },
-            scope = object : ActScope {
-                override val ownerId: String = "TestScope"
-                override val coroutineScope: CoroutineScope = this@runTest
-            }
+            scope = ActScope("TestScope", this)
         )
 
         Fancam.trace { "Forever timer started (will fire after 0ms, every ${interval.inWholeMilliseconds}ms)." }
@@ -278,10 +247,7 @@ class Playground {
     @Test
     fun `act with slow onStart shouldn't drift execution`() = runTest {
         val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
-        val scope = object : ActScope {
-            override val ownerId: String = "TestScope"
-            override val coroutineScope: CoroutineScope = this@runTest
-        }
+        val scope = ActScope("TestScope", this)
 
         director.run(
             TimerWithOnStartAct(),
@@ -296,10 +262,7 @@ class Playground {
     @Test
     fun `act should be cancellable during non-perform lifecycle`() = runTest {
         val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
-        val scope = object : ActScope {
-            override val ownerId: String = "TestScope"
-            override val coroutineScope: CoroutineScope = this@runTest
-        }
+        val scope = ActScope("TestScope", this)
 
         // onStart very slow
         val id = director.run(
@@ -330,10 +293,7 @@ class Playground {
     fun `director should unbind actId after task is stopped`() = runTest {
         val store = ActIdStore()
         val director = StageActDirector(SystemTime, store)
-        val scope = object : ActScope {
-            override val ownerId: String = "TestScope"
-            override val coroutineScope: CoroutineScope = this@runTest
-        }
+        val scope = ActScope("TestScope", this)
 
         val id = director.run(
             TimerAct(),
@@ -363,10 +323,7 @@ class Playground {
     @Test
     fun `runContinue skips onStart`() = runTest {
         val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
-        val scope = object : ActScope {
-            override val ownerId: String = "TestScope"
-            override val coroutineScope: CoroutineScope = this@runTest
-        }
+        val scope = ActScope("TestScope", this)
 
         director.runContinue(
             TimerWithOnStartAct(),
@@ -381,12 +338,9 @@ class Playground {
     @Test
     fun `executeAndContinue skips onStart and executes directly`() = runTest {
         val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
-        val scope = object : ActScope {
-            override val ownerId: String = "TestScope"
-            override val coroutineScope: CoroutineScope = this@runTest
-        }
+        val scope = ActScope("TestScope", this)
 
-        director.executeAndContinue(
+        director.performAndContinue(
             TimerWithOnStartAct(),
             TimerWithOnStartConcept(
                 delay = 1.seconds,
@@ -399,12 +353,9 @@ class Playground {
     @Test
     fun `executeAndContinue skips onStart, executes directly, and continue normal flow`() = runTest {
         val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
-        val scope = object : ActScope {
-            override val ownerId: String = "TestScope"
-            override val coroutineScope: CoroutineScope = this@runTest
-        }
+        val scope = ActScope("TestScope", this)
 
-        director.executeAndContinue(
+        director.performAndContinue(
             RepeatTimerWithOnStartAct(),
             RepeatTimerWithOnStartConcept(
                 initialDelay = 1.seconds,
@@ -590,7 +541,7 @@ class StageActDirector(
         return launchAct(act, concept, scope, callOnStart = false, performDirectly = false)
     }
 
-    fun <T : ActConcept> executeAndContinue(act: StageAct<T>, concept: T, scope: ActScope): String {
+    fun <T : ActConcept> performAndContinue(act: StageAct<T>, concept: T, scope: ActScope): String {
         return launchAct(act, concept, scope, callOnStart = false, performDirectly = true)
     }
 
@@ -654,7 +605,7 @@ class StageActDirector(
                     }
                 }
             } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'." }
+                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'" }
                 safelySuspend {
                     act.onError(concept, e)
                 }
