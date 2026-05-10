@@ -93,7 +93,7 @@ class Playground {
         )
 
         // must be active after run is called
-        val isActive = director.isActive(id)
+        val isActive = director.isRunning(id)
         assertTrue(isActive)
         Fancam.trace { "Timer started and isActive=${true}" }
 
@@ -103,7 +103,7 @@ class Playground {
         director.run(
             act = TimerAct(),
             concept = TimerActConcept(3100.milliseconds) {
-                val isActive = director.isActive(id)
+                val isActive = director.isRunning(id)
                 assertFalse(isActive)
                 Fancam.trace { "isActive=${false}" }
             },
@@ -123,14 +123,14 @@ class Playground {
             scope = ActScope("TestScope", this)
         )
 
-        val isActive = director.isActive(id)
+        val isActive = director.isRunning(id)
         assertTrue(isActive)
 
         // stop and wait cancellation to finish
         assertTrue(director.stop(id))
         advanceUntilIdle()
 
-        val isActive2 = director.isActive(id)
+        val isActive2 = director.isRunning(id)
         assertFalse(isActive2)
     }
 
@@ -157,7 +157,7 @@ class Playground {
             concept = TimerActConcept(5001.milliseconds) {
                 // assert the error act is no longer active
                 // log should also have error message
-                val isActive = director.isActive(id)
+                val isActive = director.isRunning(id)
                 assertFalse(isActive)
                 Fancam.trace { "isActive=${false}" }
             },
@@ -283,7 +283,7 @@ class Playground {
                 onPerform = {
                     assertTrue(director.stop(id))
                     advanceUntilIdle()
-                    assertFalse(director.isActive(id))
+                    assertFalse(director.isRunning(id))
                 }),
             scope
         )
@@ -313,7 +313,7 @@ class Playground {
                     assertNotNull(store.find("hello123"))
                     assertTrue(director.stop(id))
                     advanceUntilIdle()
-                    assertFalse(director.isActive(id))
+                    assertFalse(director.isRunning(id))
                     assertNull(store.find("hello123"))
                 }),
             scope
@@ -527,24 +527,143 @@ class ForeverTimerAct : StageAct<ForeverTimerActConcept> {
     }
 }
 
+/**
+ * Manage and provide entry point to run [StageAct].
+ *
+ * #### Usage
+ *
+ * - [run] to start a new stage act in normal behavior.
+ * - [runContinue] to run a stage act in a continuation context which will
+ *   skip the [StageAct.onStart] lifecycle and continue running in normal behavior.
+ * - [performAndContinue] to run a stage act and call perform directly.
+ *   This will also skip the [StageAct.onStart] lifecycle and continue running
+ *   in normal behavior.
+ *
+ * Any of the call will return while also starting the act immediately.
+ * Each will also produce a unique runtime identifier of the stage act.
+ *
+ * #### Lifecycle
+ *
+ * During normal behavior, a newly started act will:
+ * - call [StageAct.onStart].
+ * - enters execution loop and waits for the delay returned by [Choreography.next].
+ * - call [StageAct.perform].
+ * - repeat the process until repetition is finished.
+ * - call [StageAct.onEndingFairy] on finish.
+ *
+ * In other circumstances:
+ * - call [StageAct.onCancelled] whenever the act is stopped via [stop],
+ *   which may happen manually or from conditions like process shutdown,
+ *   player disconnect, etc.
+ * - call [StageAct.onError] whenever any error was thrown throughout its
+ *   lifecycle or logic.
+ *
+ * #### Cancellation
+ *
+ * A running act can be cancelled via [stop]. This will cancel the running
+ * coroutine with a `CancellationException`.
+ *
+ * During act's execution or lifecycle, a cancellation can happen in mid-execution.
+ * Due to this, implementations may protect critical sections using
+ * `withContext(NonCancellable)` to ensure atomic execution of important
+ * operations such as persistence updates or consistency-sensitive state changes.
+ *
+ * Stage act can also cancel itself by throwing `CancellationException` within
+ * its lifecycle.
+ *
+ * ##### Identity
+ *
+ * Running a stage act returns an act identifier (UUID). Stopping a stage act
+ * requires this unique identifier. Application may use component like [ActIdStore]
+ * to store the ID and retrieve it using another identifier which the application
+ * can derive themself (e.g., derivable with input from [ActConcept]).
+ *
+ * #### Continuation
+ *
+ * The stage act system acts solely as a runtime scheduler and executor.
+ * It does not automatically persist or resume unfinished acts.
+ *
+ * Continuation is handled explicitly by the application by:
+ * - persisting the required progress data, and
+ * - re-running the act with updated scheduling information.
+ *
+ * This is typically achieved by [ActConcept] taking data which is
+ * then used by [StageAct.choreography] to derive the execution's timing.
+ *
+ * ##### Progress persistence
+ *
+ * Stage act implementations may persist progress data within their
+ * lifecycle hooks. For instance:
+ * - saving `actFinishedAt`
+ * - storing remaining duration
+ * - marking finished state
+ *
+ * During player's reconnection or application recovery, the application may:
+ * - load the persisted progress data,
+ * - reconstruct the corresponding act instance, and
+ * - re-run the act with the updated scheduling logic.
+ *
+ * When error occur, [StageAct.onError] will be called and act may:
+ * - mark state as invalid
+ * - delete persisted progress data
+ * - notify client
+ *
+ * @property timeProvider Component to provide time. Use [SystemTime] for real use.
+ * @property actStore Provides storage and access for running act identifiers.
+ */
 class StageActDirector(
     private val timeProvider: TimeProvider,
     private val actStore: ActIdStore
 ) {
     private val activeActs = mutableMapOf<String, Job>()
 
+    /**
+     * Entry point to run a new stage act.
+     *
+     * @param act The instance of [StageAct] to be run.
+     * @param concept Runtime input of the stage act.
+     * @param scope Runtime boundary of stage act.
+     * @param T The type of [concept].
+     * @return A unique runtime identifier of the stage act.
+     */
     fun <T : ActConcept> run(act: StageAct<T>, concept: T, scope: ActScope): String {
         return launchAct(act, concept, scope, callOnStart = true, performDirectly = false)
     }
 
+    /**
+     * Run a stage act in resumpsion context which skips the [StageAct.onStart] lifecycle.
+     *
+     * @param act The instance of [StageAct] to be run.
+     * @param concept Runtime input of the stage act.
+     * @param scope Runtime boundary of stage act.
+     * @param T The type of [concept].
+     * @return A unique runtime identifier of the stage act.
+     */
     fun <T : ActConcept> runContinue(act: StageAct<T>, concept: T, scope: ActScope): String {
         return launchAct(act, concept, scope, callOnStart = false, performDirectly = false)
     }
 
+    /**
+     * Run a stage act in a catch-up context which will call [StageAct.perform]
+     * directly. After that, it will continue running without calling [StageAct.onStart]
+     * lifecycle if it hasn't finish yet.
+     *
+     * @param act The instance of [StageAct] to be run.
+     * @param concept Runtime input of the stage act.
+     * @param scope Runtime boundary of stage act.
+     * @param T The type of [concept].
+     * @return A unique runtime identifier of the stage act.
+     */
     fun <T : ActConcept> performAndContinue(act: StageAct<T>, concept: T, scope: ActScope): String {
         return launchAct(act, concept, scope, callOnStart = false, performDirectly = true)
     }
 
+    /**
+     * Main scheduling code of stage act.
+     *
+     * By calling this, a stage act will be scheduled to run immediately.
+     * It will also return a unique runtime identifier of the stage act.
+     */
     private fun <T : ActConcept> launchAct(
         act: StageAct<T>,
         concept: T,
@@ -619,13 +738,28 @@ class StageActDirector(
         return id
     }
 
+    /**
+     * Stop the running stage act identified by [actId].
+     *
+     * This will cancel the running coroutine even if it still
+     * run or in mid-execution.
+     *
+     * @param actId Unique identifier of the running stage act.
+     * @return `false` when act is not found, otherwise `true`.
+     */
     fun stop(actId: String?): Boolean {
         (activeActs[actId] ?: return false)
             .cancel(CancellationException("Act was stopped"))
         return true
     }
 
-    fun isActive(actId: String): Boolean {
+    /**
+     * Returns whether the stage act identified by [actId] is running.
+     *
+     * A stage act is considered as running when the associated act's
+     * coroutine job is in an internal data structure.
+     */
+    fun isRunning(actId: String): Boolean {
         return activeActs.containsKey(actId)
     }
 }

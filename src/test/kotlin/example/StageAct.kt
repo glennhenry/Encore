@@ -10,7 +10,6 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
 import encore.fancam.Fancam
 import encore.utils.TimeProvider
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.test.advanceTimeBy
@@ -63,7 +62,7 @@ class ExampleStageAct {
         director.runTimer(3.minutes, scope) {
             assertTrue(director.stop(id))
             advanceUntilIdle()
-            assertFalse(director.isActive(id))
+            assertFalse(director.isRunning(id))
 
             // still unfinished
             assertNotNull(repo.unfinishedBuildings[bid])
