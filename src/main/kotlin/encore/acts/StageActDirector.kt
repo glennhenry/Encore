@@ -249,4 +249,11 @@ class StageActDirector(
     fun isRunning(actId: String): Boolean {
         return activeActs.containsKey(actId)
     }
+
+    /**
+     * Shutdown by cancelling all running stage acts.
+     */
+    fun shutdown() {
+        activeActs.forEach { (actId, _) -> stop(actId) }
+    }
 }

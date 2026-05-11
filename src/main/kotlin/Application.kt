@@ -166,7 +166,7 @@ suspend fun Application.module() {
     val contextTracker = DefaultContextTracker()
     val playerLifecycleHandler = PlayerLifecycleHandler()
     val messageFormatRegistry = MessageFormatRegistry()
-    val serverTaskDispatcher = StageActDirector(SystemTime, ActIdStore())
+    val stageActDirector = StageActDirector(SystemTime, ActIdStore)
     val commandDispatcher = CommandDispatcher()
     val webSocketManager = WebSocketManager()
 
@@ -188,7 +188,7 @@ suspend fun Application.module() {
         contextTracker = contextTracker,
         playerLifecycleHandler = playerLifecycleHandler,
         messageFormatRegistry = messageFormatRegistry,
-        serverTaskDispatcher = serverTaskDispatcher,
+        stageActDirector = stageActDirector,
         commandDispatcher = commandDispatcher,
         webSocketManager = webSocketManager,
         subunits = subunits

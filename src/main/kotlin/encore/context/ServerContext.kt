@@ -1,21 +1,24 @@
 package encore.context
 
-import encore.datastore.DataStore
-import encore.datastore.BlankDataStore
-import encore.backstage.command.CommandDispatcher
-import encore.datastore.collection.PlayerId
-import encore.activity.PlayerActivitySubunit
-import encore.network.messaging.format.MessageFormatRegistry
-import encore.tasks.ServerTaskDispatcher
-import encore.subunit.Subunit
-import encore.subunit.scope.ServerScope
-import encore.account.BlankAccountRepository
 import encore.account.AccountRepository
 import encore.account.AccountSubunit
+import encore.account.BlankAccountRepository
 import encore.account.PlayerCreationSubunit
+import encore.activity.PlayerActivitySubunit
+import encore.acts.ActIdStore
+import encore.acts.StageActDirector
 import encore.auth.AuthSubunit
+import encore.backstage.command.CommandDispatcher
+import encore.datastore.BlankDataStore
+import encore.datastore.DataStore
+import encore.datastore.collection.PlayerId
 import encore.network.lifecycle.PlayerLifecycleHandler
+import encore.network.messaging.format.MessageFormatRegistry
 import encore.session.SessionSubunit
+import encore.subunit.Subunit
+import encore.subunit.scope.ServerScope
+import encore.utils.SystemTime
+import encore.utils.TimeProvider
 import encore.ws.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.EmptyCoroutineContext
@@ -28,7 +31,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @property playerLifecycleHandler Handles players lifecycle events.
  * @property messageFormatRegistry Track the known message format and registered codecs
  *                           for network messages.
- * @property serverTaskDispatcher Provide API to start and stop server-sided task.
+ * @property stageActDirector Provide API to start and stop stage acts.
  * @property commandDispatcher Tracks and executes server commands.
  * @property webSocketManager Manages client websocket connections.
  * @property subunits Container for server subunit instances.
@@ -38,7 +41,7 @@ data class ServerContext(
     val contextTracker: ContextTracker,
     val playerLifecycleHandler: PlayerLifecycleHandler,
     val messageFormatRegistry: MessageFormatRegistry,
-    val serverTaskDispatcher: ServerTaskDispatcher,
+    val stageActDirector: StageActDirector,
     val commandDispatcher: CommandDispatcher,
     val webSocketManager: WebSocketManager,
     val subunits: ServerSubunits
@@ -48,12 +51,14 @@ data class ServerContext(
          * Creates a test instance of [ServerContext].
          *
          * @param parentScope `CoroutineScope` for [SessionSubunit].
+         * @param timeProvider [TimeProvider] for [StageActDirector].
          * @param dataStore Also used to build [PlayerCreationSubunit].
          * @param accountRepository Used to build [AccountSubunit].
          * @param contextTracker Use [FakeContextTracker] by default.
          */
         fun createForTest(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+            timeProvider: TimeProvider = SystemTime,
             dataStore: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
             contextTracker: ContextTracker = FakeContextTracker()
@@ -67,7 +72,7 @@ data class ServerContext(
                 contextTracker = contextTracker,
                 playerLifecycleHandler = PlayerLifecycleHandler(),
                 messageFormatRegistry = MessageFormatRegistry(),
-                serverTaskDispatcher = ServerTaskDispatcher(),
+                stageActDirector = StageActDirector(timeProvider, ActIdStore),
                 commandDispatcher = CommandDispatcher(),
                 webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(

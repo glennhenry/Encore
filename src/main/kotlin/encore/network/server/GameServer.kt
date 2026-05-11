@@ -141,7 +141,7 @@ class GameServer(
                     serverContext.subunits.activity.markOffline(connection.playerId)
                     serverContext.subunits.account.updateLastActivity(connection.playerId, getTimeMillis())
                     serverContext.contextTracker.removeContext(connection.playerId)
-                    serverContext.serverTaskDispatcher.stopAllTasksForPlayer(connection.playerId)
+//                    serverContext.stageActDirector.stopAllTasksForPlayer(connection.playerId)
                 }
 
                 connection.shutdown()
@@ -269,7 +269,7 @@ class GameServer(
         serverContext.contextTracker.shutdown()
         serverContext.subunits.activity.disband(ServerScope)
         serverContext.subunits.session.disband(ServerScope)
-        serverContext.serverTaskDispatcher.shutdown()
+        serverContext.stageActDirector.shutdown()
         gameServerScope.cancel()
     }
 }
