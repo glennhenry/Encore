@@ -10,6 +10,7 @@ import encore.utils.safeAsciiString
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -87,6 +88,7 @@ class DefaultConnection(
     override suspend fun shutdown() {
         try {
             connectionScope.cancel(CancellationException("Connection closed"))
+            connectionScope.coroutineContext.job.join()
         } catch (e: Exception) {
             Fancam.warn { "Exception during connection shutdown: ${e.message}" }
         }

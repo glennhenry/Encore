@@ -288,6 +288,8 @@ suspend fun Application.module() {
         runBlocking {
             try {
                 container.shutdownAll()
+                appScope.cancel("Application closed")
+                appScope.coroutineContext.job.cancel()
             } catch (_: CancellationException) {}
         }
         Fancam.info { "Server shutdown complete." }
