@@ -7,9 +7,8 @@ import encore.acts.choreo.PerformMode
 import encore.acts.template.*
 import encore.fancam.Fancam
 import encore.utils.SystemTime
-import io.ktor.utils.io.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.currentTime
@@ -53,10 +52,7 @@ class StageActDirectorTest {
     }
 
     private fun runTimer(time: Duration, scope: TestScope): String {
-        val director = StageActDirector(
-            VirtualTimeProvider(scope),
-            ActIdStore()
-        )
+        val director = StageActDirector(VirtualTimeProvider(scope), ActIdStore)
 
         val id = director.run(
             act = TimerAct(),
@@ -73,10 +69,7 @@ class StageActDirectorTest {
 
     @Test
     fun `isActive works as expected`() = runTest {
-        val director = StageActDirector(
-            VirtualTimeProvider(this),
-            ActIdStore()
-        )
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
 
         val id = director.run(
             act = TimerAct(),
@@ -105,7 +98,7 @@ class StageActDirectorTest {
 
     @Test
     fun `act stop successfully stops it`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
 
         val id = director.run(
             act = TimerAct(),
@@ -128,10 +121,7 @@ class StageActDirectorTest {
 
     @Test
     fun `act throw error should stop it`() = runTest {
-        val director = StageActDirector(
-            VirtualTimeProvider(this),
-            ActIdStore()
-        )
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
 
         // create the error act
         val id = director.run(
@@ -159,10 +149,7 @@ class StageActDirectorTest {
 
     @Test
     fun `act run repeat`() = runTest {
-        val director = StageActDirector(
-            VirtualTimeProvider(this),
-            ActIdStore()
-        )
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         val initialDelay = 3.seconds
         val interval = 2.seconds
 
@@ -183,7 +170,7 @@ class StageActDirectorTest {
 
     @Test
     fun `act repeat stop successfully stops it`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         var performCount = 0
 
         val id = director.run(
@@ -210,7 +197,7 @@ class StageActDirectorTest {
 
     @Test
     fun `act runs forever`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         var performCount = 0
 
         val interval = 2.seconds
@@ -238,7 +225,7 @@ class StageActDirectorTest {
 
     @Test
     fun `act with slow onStart shouldn't drift execution`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         val scope = ActScope("TestScope", this)
 
         director.run(
@@ -253,7 +240,7 @@ class StageActDirectorTest {
 
     @Test
     fun `act should be cancellable during non-perform lifecycle`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         val scope = ActScope("TestScope", this)
 
         // onStart very slow
@@ -283,7 +270,7 @@ class StageActDirectorTest {
 
     @Test
     fun `director should unbind actId after task is stopped`() = runTest {
-        val store = ActIdStore()
+        val store = ActIdStore
         val director = StageActDirector(SystemTime, store)
         val scope = ActScope("TestScope", this)
 
@@ -314,7 +301,7 @@ class StageActDirectorTest {
 
     @Test
     fun `runContinue skips onStart`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         val scope = ActScope("TestScope", this)
 
         director.runContinue(
@@ -329,7 +316,7 @@ class StageActDirectorTest {
 
     @Test
     fun `executeAndContinue skips onStart and executes directly`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         val scope = ActScope("TestScope", this)
 
         director.performAndContinue(
@@ -344,7 +331,7 @@ class StageActDirectorTest {
 
     @Test
     fun `executeAndContinue skips onStart, executes directly, and continue normal flow`() = runTest {
-        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore())
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
         val scope = ActScope("TestScope", this)
 
         director.performAndContinue(

@@ -43,7 +43,7 @@ class ExampleStageAct {
         val bid = "outpost"
 
         val time = VirtualTimeProvider(this)
-        val director = StageActDirector(time, ActIdStore())
+        val director = StageActDirector(time, ActIdStore)
         val repo = BuildingRepo()
         val scope = ActScope(pid, this)
 

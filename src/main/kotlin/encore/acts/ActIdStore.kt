@@ -21,7 +21,7 @@ package encore.acts
  *   because not every acts aims to be cancellable manually.
  * - `unbind` will be called automatically by the director.
  */
-class ActIdStore {
+object ActIdStore {
     private val identities = mutableMapOf<String, String>()
     private val actIds = mutableMapOf<String, String>()
 
@@ -59,5 +59,13 @@ class ActIdStore {
      */
     fun find(identity: String): String? {
         return identities[identity]
+    }
+
+    /**
+     * Clear all associated identities or act identifiers.
+     */
+    fun clear() {
+        identities.clear()
+        actIds.clear()
     }
 }
