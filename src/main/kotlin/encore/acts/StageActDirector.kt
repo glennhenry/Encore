@@ -65,17 +65,26 @@ import kotlin.time.Duration.Companion.milliseconds
  * to store the ID and retrieve it using another identifier which the application
  * can derive themself (e.g., derivable with input from [ActConcept]).
  *
+ * Storing the identifier is done through the [ActIdStore.bind]. This process should
+ * be done **manually** by user. Beside, the reverse [ActIdStore.unbind] process
+ * is done by the director. This is because not every acts needs a cancellation behavior.
+ * Furthermore, binding requires a string identity known by user.
+ *
  * #### Continuation
  *
  * The stage act system acts solely as a runtime scheduler and executor.
  * It does not automatically persist or resume unfinished acts.
  *
  * Continuation is handled explicitly by the application by:
- * - persisting the required progress data, and
+ * - persisting the required progress data.
  * - re-running the act with updated scheduling information.
+ * - depending on requirement, may catch-up missed executions.
  *
  * This is typically achieved by [ActConcept] taking data which is
  * then used by [StageAct.choreography] to derive the execution's timing.
+ *
+ * In other word, a stage act resumpsion is modeled as re-running with different
+ * scheduling state through runtime inputs.
  *
  * ##### Progress persistence
  *
