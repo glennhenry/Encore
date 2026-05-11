@@ -6,13 +6,18 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
 import encore.acts.template.*
 import encore.fancam.Fancam
+import encore.network.transport.DefaultConnection
 import encore.utils.SystemTime
+import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
+import kotlinx.io.Sink
 import testHelper.TestFancam
 import testHelper.VirtualTimeProvider
 import kotlin.test.*
@@ -49,6 +54,58 @@ class StageActDirectorTest {
         runTimer(3500.milliseconds, this)  // finish at tick 3.5s
         runTimer(3001.milliseconds, this)  // finish at tick 3.001s
         runTimer(60.seconds, this)         // finish at tick 60s
+    }
+
+    @Test
+    fun `multiple acts stopped when coroutine scope is cancelled`() = runTest {
+        // when player disconnect, all their running tasks should be cancelled
+        // since we have no data structure that stores every running tasks for a player
+        // we just cancel their connection coroutine to automatically cancel them all
+        // through structred concurrency.
+
+        // simulates real connection
+        // coroutine constructed like in GameServer
+        val cor = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val connection = DefaultConnection(
+            inputChannel = ByteReadChannel("", Charset.defaultCharset()),
+            outputChannel = object: ByteWriteChannel {
+                override fun cancel(cause: Throwable?) {}
+                override suspend fun flush() {}
+                override suspend fun flushAndClose() {}
+                override val closedCause: Throwable = Throwable()
+                override val isClosedForWrite: Boolean = false
+                @InternalAPI override val writeBuffer: Sink = Buffer()
+            },
+            remoteAddress = "123",
+            connectionScope = cor,
+        )
+
+        val scope = ActScope("", connection.connectionScope)
+        val director = StageActDirector(VirtualTimeProvider(this), ActIdStore)
+
+        // multiple acts running
+        val id1 = director.runTimer(4.seconds, scope) {}
+        val id2 = director.runTimer(5.seconds, scope) {}
+        val id3 = director.runTimer(6.seconds, scope) {}
+        val id4 = director.runTimer(7.seconds, scope) {}
+        val id5 = director.runTimer(1.seconds, scope) {}
+
+        assertTrue(director.isRunning(id1))
+        assertTrue(director.isRunning(id2))
+        assertTrue(director.isRunning(id3))
+        assertTrue(director.isRunning(id4))
+        assertTrue(director.isRunning(id5))
+
+        // player disconnects and shutdown is called.
+        // automatically cancels everything without calling StageActDirector.stop manually
+        connection.shutdown()
+        advanceUntilIdle()
+        assertFalse(director.isRunning(id1))
+        assertFalse(director.isRunning(id2))
+        assertFalse(director.isRunning(id3))
+        assertFalse(director.isRunning(id4))
+        assertFalse(director.isRunning(id5))
+        advanceUntilIdle()
     }
 
     private fun runTimer(time: Duration, scope: TestScope): String {

@@ -1,5 +1,6 @@
 package encore.network.transport
 
+import encore.acts.StageAct
 import encore.datastore.collection.PlayerId
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
@@ -84,6 +85,9 @@ class DefaultConnection(
 
     /**
      * Shutdown the connection which cancels the [connectionScope].
+     *
+     * By structured concurrency, this would also cancel every coroutine work
+     * associated with the scope, which includes server-sided [StageAct]s.
      */
     override suspend fun shutdown() {
         try {
