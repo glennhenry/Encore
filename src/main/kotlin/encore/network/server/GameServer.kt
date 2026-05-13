@@ -199,7 +199,7 @@ class GameServer(
                     Fancam.debug {
                         buildString {
                             appendLine("[SOCKET DECODE]")
-                            appendLine("$LOG_INDENT_PREFIX type   : ${fanchant.type}")
+                            appendLine("$LOG_INDENT_PREFIX type   : ${fanchant.type.id}")
                             append("$LOG_INDENT_PREFIX guide  : ${guide.name}")
                         }
                     }
@@ -220,9 +220,9 @@ class GameServer(
                 buildString {
                     appendLine(
                         "Multiple fanchant guides decoded the same packet: " +
-                                matched.joinToString { "${it.first}/type=${it.second.type}" }
+                                matched.joinToString { "${it.first}/type=${it.second.type.id}" }
                     )
-                    append("$LOG_INDENT_PREFIX chosen: $chosenGuide/type=${fanchant.type}")
+                    append("$LOG_INDENT_PREFIX chosen: $chosenGuide/type=${fanchant.type.id}")
                 }
             }
         }

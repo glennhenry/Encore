@@ -19,7 +19,7 @@ class CatchAllHandler : FanchantHandler<CatchAllFanchant> {
     override val fanchantType: FanchantType<CatchAllFanchant> = CatchAllFanchantType
 
     override suspend fun handle(ctx: HandlerContext<CatchAllFanchant>) = with(ctx) {
-        Fancam.warn { "No handler registered/implemented for type=${fanchant.type}" }
+        Fancam.warn { "No handler registered/implemented for type=${fanchant.type.id}" }
 
         // directly respond here...
     }
