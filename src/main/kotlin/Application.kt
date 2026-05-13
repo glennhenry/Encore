@@ -21,8 +21,8 @@ import encore.network.server.GameServerConfig
 import encore.network.server.ServerContainer
 import encore.presence.PlayerPresenceSubunit
 import encore.network.server.Server
-import encore.network.messaging.format.MessageFormat
-import encore.network.messaging.format.MessageFormatRegistry
+import encore.network.fanchant.guide.FanchantGuide
+import encore.network.fanchant.guide.FanchantGuideRegistry
 import encore.account.MongoAccountRepository
 import encore.acts.ActIdStore
 import encore.acts.StageActDirector
@@ -165,7 +165,7 @@ suspend fun Application.module() {
     val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
     val contextTracker = DefaultContextTracker()
     val playerLifecycleHandler = PlayerLifecycleHandler()
-    val messageFormatRegistry = MessageFormatRegistry()
+    val messageFormatRegistry = FanchantGuideRegistry()
     val stageActDirector = StageActDirector(SystemTime, ActIdStore)
     val commandDispatcher = CommandDispatcher()
     val webSocketManager = WebSocketManager()
@@ -236,7 +236,7 @@ suspend fun Application.module() {
 
     val gameServer = GameServer(gameServerConfig) { socketDispatcher, serverContext ->
         // REPLACE ADD
-        val possibleFormats = listOf<MessageFormat<*>>(
+        val possibleFormats = listOf<FanchantGuide<*>>(
 
         )
         possibleFormats.forEach {

@@ -1,37 +1,45 @@
-package encore.network.messaging.format
+package encore.network.fanchant.guide
 
-import encore.network.messaging.socket.SocketMessage
+import encore.network.fanchant.Fanchant
 
 /**
- * Describes a network message format recognized by the server.
+ * Defines the decoding pipeline for a network message.
  *
- * A [MessageFormat] defines how a sequence of raw bytes can be interpreted
- * as a particular message structure. It consists of:
+ * A [FanchantGuide] describes how raw packet data is identified, decoded,
+ * and transformed into a [Fanchant] instance suitable for handler dispatch.
  *
- * 1. A lightweight [verify] step used for fast, permissive filtering.
- * 2. A full decoding step [tryDecode], which may succeed or fail.
- * 3. A materialization step [materialize] that produces a [SocketMessage]
- *    suitable for handler dispatch.
+ * The decoding process consists of three stages:
  *
- * See `test.kotlin.example.ExampleFormatTest` for implementation example.
+ * 1. [verify] performs a lightweight, permissive check to determine whether
+ *    the provided byte sequence may belong to this guide.
+ * 2. [tryDecode] attempts to fully decode the packet into an intermediate
+ *    representation and may succeed or fail.
+ * 3. [materialize] converts the decoded representation into a [Fanchant]
+ *    instance used by the application layer.
  *
- * @param T The intermediate decoded representation produced by this format.
+ * **Note:** In systems supporting multiple fanchant guides, it is acceptable
+ * for multiple guides to correctly `verify` the same input. However, only one
+ * guide should successfully decode it; multiple successful decodes
+ * is treated as ambiguity and will be reported.
+ *
+ * See `test.kotlin.encoreTest.example.MessageFormat` for an implementation example.
+ *
+ * @param T The intermediate decoded representation produced during decoding.
  */
-interface MessageFormat<T> {
-
+interface FanchantGuide<T> {
     /**
-     * Name of the message format used for debugging and logging.
+     * Name of this fanchant guide used for debugging and logging.
      */
     val name: String
 
     /**
      * Performs a cheap, permissive check to determine whether the raw byte
-     * sequence [data] *may* conform to this message format.
+     * sequence [data] *may* conform to the fanchant described by this guide.
      *
      * Implementations must be fast and non-strict. False positives are
      * acceptable and expected.
      *
-     * This method must not perform full decoding or heavy parsing.
+     * This method should not perform full decoding or heavy parsing.
      *
      * Examples:
      * - A JSON-based format may check whether the first byte is '{'
@@ -48,18 +56,13 @@ interface MessageFormat<T> {
      * Decoding may fail even if [verify] returned true. Such failures
      * are considered normal and non-fatal.
      *
-     * In systems supporting multiple message formats, it is acceptable
-     * for multiple formats to verify the same input. Ideally, only one
-     * format should successfully decode it; multiple successful decodes
-     * is treated as ambiguity and will be reported.
-     *
      * @return A [DecodeResult] indicating success or failure.
      */
     fun tryDecode(data: ByteArray): DecodeResult<T>
 
     /**
      * Converts the decoded intermediate representation into a concrete
-     * [SocketMessage] that can be dispatched to handlers.
+     * [Fanchant] that can be dispatched to handlers.
      *
      * This step bridges protocol-level data with application-level
      * message semantics. Implementations may produce:
@@ -70,36 +73,28 @@ interface MessageFormat<T> {
      * contain an unchecked cast to bypass star projection.
      * This is safe if [decoded] is produced from [tryDecode].
      */
-    fun materialize(decoded: T): SocketMessage
+    fun materialize(decoded: T): Fanchant
 
     @Suppress("UNCHECKED_CAST")
-    fun materializeAny(decoded: Any?): SocketMessage {
+    fun materializeAny(decoded: Any?): Fanchant {
         return materialize(decoded as T)
     }
 }
 
 /**
  * Represents the result of attempting to decode a message on a
- * [MessageFormat].
+ * [FanchantGuide].
  *
- * @param T The type of the successfully decoded message.
+ * @param T The intermediary type of the successfully decoded message.
  */
 sealed interface DecodeResult<out T> {
-
     /**
      * Indicates a successful decoding outcome.
-     *
-     * In an ideal system, exactly one message format should succeed
-     * in decoding a given message. Multiple successes
-     * indicate ambiguity and will be reported.
      */
     data class Success<T>(val value: T) : DecodeResult<T>
 
     /**
-     * Indicates that decoding failed.
-     *
-     * Decode failures are expected and generally harmless, as long as
-     * another message format successfully decodes the same input.
+     * Indicates that the decoding fails.
      *
      * @property reason Optional explanation for the failure.
      * @property error Optional underlying exception that caused the failure.

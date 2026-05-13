@@ -13,7 +13,7 @@ import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerId
 import encore.network.lifecycle.PlayerLifecycleHandler
-import encore.network.messaging.format.MessageFormatRegistry
+import encore.network.fanchant.guide.FanchantGuideRegistry
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
@@ -40,7 +40,7 @@ data class ServerContext(
     val dataStore: DataStore,
     val contextTracker: ContextTracker,
     val playerLifecycleHandler: PlayerLifecycleHandler,
-    val messageFormatRegistry: MessageFormatRegistry,
+    val messageFormatRegistry: FanchantGuideRegistry,
     val stageActDirector: StageActDirector,
     val commandDispatcher: CommandDispatcher,
     val webSocketManager: WebSocketManager,
@@ -71,7 +71,7 @@ data class ServerContext(
                 dataStore = dataStore,
                 contextTracker = contextTracker,
                 playerLifecycleHandler = PlayerLifecycleHandler(),
-                messageFormatRegistry = MessageFormatRegistry(),
+                messageFormatRegistry = FanchantGuideRegistry(),
                 stageActDirector = StageActDirector(timeProvider, ActIdStore),
                 commandDispatcher = CommandDispatcher(),
                 webSocketManager = WebSocketManager(),

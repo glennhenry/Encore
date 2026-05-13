@@ -6,10 +6,11 @@ import encore.fancam.LOG_INDENT_PREFIX
 import encore.network.transport.Connection
 import encore.network.transport.DefaultConnection
 import encore.network.handler.DefaultHandlerContext
-import encore.network.messaging.format.DecodeResult
-import encore.network.messaging.format.DefaultFormat
-import encore.network.messaging.socket.SocketMessage
-import encore.network.messaging.socket.SocketMessageDispatcher
+import encore.network.fanchant.guide.CatchAllFanchantGuide
+import encore.network.fanchant.guide.DecodeResult
+import encore.network.fanchant.guide.FanchantGuide
+import encore.network.fanchant.Fanchant
+import encore.network.fanchant.FanchantCoordinator
 import encore.subunit.scope.ServerScope
 import encore.utils.hexString
 import encore.utils.safeAsciiString
@@ -34,13 +35,13 @@ data class GameServerConfig(
  */
 class GameServer(
     private val config: GameServerConfig,
-    private val setup: (SocketMessageDispatcher, ServerContext) -> Unit
+    private val setup: (FanchantCoordinator, ServerContext) -> Unit
 ) : Server {
     override val name: String = "GameServer"
 
     private lateinit var gameServerScope: CoroutineScope
     private lateinit var serverContext: ServerContext
-    private val socketDispatcher = SocketMessageDispatcher()
+    private val socketDispatcher = FanchantCoordinator()
 
     private var running = false
     override fun isRunning(): Boolean = running
@@ -107,16 +108,16 @@ class GameServer(
                     serverContext.subunits.presence.updateLastActivity(connection.playerId)
 
                     // start handle
-                    var msgType = "[Undetermined]"
+                    var fanchantType = "[Undetermined]"
                     val elapsed = measureTimeMillis {
-                        msgType = handleMessage(connection, data)
+                        fanchantType = handleFanchant(connection, data)
                     }
 
                     // end handle
                     Fancam.debug {
                         buildString {
                             appendLine("<===== [SOCKET END]")
-                            appendLine("$LOG_INDENT_PREFIX type      : $msgType")
+                            appendLine("$LOG_INDENT_PREFIX type      : $fanchantType")
                             appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
                             if (connection.playerId == "[Undetermined]") {
                                 appendLine("$LOG_INDENT_PREFIX address   : ${connection.remoteAddress}")
@@ -141,7 +142,6 @@ class GameServer(
                     serverContext.subunits.presence.markOffline(connection.playerId)
                     serverContext.subunits.account.updateLastActivity(connection.playerId, getTimeMillis())
                     serverContext.contextTracker.removeContext(connection.playerId)
-//                    serverContext.stageActDirector.stopAllTasksForPlayer(connection.playerId)
                 }
 
                 connection.shutdown()
@@ -150,37 +150,24 @@ class GameServer(
     }
 
     /**
-     * Handle message from [Connection] with raw bytes [data] by:
+     * Handle network message [data] in raw bytes received from [Connection] by:
      *
-     * 1. Identify the message format.
-     * 2. Try to decode the format.
-     * 3. Materialize into a high-level [SocketMessage].
-     * 4. Dispatch to registered message handlers.
-     *
-     * ```
-     * bytes
-     *   ↓ (identifyFormat)
-     * formatCandidates
-     *   ↓ (tryDecode)
-     * DecodeResult
-     *   ↓ (materialize)
-     * SocketMessage
-     *   ↓ (findHandlerFor)
-     * handler.handle()
-     * ```
+     * 1. Identify the [FanchantGuide] by calling [FanchantGuide.verify].
+     * 2. Try to decode the format with [FanchantGuide.tryDecode].
+     * 3. Call [FanchantGuide.materialize] into a high-level [Fanchant].
+     * 4. Dispatch to the registered fanchant handlers.
      *
      * **Note**: By this architecture, it's possible for a single packet to be
-     * successfully decoded by multiple message formats. This situation is
+     * successfully decoded by multiple fanchant guides. This situation is
      * inherently ambiguous. In such cases, the first successful decoding
      * result is selected, and a warning is logged.
      *
-     * @return The various types of message decoded successfully, used merely
-     *         to mark the end of socket dispatchment.
+     * @return The specific fanchant type where decode succeed.
      */
-    private suspend fun handleMessage(connection: Connection, data: ByteArray): String {
+    private suspend fun handleFanchant(connection: Connection, data: ByteArray): String {
         // Empty data
         if (data.isEmpty()) {
-            Fancam.debug { "[SOCKET] Ignored empty byte array from connection=$connection" }
+            Fancam.debug { "[SOCKET] Ignored empty data from connection=$connection" }
             return "[Empty data]"
         }
 
@@ -197,69 +184,69 @@ class GameServer(
             }
         }
 
-        val matched = mutableListOf<Pair<String, SocketMessage>>()
-        val possibleFormats = serverContext.messageFormatRegistry.identifyFormat(data)
+        val matched = mutableListOf<Pair<String, Fanchant>>()
+        val possibleGuides = serverContext.messageFormatRegistry.identify(data)
 
-        // Find possible format for this message
-        for (format in possibleFormats) {
+        // Find possible guide for this fanchant
+        for (guide in possibleGuides) {
             try {
-                @Suppress("UNCHECKED_CAST")
-                val result = format.tryDecode(data)
+                val result = guide.tryDecode(data)
 
                 if (result is DecodeResult.Success<*>) {
-                    // Success decoding, convert to SocketMessage
-                    val message = format.materializeAny(result.value)
+                    // Success decoding, convert to Fanchant
+                    val fanchant = guide.materializeAny(result.value)
 
                     Fancam.debug {
                         buildString {
                             appendLine("[SOCKET DECODE]")
-                            appendLine("$LOG_INDENT_PREFIX type   : ${message.type()}")
-                            append("$LOG_INDENT_PREFIX format : ${format.name}")
+                            appendLine("$LOG_INDENT_PREFIX type   : ${fanchant.type}")
+                            append("$LOG_INDENT_PREFIX guide  : ${guide.name}")
                         }
                     }
 
-                    matched += format.name to message
+                    matched += guide.name to fanchant
                 }
             } catch (e: Exception) {
-                Fancam.error { "Decode error in format ${format.name}; e=$e" }
+                Fancam.error(e) { "Decode error in fanchant guide ${guide.name}" }
             }
         }
 
-        // Allow only one interpretation of the message, if there is multiple
-        val (chosenFormat, message) = matched.firstOrNull() ?: (defaultFormat to defaultMessage(data))
+        // Allow only one interpretation of the fanchant, if there is multiple
+        val (chosenGuide, fanchant) = matched.firstOrNull()
+            ?: (catchAllFanchantGuide to catchAllFanchant(data))
+
         if (matched.size > 1) {
             Fancam.warn {
                 buildString {
                     appendLine(
-                        "Multiple formats decoded the same packet: " +
-                                matched.joinToString { "${it.first}/type=${it.second.type()}" }
+                        "Multiple fanchant guides decoded the same packet: " +
+                                matched.joinToString { "${it.first}/type=${it.second.type}" }
                     )
-                    append("$LOG_INDENT_PREFIX chosen: $chosenFormat/type=${message.type()}")
+                    append("$LOG_INDENT_PREFIX chosen: $chosenGuide/type=${fanchant.type}")
                 }
             }
         }
 
-        // Dispatch message to handler
-        socketDispatcher.findHandlerFor(message).forEach { handler ->
-            val context = DefaultHandlerContext(
-                connection = connection,
-                playerId = connection.playerId,
-                message = message
-            )
+        // Dispatch fanchant to handler
+        val handler = socketDispatcher.findHandler(fanchant)
+        val context = DefaultHandlerContext(
+            connection = connection,
+            playerId = connection.playerId,
+            fanchant = fanchant
+        )
+        handler.handleUnsafe(context)
 
-            handler.handleUnsafe(context)
-        }
-
-        return message.type()
+        return fanchant.type.id
     }
 
-    // when no other format matches, uses DefaultFormat
-    private val defaultFormat = DefaultFormat()
+    // when no other guide matches, uses CatchAllFanchantGuide
+    private val catchAllFanchantGuide = CatchAllFanchantGuide()
 
-    // which also produces default message from its tryDecode and materializeAny implementation
-    private fun defaultMessage(data: ByteArray): SocketMessage {
-        return defaultFormat.materializeAny(
-            (defaultFormat.tryDecode(data) as DecodeResult.Success)
+    // which also produces a catch all fanchant from its tryDecode
+    // and materializeAny implementation
+    private fun catchAllFanchant(data: ByteArray): Fanchant {
+        return catchAllFanchantGuide.materializeAny(
+            (catchAllFanchantGuide.tryDecode(data) as DecodeResult.Success)
                 .value
         )
     }
