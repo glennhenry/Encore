@@ -1,4 +1,4 @@
-package encore.activity
+package encore.presence
 
 import encore.datastore.collection.PlayerId
 import encore.subunit.Subunit
@@ -7,23 +7,23 @@ import io.ktor.util.date.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Server subunit for tracking players activity status.
+ * Server subunit for tracking players presence status.
  *
  * This is used for:
- * - Tracking whether a player is offline/online.
+ * - Tracking player's activity such as whether they are online or offline.
  * - Get the last active time of a player.
  *
- * Typically, player activity is determined from the network activity of the socket server.
+ * Typically, player presence is determined from the network activity of the socket server.
  */
-class PlayerActivitySubunit : Subunit<ServerScope> {
-    private val onlinePlayers = ConcurrentHashMap<String, PlayerActivity>()
+class PlayerPresenceSubunit : Subunit<ServerScope> {
+    private val onlinePlayers = ConcurrentHashMap<String, PlayerPresence>()
 
     /**
      * Mark the [playerId] as online. Does nothing if the player is already online.
      */
     fun markOnline(playerId: PlayerId) {
         val now = getTimeMillis()
-        onlinePlayers[playerId] = PlayerActivity(
+        onlinePlayers[playerId] = PlayerPresence(
             playerId = playerId,
             onlineSince = now,
             lastNetworkActivity = now,

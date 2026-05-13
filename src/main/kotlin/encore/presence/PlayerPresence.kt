@@ -1,16 +1,17 @@
-package encore.activity
+package encore.presence
 
 import encore.datastore.collection.PlayerId
 
 /**
- * Represents the current online status of a player.
+ * Represents the current presence status of a player.
  *
+ * @property playerId Unique identifier of the player.
  * @property onlineSince The timestamp (in milliseconds since epoch)
  *                       when the player came online.
  * @property lastNetworkActivity The timestamp (in milliseconds since epoch)
  *                               of the player's most recent network activity.
  */
-data class PlayerActivity(
+data class PlayerPresence(
     val playerId: PlayerId,
     val onlineSince: Long,
     val lastNetworkActivity: Long,

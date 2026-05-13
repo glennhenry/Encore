@@ -19,7 +19,7 @@ import encore.serialization.JSON
 import encore.network.server.GameServer
 import encore.network.server.GameServerConfig
 import encore.network.server.ServerContainer
-import encore.activity.PlayerActivitySubunit
+import encore.presence.PlayerPresenceSubunit
 import encore.network.server.Server
 import encore.network.messaging.format.MessageFormat
 import encore.network.messaging.format.MessageFormatRegistry
@@ -171,14 +171,14 @@ suspend fun Application.module() {
     val webSocketManager = WebSocketManager()
 
     val accountSubunit = AccountSubunit(accountRepository)
-    val playerActivitySubunit = PlayerActivitySubunit()
+    val playerPresenceSubunit = PlayerPresenceSubunit()
     val sessionSubunit = SessionSubunit(appScope)
     val playerCreationSubunit = PlayerCreationSubunit(dataStore)
     val authSubunit = AuthSubunit(accountSubunit, playerCreationSubunit, sessionSubunit)
 
     val subunits = ServerSubunits(
         account = accountSubunit,
-        activity = playerActivitySubunit,
+        presence = playerPresenceSubunit,
         auth = authSubunit,
         session = sessionSubunit,
         creation = playerCreationSubunit

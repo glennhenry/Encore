@@ -104,7 +104,7 @@ class GameServer(
                     if (bytesRead <= 0) break@loop
 
                     serverContext.playerLifecycleHandler.onReceive(serverContext, connection)
-                    serverContext.subunits.activity.updateLastActivity(connection.playerId)
+                    serverContext.subunits.presence.updateLastActivity(connection.playerId)
 
                     // start handle
                     var msgType = "[Undetermined]"
@@ -138,7 +138,7 @@ class GameServer(
 
                 // Only perform cleanup if playerId is set (client was authenticated)
                 if (connection.playerId != "[Undetermined]") {
-                    serverContext.subunits.activity.markOffline(connection.playerId)
+                    serverContext.subunits.presence.markOffline(connection.playerId)
                     serverContext.subunits.account.updateLastActivity(connection.playerId, getTimeMillis())
                     serverContext.contextTracker.removeContext(connection.playerId)
 //                    serverContext.stageActDirector.stopAllTasksForPlayer(connection.playerId)
@@ -267,7 +267,7 @@ class GameServer(
     override suspend fun shutdown() {
         running = false
         serverContext.contextTracker.shutdown()
-        serverContext.subunits.activity.disband(ServerScope)
+        serverContext.subunits.presence.disband(ServerScope)
         serverContext.subunits.session.disband(ServerScope)
         serverContext.stageActDirector.shutdown()
         gameServerScope.cancel()

@@ -4,7 +4,7 @@ import encore.account.AccountRepository
 import encore.account.AccountSubunit
 import encore.account.BlankAccountRepository
 import encore.account.PlayerCreationSubunit
-import encore.activity.PlayerActivitySubunit
+import encore.presence.PlayerPresenceSubunit
 import encore.acts.ActIdStore
 import encore.acts.StageActDirector
 import encore.auth.AuthSubunit
@@ -77,10 +77,10 @@ data class ServerContext(
                 webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(
                     account = account,
-                    activity = PlayerActivitySubunit(),
                     auth = AuthSubunit(account, creation, session),
-                    session = session,
-                    creation = creation
+                    creation = creation,
+                    presence = PlayerPresenceSubunit(),
+                    session = session
                 )
             )
         }
@@ -121,15 +121,15 @@ fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext =
  *   state and provide matchmaking-specific functionality.
  *
  * @property account Provides API related to accounts.
- * @property activity Tracks player's activity status.
  * @property auth Provides authentication functions.
- * @property session Manages session of players.
  * @property creation Provides player creation mechanism.
+ * @property presence Tracks player's presence.
+ * @property session Manages session of players.
  */
 data class ServerSubunits(
     val account: AccountSubunit,
-    val activity: PlayerActivitySubunit,
     val auth: AuthSubunit,
-    val session: SessionSubunit,
     val creation: PlayerCreationSubunit,
+    val presence: PlayerPresenceSubunit,
+    val session: SessionSubunit,
 )
