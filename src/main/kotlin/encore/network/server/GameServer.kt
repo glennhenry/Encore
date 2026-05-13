@@ -185,7 +185,7 @@ class GameServer(
         }
 
         val matched = mutableListOf<Pair<String, Fanchant>>()
-        val possibleGuides = serverContext.messageFormatRegistry.identify(data)
+        val possibleGuides = serverContext.fanchantGuideRegistry.identify(data)
 
         // Find possible guide for this fanchant
         for (guide in possibleGuides) {

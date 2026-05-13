@@ -29,8 +29,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @property dataStore [DataStore] instance of the server.
  * @property contextTracker Tracks and manages each player's context.
  * @property playerLifecycleHandler Handles players lifecycle events.
- * @property messageFormatRegistry Track the known message format and registered codecs
- *                           for network messages.
+ * @property fanchantGuideRegistry Track registered network messages.
  * @property stageActDirector Provide API to start and stop stage acts.
  * @property commandDispatcher Tracks and executes server commands.
  * @property webSocketManager Manages client websocket connections.
@@ -40,7 +39,7 @@ data class ServerContext(
     val dataStore: DataStore,
     val contextTracker: ContextTracker,
     val playerLifecycleHandler: PlayerLifecycleHandler,
-    val messageFormatRegistry: FanchantGuideRegistry,
+    val fanchantGuideRegistry: FanchantGuideRegistry,
     val stageActDirector: StageActDirector,
     val commandDispatcher: CommandDispatcher,
     val webSocketManager: WebSocketManager,
@@ -71,7 +70,7 @@ data class ServerContext(
                 dataStore = dataStore,
                 contextTracker = contextTracker,
                 playerLifecycleHandler = PlayerLifecycleHandler(),
-                messageFormatRegistry = FanchantGuideRegistry(),
+                fanchantGuideRegistry = FanchantGuideRegistry(),
                 stageActDirector = StageActDirector(timeProvider, ActIdStore),
                 commandDispatcher = CommandDispatcher(),
                 webSocketManager = WebSocketManager(),

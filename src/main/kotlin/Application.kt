@@ -165,7 +165,7 @@ suspend fun Application.module() {
     val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
     val contextTracker = DefaultContextTracker()
     val playerLifecycleHandler = PlayerLifecycleHandler()
-    val messageFormatRegistry = FanchantGuideRegistry()
+    val fanchantGuideRegistry = FanchantGuideRegistry()
     val stageActDirector = StageActDirector(SystemTime, ActIdStore)
     val commandDispatcher = CommandDispatcher()
     val webSocketManager = WebSocketManager()
@@ -187,7 +187,7 @@ suspend fun Application.module() {
         dataStore = dataStore,
         contextTracker = contextTracker,
         playerLifecycleHandler = playerLifecycleHandler,
-        messageFormatRegistry = messageFormatRegistry,
+        fanchantGuideRegistry = fanchantGuideRegistry,
         stageActDirector = stageActDirector,
         commandDispatcher = commandDispatcher,
         webSocketManager = webSocketManager,
@@ -240,7 +240,7 @@ suspend fun Application.module() {
 
         )
         possibleFormats.forEach {
-            serverContext.messageFormatRegistry.register(it)
+            serverContext.fanchantGuideRegistry.register(it)
         }
     }
 
