@@ -1,17 +1,21 @@
 package encoreTest.network.server
 
+import encore.EncoreFancamConfig
 import encore.annotation.source.RevisitLater
 import encore.context.ServerContext
 import encore.datastore.collection.PlayerId
+import encore.fancam.Fancam
+import encore.fancam.impl.OfficialFancam
 import encore.network.server.GameServer
 import encore.network.server.GameServerConfig
 import encore.network.server.ServerContainer
 import encore.network.transport.TestConnection
 import encore.network.handler.HandlerContext
-import encore.network.handler.SocketMessageHandler
-import encore.network.messaging.format.DecodeResult
-import encore.network.messaging.format.MessageFormat
-import encore.network.messaging.socket.SocketMessage
+import encore.network.handler.FanchantHandler
+import encore.network.fanchant.guide.DecodeResult
+import encore.network.fanchant.guide.FanchantGuide
+import encore.network.fanchant.Fanchant
+import encore.network.fanchant.FanchantType
 import encore.utils.safeAsciiString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
@@ -32,29 +36,24 @@ class GameServerTest {
     private val config = GameServerConfig(host = "127.0.0.1", port = 7777)
 
     /**
-     * - multiple formats
-     * - multiple handlers
-     * - multiple expected type
-     * - multiple expected message class
-     * - one success decode
-     * - two expected handler
-     * - dispatched and handled correctly.
+     * - multiple formats are registered
+     * - multiple handlers with unique fanchantType
+     * choose the format, materialize, and dispatched into the appropriate handler
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `success handling with casual packet`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
-            val possibleFormats = listOf<MessageFormat<*>>(
-                ExFormat3(), ExFormat4(), ExFormat5()
+            val possibleFormats = listOf<FanchantGuide<*>>(
+                Guide1(), Guide2(), Guide3()
             )
             possibleFormats.forEach {
-                serverContext.messageFormatRegistry.register(it)
+                serverContext.fanchantGuideRegistry.register(it)
             }
-            socketDispatcher.register(Handler5())
-            socketDispatcher.register(Handler6())
-            socketDispatcher.register(Handler7())
-            socketDispatcher.register(Handler6())
+            socketDispatcher.register(Fc1Handler())
+            socketDispatcher.register(Fc2Handler())
+            socketDispatcher.register(Fc3Handler())
         }
         val container = ServerContainer(scope, listOf(gameServer), ServerContext.createForTest())
         container.initializeAll()
@@ -62,40 +61,38 @@ class GameServerTest {
 
         val connection = createConnection(scope = scope)
         gameServer.handleClient(connection)
-        // ExFormat3 ExMsg3 type1 handled by Handler5
-        // must have 'a' to be considered as ExFormat3
+
+        // "a12345" will be identified as Guide1 and materialized into Fc1
         val packet = "a12345".toByteArray()
         connection.enqueueIncoming(packet)
 
         connection.awaitOutgoing(1)
 
-        // Handler5 returns 5 5 5
+        // This will be handled by Fc1Handler which returns 1 1 1
         val result = connection.getOutgoing()
         assertEquals(1, result.size)
-        assertContentEquals(byteArrayOf(5, 5, 5), result.first())
+        assertContentEquals(byteArrayOf(1, 1, 1), result.first())
         container.shutdownAll()
     }
 
     /**
-     * - multiple handlers
-     * - multiple expected type
-     * - multiple expected message class
-     * - all decode fails (junk message)
+     * - multiple formats are registered
+     * - multiple handlers with unique fanchantType
+     * - however, no format decoded successfully
+     * should be taken care by catch all handler
      */
     @Test
-    @RevisitLater("Test failed")
-    fun `failed handling with junk packet`() = runTest {
+    fun `handled by catch all handler when no fanchant guide matches`() = runTest {
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
-            val possibleFormats = listOf<MessageFormat<*>>(
-                ExFormat3(), ExFormat4(), ExFormat5()
+            val possibleFormats = listOf<FanchantGuide<*>>(
+                Guide1(), Guide2(), Guide3()
             )
             possibleFormats.forEach {
-                serverContext.messageFormatRegistry.register(it)
+                serverContext.fanchantGuideRegistry.register(it)
             }
-            socketDispatcher.register(Handler5())
-            socketDispatcher.register(Handler6())
-            socketDispatcher.register(Handler7())
-            socketDispatcher.register(Handler6())
+            socketDispatcher.register(Fc1Handler())
+            socketDispatcher.register(Fc2Handler())
+            socketDispatcher.register(Fc3Handler())
         }
         val container = ServerContainer(this, listOf(gameServer), ServerContext.createForTest())
         container.initializeAll()
@@ -103,6 +100,7 @@ class GameServerTest {
 
         val connection = createConnection(scope = this.backgroundScope)
         gameServer.handleClient(connection)
+
         // nobody can handle this (decode fails)
         val packet = "wioenyrv😍😂80u803uvr💀".toByteArray()
         connection.enqueueIncoming(packet)
@@ -114,60 +112,8 @@ class GameServerTest {
     }
 
     /**
-     * - multiple handlers
-     * - multiple expected type
-     * - multiple expected message class
-     * - multiple decode succeed (warned)
-     * - dispatched and handled correctly.
-     */
-    @Test
-    fun `success handling with casual packet, but warned`() = runTest {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameServer = GameServer(config) { socketDispatcher, serverContext ->
-            val possibleFormats = listOf<MessageFormat<*>>(
-                ExFormat3(), ExFormat4(), ExFormat5(), ExFormat6()
-            )
-            possibleFormats.forEach {
-                serverContext.messageFormatRegistry.register(it)
-            }
-            socketDispatcher.register(Handler5())
-            socketDispatcher.register(Handler6())
-            socketDispatcher.register(Handler7())
-            socketDispatcher.register(Handler8())
-        }
-        val container = ServerContainer(scope, listOf(gameServer), ServerContext.createForTest())
-        container.initializeAll()
-        container.startAll()
-
-        val connection = createConnection(scope = scope)
-        gameServer.handleClient(connection)
-        // ExFormat5 and ExFormat6 has same decoding process
-        // but decode to ExMsg5 and ExMsg4 respectively
-        val packet = "c12345".toByteArray()
-        connection.enqueueIncoming(packet)
-
-        connection.awaitOutgoing(1)
-
-        // ExFormat5 will be chosen, based on registration order
-        // Handler6 handles ExMsg5, returning 6 6 6
-        val result = connection.getOutgoing()
-        assertEquals(1, result.size)
-        assertContentEquals(byteArrayOf(6, 6, 6), result.first())
-        // not asserted but you should see warning in logger
-
-        container.shutdownAll()
-    }
-
-    @Test
-    @Ignore("slow timer 11 seconds")
-    @RevisitLater(
-        """
-        1. Decouple server start, accept, and handle so it's easy to add client without calling handleClient directly.
-        2. Decouple player connection lifecycle. 
-        3. Find way to assert active clients.
-        """
-    )
-    /**
+     * .\gradlew test --tests "encoreTest.network.server.GameServerTest.should capable serving multiple clients"
+     *
      * No assertation in this, but successful test of this shouldn't produce
      * server fatal error that causes innocent clients to disrupt.
      *
@@ -175,20 +121,29 @@ class GameServerTest {
      * 2. 1 client failure will stop its connection, effectively calling Connection.shutdown
      *    and wouldn't be able to recover without re-connecting (must with different scope)
      */
-    fun `should capable serving multiple clients`() = runBlocking {
+    @Test
+    @RevisitLater(
+        """
+        1. Decouple server start, accept, and handle so it's easy to add client without calling handleClient directly.
+        2. Decouple player connection lifecycle. 
+        3. Find way to assert active clients.
+        """
+    )
+    fun `should capable serving multiple clients`() = runTest {
+        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
+
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
-            val possibleFormats = listOf<MessageFormat<*>>(
-                ExFormat7(), ExFormat3(), ExFormat4(), ExFormat5(),
+            val possibleFormats = listOf<FanchantGuide<*>>(
+                Guide1(), Guide2(), Guide3(),
             )
             possibleFormats.forEach {
-                serverContext.messageFormatRegistry.register(it)
+                serverContext.fanchantGuideRegistry.register(it)
             }
-            socketDispatcher.register(Handler5())
-            socketDispatcher.register(Handler6())
-            socketDispatcher.register(Handler7())
-            socketDispatcher.register(Handler8())
-            socketDispatcher.register(Handler9())
+            socketDispatcher.register(Fc1Handler())
+            socketDispatcher.register(Fc2Handler())
+            socketDispatcher.register(Fc3Handler())
+            socketDispatcher.register(Fc4Handler())
         }
         val context = ServerContext.createForTest()
         val container = ServerContainer(scope, listOf(gameServer), context)
@@ -269,8 +224,8 @@ class GameServerTest {
     }
 }
 
-class ExFormat3 : MessageFormat<String> {
-    override val name: String = "ExFormat3"
+class Guide1 : FanchantGuide<String> {
+    override val name: String = "Guide1"
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {
@@ -282,13 +237,13 @@ class ExFormat3 : MessageFormat<String> {
         }
     }
 
-    override fun materialize(decoded: String): SocketMessage {
-        return ExMsg3(decoded)
+    override fun materialize(decoded: String): Fanchant {
+        return Fc1(decoded)
     }
 }
 
-class ExFormat4 : MessageFormat<String> {
-    override val name: String = "ExFormat4"
+class Guide2 : FanchantGuide<String> {
+    override val name: String = "Guide2"
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {
@@ -300,13 +255,13 @@ class ExFormat4 : MessageFormat<String> {
         }
     }
 
-    override fun materialize(decoded: String): SocketMessage {
-        return ExMsg4(decoded)
+    override fun materialize(decoded: String): Fanchant {
+        return Fc2(decoded)
     }
 }
 
-class ExFormat5 : MessageFormat<String> {
-    override val name: String = "ExFormat5"
+class Guide3 : FanchantGuide<String> {
+    override val name: String = "Guide3"
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {
@@ -318,111 +273,75 @@ class ExFormat5 : MessageFormat<String> {
         }
     }
 
-    override fun materialize(decoded: String): SocketMessage {
-        return ExMsg5(decoded)
+    override fun materialize(decoded: String): Fanchant {
+        return Fc3(decoded)
     }
 }
 
-class ExFormat6 : MessageFormat<String> {
-    override val name: String = "ExFormat6"
-    override fun verify(data: ByteArray): Boolean = true
-
-    override fun tryDecode(data: ByteArray): DecodeResult<String> {
-        val decoded = data.safeAsciiString()
-        return if (!decoded.contains("c")) {
-            DecodeResult.Failure()
-        } else {
-            DecodeResult.Success(decoded)
-        }
-    }
-
-    override fun materialize(decoded: String): SocketMessage {
-        return ExMsg4(decoded)
-    }
+class Fc1(val payload: String) : Fanchant {
+    override val type: FanchantType<*> = Fc1Type
+    override fun toString(): String = "Fc1($payload)"
 }
 
-class ExFormat7 : MessageFormat<String> {
-    override val name: String = "ExFormat7"
-    override fun verify(data: ByteArray): Boolean = true
-
-    override fun tryDecode(data: ByteArray): DecodeResult<String> {
-        if (data.safeAsciiString().startsWith("666")) {
-            return DecodeResult.Success("666 error request to Handler9")
-        }
-        return DecodeResult.Failure()
-    }
-
-    override fun materialize(decoded: String): SocketMessage {
-        return ExMsg6(decoded)
-    }
+object Fc1Type : FanchantType<Fc1> {
+    override val id: String = "type-fc1"
 }
 
-class ExMsg3(val payload: String) : SocketMessage {
-    override fun type(): String = "type1"
-    override fun toString(): String = "ExMsg3($payload)"
+class Fc2(val payload: String) : Fanchant {
+    override val type: FanchantType<*> = Fc2Type
+    override fun toString(): String = "Fc2($payload)"
 }
 
-class ExMsg4(val payload: String) : SocketMessage {
-    override fun type(): String = "type1"
-    override fun toString(): String = "ExMsg4($payload)"
+object Fc2Type : FanchantType<Fc2> {
+    override val id: String = "type-fc2"
 }
 
-class ExMsg5(val payload: String) : SocketMessage {
-    override fun type(): String = "type2"
-    override fun toString(): String = "ExMsg5($payload)"
+class Fc3(val payload: String) : Fanchant {
+    override val type: FanchantType<*> = Fc3Type
+    override fun toString(): String = "Fc3($payload)"
 }
 
-class ExMsg6(val payload: String) : SocketMessage {
-    override fun type(): String = "type6"
-    override fun toString(): String = "ExMsg6($payload)"
+object Fc3Type : FanchantType<Fc3> {
+    override val id: String = "type-fc3"
 }
 
-class Handler5 : SocketMessageHandler<ExMsg3> {
-    override val name: String = "Handler5"
-    override val messageType: String = "type1"
-    override val expectedMessageClass: KClass<ExMsg3> = ExMsg3::class
+class Fc4(val payload: String) : Fanchant {
+    override val type: FanchantType<*> = Fc4Type
+    override fun toString(): String = "Fc4($payload)"
+}
 
-    override suspend fun handle(ctx: HandlerContext<ExMsg3>) {
-        ctx.sendRaw(byteArrayOf(5, 5, 5))
+object Fc4Type : FanchantType<Fc4> {
+    override val id: String = "type-fc4"
+}
+
+class Fc1Handler : FanchantHandler<Fc1> {
+    override val name: String = "Fc1Handler"
+    override val fanchantType: FanchantType<Fc1> = Fc1Type
+    override suspend fun handle(ctx: HandlerContext<Fc1>) {
+        ctx.sendRaw(byteArrayOf(1, 1, 1))
     }
 }
 
-class Handler6 : SocketMessageHandler<ExMsg5> {
-    override val name: String = "Handler6"
-    override val messageType: String = "type2"
-    override val expectedMessageClass: KClass<ExMsg5> = ExMsg5::class
-
-    override suspend fun handle(ctx: HandlerContext<ExMsg5>) {
-        ctx.sendRaw(byteArrayOf(6, 6, 6))
+class Fc2Handler : FanchantHandler<Fc2> {
+    override val name: String = "Fc2Handler"
+    override val fanchantType: FanchantType<Fc2> = Fc2Type
+    override suspend fun handle(ctx: HandlerContext<Fc2>) {
+        ctx.sendRaw(byteArrayOf(2, 2, 2))
     }
 }
 
-class Handler7 : SocketMessageHandler<ExMsg4> {
-    override val name: String = "Handler7"
-    override val messageType: String = "type3"
-    override val expectedMessageClass: KClass<ExMsg4> = ExMsg4::class
-
-    override suspend fun handle(ctx: HandlerContext<ExMsg4>) {
-        ctx.sendRaw(byteArrayOf(7, 7, 7))
+class Fc3Handler : FanchantHandler<Fc3> {
+    override val name: String = "Fc3Handler"
+    override val fanchantType: FanchantType<Fc3> = Fc3Type
+    override suspend fun handle(ctx: HandlerContext<Fc3>) {
+        ctx.sendRaw(byteArrayOf(3, 3, 3))
     }
 }
 
-class Handler8 : SocketMessageHandler<ExMsg5> {
-    override val name: String = "Handler8"
-    override val messageType: String = "type4"
-    override val expectedMessageClass: KClass<ExMsg5> = ExMsg5::class
-
-    override suspend fun handle(ctx: HandlerContext<ExMsg5>) {
-        ctx.sendRaw(byteArrayOf(8, 8, 8))
-    }
-}
-
-class Handler9 : SocketMessageHandler<ExMsg6> {
-    override val name: String = "Handler9"
-    override val messageType: String = "type6"
-    override val expectedMessageClass: KClass<ExMsg6> = ExMsg6::class
-
-    override suspend fun handle(ctx: HandlerContext<ExMsg6>) {
+class Fc4Handler : FanchantHandler<Fc4> {
+    override val name: String = "Fc4Handler"
+    override val fanchantType: FanchantType<Fc4> = Fc4Type
+    override suspend fun handle(ctx: HandlerContext<Fc4>) {
         throw Exception("Requested on Handler9")
     }
 }

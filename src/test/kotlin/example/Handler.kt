@@ -5,8 +5,9 @@ import encore.context.ServerContext
 import encore.datastore.collection.PlayerAccount
 import encore.network.transport.TestConnection
 import encore.network.handler.HandlerContext
-import encore.network.handler.SocketMessageHandler
-import encore.network.messaging.socket.SocketMessage
+import encore.network.handler.FanchantHandler
+import encore.network.fanchant.Fanchant
+import encore.network.fanchant.FanchantType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -16,7 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Demonstrates how to test a socket message handler.
+ * Demonstrates how to test a fanchant handler.
  *
  * Why test handler?
  * - Ensure handler still works correctly (e.g., may test handler by a recorded packets).
@@ -50,7 +51,7 @@ class ExampleHandlerTest {
         val state = HandlerTestState(
             playerId = playerId,
             playerName = playerName,
-            message = DotSeparatedMessage(payload = "MSG1.EX.hello.world.kotlin.ktor"),
+            message = DotSeparatedFanchant(payload = "MSG1.EX.hello.world.kotlin.ktor"),
             account = createAccount(playerId, playerName, "anypassword"),
             subunits = PlayerSubunits(),
             connectionScope = CoroutineScope(StandardTestDispatcher())
@@ -73,7 +74,7 @@ class ExampleHandlerTest {
         val state = HandlerTestState(
             playerId = playerId,
             playerName = playerName,
-            message = DotSeparatedMessage(payload = "MSG1.EX.hello.world.kotlin|ktor"),
+            message = DotSeparatedFanchant(payload = "MSG1.EX.hello.world.kotlin|ktor"),
             account = createAccount(playerId, playerName, "anypassword"),
             subunits = PlayerSubunits(),
             connectionScope = CoroutineScope(StandardTestDispatcher())
@@ -90,22 +91,21 @@ class ExampleHandlerTest {
 }
 
 /**
- * Example of handler that handles [DotSeparatedMessage]
+ * Example of handler that handles [DotSeparatedFanchant]
  */
-class DotSeparatedHandler: SocketMessageHandler<DotSeparatedMessage> {
+class DotSeparatedHandler: FanchantHandler<DotSeparatedFanchant> {
     override val name: String = "ExampleHandler"
-    override val messageType: String = "EX"
-    override val expectedMessageClass = DotSeparatedMessage::class
+    override val fanchantType: FanchantType<DotSeparatedFanchant> = DotSeparatedFanchantType
 
     /**
      * `with(ctx)` gives developer QoL to access `connection` and `message` simpler.
      */
-    override suspend fun handle(ctx: HandlerContext<DotSeparatedMessage>) = with(ctx) {
-        if (message.payload.contains("|")) {
+    override suspend fun handle(ctx: HandlerContext<DotSeparatedFanchant>) = with(ctx) {
+        if (fanchant.payload.contains("|")) {
             val messageToSend = "RESPONSE.EX.FAIL"
             sendRaw(messageToSend.toByteArray())
         } else {
-            val cleanPayload = message.payload.substringAfter("MSG1.EX.").split(".")
+            val cleanPayload = fanchant.payload.substringAfter("MSG1.EX.").split(".")
             val result = StringBuilder()
 
             cleanPayload.forEach { msg ->
@@ -119,7 +119,7 @@ class DotSeparatedHandler: SocketMessageHandler<DotSeparatedMessage> {
 }
 
 /**
- * Example of socket message where payload is a String delimited by `.`.
+ * Example of fanchant where payload is a `String` delimited by `.`.
  *
  * In real scenario, the [payload] may be a `List<String>` combined
  * with a message format implementation. It's omitted for simplicity.
@@ -128,7 +128,11 @@ class DotSeparatedHandler: SocketMessageHandler<DotSeparatedMessage> {
  * - Second word is message type.
  * - The rest are payload.
  */
-class DotSeparatedMessage(val payload: String) : SocketMessage {
-    override fun type(): String = "EX"
+class DotSeparatedFanchant(val payload: String) : Fanchant {
+    override val type: FanchantType<*> = DotSeparatedFanchantType
     override fun toString(): String = payload
+}
+
+object DotSeparatedFanchantType: FanchantType<DotSeparatedFanchant> {
+    override val id: String = "EX"
 }

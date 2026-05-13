@@ -9,14 +9,14 @@ import encore.datastore.collection.PlayerId
 import encore.network.transport.TestConnection
 import encore.network.handler.DefaultHandlerContext
 import encore.network.handler.HandlerContext
-import encore.network.messaging.socket.SocketMessage
+import encore.network.fanchant.Fanchant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 
 /**
  * Handler testing utility to encapsulate the relevant states to test message handlers.
  */
-data class HandlerTestState<T : SocketMessage>(
+data class HandlerTestState<T : Fanchant>(
     val playerId: PlayerId = "testPlayerId123",
     val playerName: String = "TestPlayerABC",
     val message: T,
@@ -40,7 +40,7 @@ data class HandlerTestState<T : SocketMessage>(
 
     val handlerContext: HandlerContext<T> = DefaultHandlerContext(
         playerId = playerId,
-        message = message,
+        fanchant = message,
         connection = connection
     )
 }

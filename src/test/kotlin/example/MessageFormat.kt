@@ -1,9 +1,10 @@
 package example
 
 import com.mongodb.assertions.Assertions.assertFalse
-import encore.network.messaging.format.DecodeResult
-import encore.network.messaging.format.MessageFormat
-import encore.network.messaging.socket.SocketMessage
+import encore.network.fanchant.guide.DecodeResult
+import encore.network.fanchant.guide.FanchantGuide
+import encore.network.fanchant.Fanchant
+import encore.network.fanchant.FanchantType
 import kotlin.test.*
 
 /**
@@ -14,19 +15,19 @@ import kotlin.test.*
 class SpaceDelimitedStringFormatTest {
     @Test
     fun `test verify format success`() {
-        val format = SpaceSeparatedStringFormat()
+        val format = SpaceSeparatedStringFanchantGuide()
         assertTrue(format.verify(byteArrayOf(3.toByte())))
     }
 
     @Test
     fun `test verify codec fail`() {
-        val format = SpaceSeparatedStringFormat()
+        val format = SpaceSeparatedStringFanchantGuide()
         assertFalse(format.verify(byteArrayOf(14.toByte())))
     }
 
     @Test
     fun `test verify format success but invalid format (even-length)`() {
-        val format = SpaceSeparatedStringFormat()
+        val format = SpaceSeparatedStringFanchantGuide()
         val bytes = byteArrayOf(3.toByte(), 3, 4, 4)
         val result = format.tryDecode(bytes)
         assertIs<DecodeResult.Failure>(result)
@@ -34,7 +35,7 @@ class SpaceDelimitedStringFormatTest {
 
     @Test
     fun `test decode success`() {
-        val format = SpaceSeparatedStringFormat()
+        val format = SpaceSeparatedStringFanchantGuide()
         val bytes = byteArrayOf(8.toByte(), 3, 4, 4, 5, 9, 127, 111, 100)
         val result = format.tryDecode(bytes)
         assertIs<DecodeResult.Success<List<String>>>(result)
@@ -70,8 +71,8 @@ class SpaceDelimitedStringFormatTest {
 }
 
 /**
- * An example implementation of [MessageFormat].
- * - The format operates on a list of string.
+ * An example implementation of [FanchantGuide].
+ * - The network message format operates on a list of string.
  * - Valid raw format is a byte array that is prefixed by some 1-digit header number.
  *   which is the size of message % 9
  * - After that number, everything is byte number (-128 to 127).
@@ -100,8 +101,8 @@ class SpaceDelimitedStringFormatTest {
  *   is a valid byte. **FAIL: return null**.
  * - Add all bytes to the byte array.
  */
-class SpaceSeparatedStringFormat : MessageFormat<List<String>> {
-    override val name: String = "SpaceSeparatedStringFormat"
+class SpaceSeparatedStringFanchantGuide : FanchantGuide<List<String>> {
+    override val name: String = "SpaceSeparatedStringFanchantGuide"
 
     override fun verify(data: ByteArray): Boolean {
         return data.first().toInt() in 0..9
@@ -132,13 +133,13 @@ class SpaceSeparatedStringFormat : MessageFormat<List<String>> {
         return DecodeResult.Success(result)
     }
 
-    override fun materialize(decoded: List<String>): SocketMessage {
-        return SpaceSeparatedMessage(decoded)
+    override fun materialize(decoded: List<String>): Fanchant {
+        return SpaceSeparatedFanchant(decoded)
     }
 }
 
 /**
- * Serializer implementation for the [SpaceSeparatedStringFormat].
+ * Serializer implementation for the [SpaceSeparatedStringFanchantGuide].
  */
 object SpaceSeparatedStringSerializer {
     fun serialize(input: List<String>): ByteArray? {
@@ -170,9 +171,13 @@ object SpaceSeparatedStringSerializer {
 }
 
 /**
- * Example [SocketMessage] implementation based on [SpaceSeparatedStringFormat].
+ * Example [Fanchant] implementation based on [SpaceSeparatedStringFanchantGuide].
  */
-class SpaceSeparatedMessage(private val payload: List<String>): SocketMessage {
-    override fun type(): String = payload.first()
+class SpaceSeparatedFanchant(private val payload: List<String>): Fanchant {
+    override val type: FanchantType<*> = SpaceSeparatedFanchantType(payload.first())
     override fun toString(): String = payload.joinToString()
+}
+
+class SpaceSeparatedFanchantType(type: String): FanchantType<SpaceSeparatedFanchant> {
+    override val id: String = type
 }
