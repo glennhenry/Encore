@@ -19,7 +19,6 @@ import encore.network.fanchant.FanchantType
 import encore.utils.safeAsciiString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
-import kotlin.reflect.KClass
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -29,7 +28,7 @@ import kotlin.time.Duration.Companion.seconds
  * Given arbitrary byte, the GameServer should decode, dispatch,
  * and handle the message correctly.
  *
- * Uses [GameServer.handleClient] with [TestConnection] directly instead
+ * Uses [GameServer.activateConnection] with [TestConnection] directly instead
  * of making actual socket connection (though the socket port 7777 will still be used).
  */
 class GameServerTest {
@@ -60,7 +59,7 @@ class GameServerTest {
         container.startAll()
 
         val connection = createConnection(scope = scope)
-        gameServer.handleClient(connection)
+        gameServer.activateConnection(connection)
 
         // "a12345" will be identified as Guide1 and materialized into Fc1
         val packet = "a12345".toByteArray()
@@ -99,7 +98,7 @@ class GameServerTest {
         container.startAll()
 
         val connection = createConnection(scope = this.backgroundScope)
-        gameServer.handleClient(connection)
+        gameServer.activateConnection(connection)
 
         // nobody can handle this (decode fails)
         val packet = "wioenyrv😍😂80u803uvr💀".toByteArray()
@@ -125,8 +124,6 @@ class GameServerTest {
     @RevisitLater(
         """
         1. Decouple server start, accept, and handle so it's easy to add client without calling handleClient directly.
-        2. Decouple player connection lifecycle. 
-        3. Find way to assert active clients.
         """
     )
     fun `should capable serving multiple clients`() = runTest {
@@ -164,10 +161,10 @@ class GameServerTest {
         delay(1.seconds)
 
         // clients connect
-        gameServer.handleClient(connection1)
-        gameServer.handleClient(connection2A)
+        gameServer.activateConnection(connection1)
+        gameServer.activateConnection(connection2A)
         delay(1.seconds)
-        gameServer.handleClient(connection3)
+        gameServer.activateConnection(connection3)
 
         // clients send message (1)
         connection1.enqueueIncoming(packetA)
@@ -182,14 +179,14 @@ class GameServerTest {
 
         // clients send message (2)
         // client 2 must reconnect (+ different scope) because it fails before
-        gameServer.handleClient(connection2B)
+        gameServer.activateConnection(connection2B)
         delay(1.seconds)
         connection2B.enqueueIncoming(packetB)
         connection3.enqueueIncoming(packetC)
         delay(1.seconds)
 
         // client 1 re-enter
-        gameServer.handleClient(connection1)
+        gameServer.activateConnection(connection1)
         delay(1.seconds)
 
         // clients send message (3) with handler failure on client 3

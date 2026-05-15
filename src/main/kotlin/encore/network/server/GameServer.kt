@@ -61,14 +61,21 @@ class GameServer(
 
         Fancam.info { "Socket server listening on ${config.host}:${config.port}" }
 
+        val serverSocket = bind()
+        listenForConnections(serverSocket)
+    }
+
+    private suspend fun bind(): ServerSocket {
         val selectorManager = SelectorManager(Dispatchers.IO)
+        val serverSocket = aSocket(selectorManager).tcp().bind(config.host, config.port)
+        return serverSocket
+    }
+
+    private fun listenForConnections(serverSocket: ServerSocket) {
         gameServerScope.launch(Dispatchers.IO) {
             try {
-                val serverSocket = aSocket(selectorManager).tcp().bind(config.host, config.port)
-
                 while (isActive) {
                     val socket = serverSocket.accept()
-
                     val connectionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
                     val connection = DefaultConnection(
                         inputChannel = socket.openReadChannel(),
@@ -76,14 +83,7 @@ class GameServer(
                         remoteAddress = socket.remoteAddress.toString(),
                         connectionScope = connectionScope
                     )
-                    connection.registerOnSendHook {
-                        serverContext.playerLifecycleHandler.onSend(serverContext, connection)
-                    }
-
-                    Fancam.info { "New client: ${connection.remoteAddress}" }
-                    serverContext.playerLifecycleHandler.onConnect(serverContext, connection)
-
-                    handleClient(connection)
+                    activateConnection(connection)
                 }
             } catch (_: CancellationException) {
                 Fancam.info { "Game server coroutine cancelled (shutdown)" }
@@ -94,10 +94,23 @@ class GameServer(
         }
     }
 
+    fun activateConnection(connection: Connection) {
+        if (connection is DefaultConnection) {
+            connection.registerOnSendHook {
+                serverContext.playerLifecycleHandler.onSend(serverContext, connection)
+            }
+        }
+
+        Fancam.info { "New client: ${connection.remoteAddress}" }
+        serverContext.playerLifecycleHandler.onConnect(serverContext, connection)
+
+        processConnection(connection)
+    }
+
     /**
      * Handle client [Connection] in suspending manner until data is available.
      */
-    fun handleClient(connection: Connection) {
+    fun processConnection(connection: Connection) {
         connection.connectionScope.launch {
             try {
                 loop@ while (isActive) {
