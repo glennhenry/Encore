@@ -87,7 +87,7 @@ class WebSocketManager {
                 appendLine("##### [WebSocket Receive]")
                 appendLine("$LOG_INDENT_PREFIX type       : ${message.type}")
                 appendLine("$LOG_INDENT_PREFIX payload    : ${message.payload}")
-                appendLine("$LOG_INDENT_PREFIX handled by : ${handler?.name} ?: [Unhandled]")
+                append("$LOG_INDENT_PREFIX handled by : ${handler?.name ?: "[Unhandled]"}")
             }
         }
 

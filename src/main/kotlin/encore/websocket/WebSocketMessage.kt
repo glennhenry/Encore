@@ -56,7 +56,7 @@ suspend fun DefaultWebSocketServerSession.respond(type: String, payload: JsonEle
         buildString {
             appendLine("##### [WebSocket Send]")
             appendLine("$LOG_INDENT_PREFIX type       : $type")
-            appendLine("$LOG_INDENT_PREFIX payload    : $payload")
+            append("$LOG_INDENT_PREFIX payload    : $payload")
         }
     }
 
