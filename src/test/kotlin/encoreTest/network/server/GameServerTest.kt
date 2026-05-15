@@ -32,7 +32,9 @@ import kotlin.time.Duration.Companion.seconds
  * of making actual socket connection (though the socket port 7777 will still be used).
  */
 class GameServerTest {
-    private val config = GameServerConfig(host = "127.0.0.1", port = 7777)
+    fun config(port: Int): GameServerConfig {
+        return GameServerConfig(host = "127.0.0.1", port = port)
+    }
 
     /**
      * - multiple formats are registered
@@ -43,7 +45,7 @@ class GameServerTest {
     @Test
     fun `success handling with casual packet`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameServer = GameServer(config) { socketDispatcher, serverContext ->
+        val gameServer = GameServer(config(7770)) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(
                 Guide1(), Guide2(), Guide3()
             )
@@ -82,7 +84,7 @@ class GameServerTest {
      */
     @Test
     fun `handled by catch all handler when no fanchant guide matches`() = runTest {
-        val gameServer = GameServer(config) { socketDispatcher, serverContext ->
+        val gameServer = GameServer(config(7771)) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(
                 Guide1(), Guide2(), Guide3()
             )
@@ -123,7 +125,7 @@ class GameServerTest {
     @Test
     fun `should capable serving multiple clients`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameServer = GameServer(config) { socketDispatcher, serverContext ->
+        val gameServer = GameServer(config(7772)) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(
                 Guide1(), Guide2(), Guide3(),
             )
