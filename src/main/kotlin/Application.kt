@@ -32,7 +32,8 @@ import encore.session.SessionSubunit
 import encore.utils.Ids
 import encore.utils.SystemTime
 import encore.venue.Venue
-import encore.ws.WebSocketManager
+import encore.websocket.WebSocketManager
+import encore.websocket.handler.WsCommandHandler
 import game.AdminData
 import game.GameIdentity
 import io.ktor.http.*
@@ -194,10 +195,11 @@ suspend fun Application.module() {
         subunits = subunits
     )
 
+    webSocketManager.registerHandler(WsCommandHandler(serverContext))
+
     // initialize components with circular dependency
     // possible solution for dependency: pass servercontext on runtime action
     // add ServerContext to parameter of ws handle or command dispatch handle
-    webSocketManager.initialize(serverContext)
     commandDispatcher.initialize(serverContext)
 
     commandDispatcher.register(ExampleCommand())

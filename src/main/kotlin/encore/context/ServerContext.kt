@@ -19,7 +19,7 @@ import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.utils.SystemTime
 import encore.utils.TimeProvider
-import encore.ws.WebSocketManager
+import encore.websocket.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.EmptyCoroutineContext
 

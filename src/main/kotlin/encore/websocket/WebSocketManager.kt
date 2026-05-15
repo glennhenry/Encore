@@ -1,50 +1,33 @@
-package encore.ws
+package encore.websocket
 
-import encore.context.ServerContext
 import encore.fancam.Fancam
+import encore.fancam.LOG_INDENT_PREFIX
+import encore.websocket.handler.WebSocketHandler
 import io.ktor.server.websocket.*
-import io.ktor.websocket.*
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.put
-import encore.serialization.JSON
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 typealias ClientSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>
 
 /**
  * Track websocket connections and dispatch incoming message to handlers.
- *
- * Should call [initialize] before usage.
- *
  * This websocket system is mostly used to connect with the external devtools.
+ *
+ * Usage:
+ * - Register handler via [registerHandler].
+ * - Add client with [addClient].
+ * - Dispatch message to handlers via [handleMessage].
  */
 class WebSocketManager {
-    private var _serverContext: ServerContext? = null
-    private val serverContext: ServerContext
-        get() = _serverContext
-            ?: error("Dependency error: WebSocketManager hasn't received ServerContext. Call initialize() first.")
-
-    /**
-     * Initialize dependency for [WebSocketManager].
-     *
-     * @param context [ServerContext] instance.
-     */
-    fun initialize(context: ServerContext) {
-        if (_serverContext != null) {
-            Fancam.warn { "WebSocketManager.initialize() called after initialization. Ignoring." }
-            return
-        }
-        this._serverContext = context
-    }
-
     private val clients = ClientSessions()
 
     /**
-     * Add client's websocket session.
+     * Add a new websocket session.
      *
-     * Do nothing if the client is already added before.
+     * Does nothing if the client was added before.
+     *
+     * @param clientId Unique identifier to associate with the session.
+     * @param session The websocket connection.
      */
     fun addClient(clientId: String, session: DefaultWebSocketServerSession) {
         if (!clients.contains(clientId)) {
@@ -53,59 +36,65 @@ class WebSocketManager {
     }
 
     /**
-     * Remove a tracked client session.
-     *
-     * @return `true` if successfully removed.
+     * Remove the tracked websocket session associated with [clientId].
      */
-    fun removeClient(clientId: String): Boolean {
-        return clients.remove(clientId) != null
-    }
-
-    fun getAllClients(): ClientSessions {
-        return clients
+    fun removeClient(clientId: String) {
+        clients.remove(clientId)
     }
 
     /**
-     * Get websocket session from [clientId].
+     * Returns the `clientId` of all actively tracked websocket session.
+     */
+    fun getAllClients(): Enumeration<String> {
+        return clients.keys()
+    }
+
+    /**
+     * Get the associated websocket session of [clientId].
+     *
+     * @return The websocket session which may be `null`.
      */
     fun getSessionFromId(clientId: String): DefaultWebSocketServerSession? {
         return clients[clientId]
     }
 
+    private val handlers = mutableMapOf<String, WebSocketHandler>()
+
     /**
-     * Handle websocket message from the client [session].
+     * Register [wsHandler] to handle message of type [WebSocketHandler.type].
+     *
+     * The handling system doesn't support multiple handler per message type.
+     * Duplicate registration of the same type will be skipped.
      */
-    suspend fun handleMessage(session: DefaultWebSocketServerSession, message: WsMessage) {
-        if (message.payload == null) {
-            session.send(
-                createMessage(
-                    type = "error",
-                    payload = buildJsonObject {
-                        put("message", "JSON payload is null")
-                    }
-                )
-            )
-            return
-        }
-
-        when (message.type) {
-            WsMessageType.CMD_INPUT -> {
-                val rawCmd = JSON.json.decodeFromJsonElement<String>(message.payload)
-                val result = serverContext.commandDispatcher.handleRawCommand(rawCmd)
-
-                session.send(
-                    createMessage(
-                        type = WsMessageType.CMD_OUTPUT,
-                        payload = buildJsonObject {
-                            put("result", result.toString())
-                        }
-                    )
-                )
-            }
+    fun registerHandler(wsHandler: WebSocketHandler) {
+        if (handlers[wsHandler.type] != null) {
+            Fancam.warn { "WebSocketHandler for '${wsHandler.type}' is already registered (skipped)." }
+        } else {
+            handlers[wsHandler.type] = wsHandler
         }
     }
 
-    private fun createMessage(type: String, payload: JsonElement): Frame {
-        return Frame.Text(JSON.encode(WsMessage(type, payload)))
+    /**
+     * Handle the websocket [message] received from the client [session].
+     *
+     * If no handler is found, the message will simply be logged and left unhandled.
+     */
+    suspend fun handleMessage(session: DefaultWebSocketServerSession, message: WebSocketMessage) {
+        val handler = handlers[message.type]
+
+        Fancam.debug {
+            buildString {
+                appendLine("##### [WebSocket Receive]")
+                appendLine("$LOG_INDENT_PREFIX type       : ${message.type}")
+                appendLine("$LOG_INDENT_PREFIX payload    : ${message.payload}")
+                appendLine("$LOG_INDENT_PREFIX handled by : ${handler?.name} ?: [Unhandled]")
+            }
+        }
+
+        if (handler == null) {
+            Fancam.warn { "No handler is registered for WebSocket message '${message.type}'" }
+        }
+
+        handler?.handle(message, session)
     }
 }

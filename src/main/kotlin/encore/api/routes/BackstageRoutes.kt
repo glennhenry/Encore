@@ -3,7 +3,7 @@ package encore.api.routes
 import encore.context.ServerContext
 import encore.fancam.Fancam
 import encore.utils.Ids
-import encore.ws.WsMessage
+import encore.websocket.WebSocketMessage
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -173,7 +173,7 @@ fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap
                 if (frame is Frame.Text) {
                     val msg = frame.readText()
                     try {
-                        val wsMessage = Json.decodeFromString<WsMessage>(msg)
+                        val wsMessage = Json.decodeFromString<WebSocketMessage>(msg)
                         if (wsMessage.type == "close") {
                             serverContext.webSocketManager.removeClient(token)
                             break
