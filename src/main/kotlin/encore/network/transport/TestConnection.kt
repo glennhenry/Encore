@@ -31,21 +31,22 @@ import kotlin.time.Duration.Companion.seconds
  * ```
  */
 class TestConnection(
-    override val remoteAddress: String = "",
-    override val connectionScope: CoroutineScope,
-    override var playerId: PlayerId,
-    override var playerName: String
+    override val identity: ConnectionIdentity,
+    override val connectionScope: CoroutineScope
 ) : Connection {
     private val incoming = Channel<ByteArray>(Channel.UNLIMITED)
     private val writtenBytes = mutableListOf<ByteArray>()
 
     /**
-     * Enqueue a raw [ByteArray] to be returned by [read].
+     * Enqueue a raw [ByteArray] to be returned by [Connection.read].
      */
     fun enqueueIncoming(data: ByteArray) {
         incoming.trySend(data)
     }
 
+    /**
+     * Get the outgoing bytes which is written by [Connection.write].
+     */
     fun getOutgoing(): List<ByteArray> {
         return writtenBytes
     }
@@ -71,13 +72,14 @@ class TestConnection(
         writtenBytes += input
     }
 
-    override fun updatePlayerId(playerId: PlayerId) {
-        this.playerId = playerId
+    override fun acknowledge(playerId: PlayerId, username: String) {
+        identity.playerId = playerId
+        identity.username = username
     }
 
     override suspend fun shutdown() {
         incoming.close()
     }
 
-    override fun toString(): String = "TestConnection(playerId=$playerId, playerName=$playerName)"
+    override fun toString(): String = "TestConnection(${this.identity})"
 }

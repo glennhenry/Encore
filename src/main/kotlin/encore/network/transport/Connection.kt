@@ -4,21 +4,36 @@ import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * Represents an active client (player) connection to the server.
+ * Represents an active client connection to the socket server.
  *
  * Implementations of this interface define how data is read from and written to
  * the underlying transport (e.g., TCP socket, WebSocket, or virtual connection).
- *
- * @property remoteAddress The IP address or network identifier of the client.
- * @property connectionScope The coroutine scope with this connection.
- * @property playerId The in-game identifier of the connected player.
- * @property playerName The display name or username associated with the player.
  */
 interface Connection {
-    val remoteAddress: String
+    /**
+     * The coroutine scope for this connection.
+     */
     val connectionScope: CoroutineScope
-    var playerId: PlayerId
-    var playerName: String
+
+    /**
+     * Identity information.
+     */
+    val identity: ConnectionIdentity
+
+    /**
+     * Shorthand for [ConnectionIdentity.playerId]
+     */
+    val playerId: PlayerId get() = identity.playerId ?: "[Undetermined]"
+
+    /**
+     * Shorthand for [ConnectionIdentity.username]
+     */
+    val username: String get() = identity.username ?: "[Undetermined]"
+
+    /**
+     * Shorthand for [ConnectionIdentity.remoteAddress]
+     */
+    val address: String get() = identity.remoteAddress
 
     /**
      * Reads data sent by the client.
@@ -39,17 +54,18 @@ interface Connection {
     suspend fun write(input: ByteArray, logOutput: Boolean = true, logFull: Boolean = false)
 
     /**
-     * To update the playerId for this connection.
+     * Acknowledge this connection and attach identity information.
      */
-    fun updatePlayerId(playerId: PlayerId)
+    fun acknowledge(playerId: PlayerId, username: String)
 
     /**
-     * Closes the connection and releases any associated resources.
+     * Closes the connection and performs clean-up.
      */
     suspend fun shutdown()
 
     /**
-     * Returns a human-readable string representation of this connection.
+     * Returns a human-readable string representation of this connection
+     * for logging and debugging purpose.
      */
     override fun toString(): String
 }

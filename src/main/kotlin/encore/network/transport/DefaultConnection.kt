@@ -5,7 +5,6 @@ import encore.datastore.collection.PlayerId
 import encore.fancam.Fancam
 import encore.fancam.LOG_INDENT_PREFIX
 import encore.fancam.events.Level
-import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.utils.hexString
 import encore.utils.safeAsciiString
 import io.ktor.utils.io.*
@@ -22,12 +21,11 @@ import kotlin.coroutines.cancellation.CancellationException
 class DefaultConnection(
     private val inputChannel: ByteReadChannel,
     private val outputChannel: ByteWriteChannel,
-    override val remoteAddress: String,
+    private val remoteAddress: String,
+    private val onSend: (Connection) -> Unit,
     override val connectionScope: CoroutineScope
 ) : Connection {
-    override var playerId: PlayerId = "[Undetermined]"
-    override var playerName: String = "[Undetermined]"
-    private var onSendHook: () -> Unit = {}
+    override val identity: ConnectionIdentity = ConnectionIdentity(remoteAddress = remoteAddress)
 
     /**
      * Suspends until data becomes available on the input channel,
@@ -64,23 +62,16 @@ class DefaultConnection(
                     .log(full = logFull)
             }
             outputChannel.writeFully(input)
-            onSendHook()
+            onSend(this)
         } catch (e: Exception) {
-            Fancam.error { "Failed to send raw message to $remoteAddress: ${e.message}" }
+            Fancam.error(e) { "Failed to write to $this" }
             throw e
         }
     }
 
-    override fun updatePlayerId(playerId: PlayerId) {
-        this.playerId = playerId
-    }
-
-    /**
-     * Used to attach the [PlayerLifecycleHandler]'s `onSend` hook
-     * within the connection transport internal.
-     */
-    fun registerOnSendHook(hook: () -> Unit) {
-        onSendHook = hook
+    override fun acknowledge(playerId: PlayerId, username: String) {
+        identity.playerId = playerId
+        identity.username = username
     }
 
     /**
@@ -100,6 +91,6 @@ class DefaultConnection(
     }
 
     override fun toString(): String {
-        return "Connection(playerId=$playerId, playerName=$playerName, address=$remoteAddress)"
+        return "Connection(${this.identity})"
     }
 }
