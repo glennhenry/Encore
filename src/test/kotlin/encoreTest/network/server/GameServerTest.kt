@@ -1,25 +1,24 @@
 package encoreTest.network.server
 
-import encore.EncoreFancamConfig
-import encore.annotation.source.RevisitLater
 import encore.context.ServerContext
 import encore.datastore.collection.PlayerId
-import encore.fancam.Fancam
-import encore.fancam.impl.OfficialFancam
+import encore.network.fanchant.Fanchant
+import encore.network.fanchant.FanchantType
+import encore.network.fanchant.guide.DecodeResult
+import encore.network.fanchant.guide.FanchantGuide
+import encore.network.handler.FanchantHandler
+import encore.network.handler.HandlerContext
 import encore.network.server.GameServer
 import encore.network.server.GameServerConfig
 import encore.network.server.ServerContainer
 import encore.network.transport.TestConnection
-import encore.network.handler.HandlerContext
-import encore.network.handler.FanchantHandler
-import encore.network.fanchant.guide.DecodeResult
-import encore.network.fanchant.guide.FanchantGuide
-import encore.network.fanchant.Fanchant
-import encore.network.fanchant.FanchantType
 import encore.utils.safeAsciiString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -121,14 +120,7 @@ class GameServerTest {
      *    and wouldn't be able to recover without re-connecting (must with different scope)
      */
     @Test
-    @RevisitLater(
-        """
-        1. Decouple server start, accept, and handle so it's easy to add client without calling handleClient directly.
-        """
-    )
     fun `should capable serving multiple clients`() = runTest {
-        Fancam.initialize(OfficialFancam(EncoreFancamConfig()))
-
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameServer = GameServer(config) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(
