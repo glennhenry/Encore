@@ -55,9 +55,7 @@ class PlayerPresenceSubunit : Subunit<ServerScope> {
      * Update the last network activity of [playerId]. Does nothing if the player is not online.
      */
     fun updateLastActivity(playerId: PlayerId) {
-        onlinePlayers.computeIfPresent(playerId) { _, status ->
-            status.copy(lastNetworkActivity = getTimeMillis())
-        }
+        onlinePlayers[playerId]?.lastNetworkActivity = getTimeMillis()
     }
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)

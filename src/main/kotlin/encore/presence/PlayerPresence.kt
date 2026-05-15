@@ -14,5 +14,6 @@ import encore.datastore.collection.PlayerId
 data class PlayerPresence(
     val playerId: PlayerId,
     val onlineSince: Long,
-    val lastNetworkActivity: Long,
+    @Volatile
+    var lastNetworkActivity: Long
 )
