@@ -26,6 +26,11 @@ class CommandDispatcher {
         get() = _serverContext
             ?: error("Dependency error: CommandDispatcher hasn't received ServerContext. Call initialize() first.")
 
+    /**
+     * Initialize dependency for [CommandDispatcher].
+     *
+     * @param context [ServerContext] instance.
+     */
     fun initialize(context: ServerContext) {
         if (_serverContext != null) {
             Fancam.warn { "CommandDispatcher.initialize() called after initialization. Ignoring." }

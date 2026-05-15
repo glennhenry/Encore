@@ -14,7 +14,11 @@ import java.util.concurrent.ConcurrentHashMap
 typealias ClientSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>
 
 /**
- * Track websocket connections.
+ * Track websocket connections and dispatch incoming message to handlers.
+ *
+ * Should call [initialize] before usage.
+ *
+ * This websocket system is mostly used to connect with the external devtools.
  */
 class WebSocketManager {
     private var _serverContext: ServerContext? = null
@@ -22,6 +26,11 @@ class WebSocketManager {
         get() = _serverContext
             ?: error("Dependency error: WebSocketManager hasn't received ServerContext. Call initialize() first.")
 
+    /**
+     * Initialize dependency for [WebSocketManager].
+     *
+     * @param context [ServerContext] instance.
+     */
     fun initialize(context: ServerContext) {
         if (_serverContext != null) {
             Fancam.warn { "WebSocketManager.initialize() called after initialization. Ignoring." }
