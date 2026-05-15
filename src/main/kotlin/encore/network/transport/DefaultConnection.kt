@@ -93,6 +93,7 @@ class DefaultConnection(
         try {
             connectionScope.cancel(CancellationException("Connection closed"))
             connectionScope.coroutineContext.job.join()
+        } catch (_: CancellationException) {
         } catch (e: Exception) {
             Fancam.warn { "Exception during connection shutdown: ${e.message}" }
         }
