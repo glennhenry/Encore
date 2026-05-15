@@ -60,13 +60,13 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnConnect] event for [connection].
      */
     fun onConnect(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace { "onConnect lifecycle for '${connection.playerName}'" }
+        if (logEachHook) Fancam.trace { "onConnect lifecycle for '${connection.identity}'" }
         for ((name, hook) in onConnectHooks) {
             try {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace { "onConnect '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e) { "onConnect '$name' error for '${connection.playerName}'" }
+                Fancam.error(e) { "onConnect '$name' error for '${connection.identity}'" }
             }
         }
     }
@@ -75,13 +75,13 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnDisconnect] event for [connection].
      */
     fun onDisconnect(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace { "onDisconnect lifecycle for '${connection.playerName}'" }
+        if (logEachHook) Fancam.trace { "onDisconnect lifecycle for '${connection.identity}'" }
         for ((name, hook) in onDisconnectHooks) {
             try {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace { "onDisconnect '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e) { "onDisconnect '$name' error for '${connection.playerName}'" }
+                Fancam.error(e) { "onDisconnect '$name' error for '${connection.identity}'" }
             }
         }
     }
@@ -90,13 +90,13 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnSend] event for [connection].
      */
     fun onSend(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace { "onSend lifecycle for '${connection.playerName}'" }
+        if (logEachHook) Fancam.trace { "onSend lifecycle for '${connection.identity}'" }
         for ((name, hook) in onSendHooks) {
             try {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace { "onSend '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e) { "onSend '$name' error for '${connection.playerName}'" }
+                Fancam.error(e) { "onSend '$name' error for '${connection.identity}'" }
             }
         }
     }
@@ -105,13 +105,13 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnReceive] event for [connection].
      */
     fun onReceive(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace { "onReceive lifecycle for '${connection.playerName}'" }
+        if (logEachHook) Fancam.trace { "onReceive lifecycle for '${connection.identity}'" }
         for ((name, hook) in onReceiveHooks) {
             try {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace { "onReceive '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e) { "onReceive '$name' error for '${connection.playerName}'" }
+                Fancam.error(e) { "onReceive '$name' error for '${connection.identity}'" }
             }
         }
     }

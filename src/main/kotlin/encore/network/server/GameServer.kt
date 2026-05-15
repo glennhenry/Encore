@@ -81,6 +81,7 @@ class GameServer(
                         inputChannel = socket.openReadChannel(),
                         outputChannel = socket.openWriteChannel(autoFlush = true),
                         remoteAddress = socket.remoteAddress.toString(),
+                        onSend = { serverContext.playerLifecycleHandler.onSend(serverContext, it) },
                         connectionScope = connectionScope
                     )
                     activateConnection(connection)
@@ -95,15 +96,8 @@ class GameServer(
     }
 
     fun activateConnection(connection: Connection) {
-        if (connection is DefaultConnection) {
-            connection.registerOnSendHook {
-                serverContext.playerLifecycleHandler.onSend(serverContext, connection)
-            }
-        }
-
-        Fancam.info { "New client: ${connection.remoteAddress}" }
+        Fancam.info { "New $connection" }
         serverContext.playerLifecycleHandler.onConnect(serverContext, connection)
-
         processConnection(connection)
     }
 
@@ -131,21 +125,18 @@ class GameServer(
                         buildString {
                             appendLine("<===== [SOCKET END]")
                             appendLine("$LOG_INDENT_PREFIX type      : $fanchantType")
-                            appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
-                            if (connection.playerId == "[Undetermined]") {
-                                appendLine("$LOG_INDENT_PREFIX address   : ${connection.remoteAddress}")
-                            }
+                            appendLine("$LOG_INDENT_PREFIX identity  : ${connection.identity}")
                             appendLine("$LOG_INDENT_PREFIX duration  : ${elapsed}ms")
                             append("====================================================================================================")
                         }
                     }
                 }
-            } catch (_: CancellationException) {
-                Fancam.info { "Coroutine cancalled for $connection" }
+            } catch (e: CancellationException) {
+                Fancam.trace { "Coroutine cancellation for $connection: ${e.message}" }
             } catch (e: ClosedByteChannelException) {
                 Fancam.info { "Connection closed for $connection: ${e.message}" }
             } catch (e: Exception) {
-                Fancam.error(e) { "Exception in client socket $connection" }
+                Fancam.error(e) { "Exception in socket $connection" }
             } finally {
                 Fancam.info { "Cleaning up for $connection" }
                 serverContext.playerLifecycleHandler.onDisconnect(serverContext, connection)
@@ -187,10 +178,7 @@ class GameServer(
         Fancam.debug {
             buildString {
                 appendLine("=====> [SOCKET RECEIVE]")
-                appendLine("$LOG_INDENT_PREFIX playerId  : ${connection.playerId}")
-                if (connection.playerId == "[Undetermined]") {
-                    appendLine("$LOG_INDENT_PREFIX address   : ${connection.remoteAddress}")
-                }
+                appendLine("$LOG_INDENT_PREFIX identity  : ${connection.identity}")
                 appendLine("$LOG_INDENT_PREFIX bytes     : ${data.size}")
                 appendLine("$LOG_INDENT_PREFIX raw       : ${data.safeAsciiString()}")
                 append("$LOG_INDENT_PREFIX raw (hex) : ${data.hexString()}")
