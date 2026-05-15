@@ -232,7 +232,6 @@ class GameServer(
         val handler = socketDispatcher.findHandler(fanchant)
         val context = DefaultHandlerContext(
             connection = connection,
-            playerId = connection.playerId,
             fanchant = fanchant
         )
         handler.handleUnsafe(context)

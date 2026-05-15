@@ -3,6 +3,7 @@ package encore.network.handler
 import encore.datastore.collection.PlayerId
 import encore.network.transport.Connection
 import encore.network.fanchant.Fanchant
+import encore.network.transport.ConnectionIdentity
 
 /**
  * Encapsulate objects and data needed by handlers to handle network messages.
@@ -11,9 +12,9 @@ import encore.network.fanchant.Fanchant
  */
 interface HandlerContext<out T : Fanchant> {
     /**
-     * The player in-game unique identifier.
+     * The identifier for the player's connection.
      */
-    var playerId: PlayerId
+    val connectionIdentity: ConnectionIdentity
 
     /**
      * The received network message to be handled.
@@ -29,8 +30,5 @@ interface HandlerContext<out T : Fanchant> {
      */
     suspend fun sendRaw(raw: ByteArray, logOutput: Boolean = true, logFull: Boolean = false)
 
-    /**
-     * To update the playerId for this connection (usually goes through [Connection.updatePlayerId]).
-     */
-    fun updatePlayerId(playerId: PlayerId)
+    fun acknowledge(playerId: PlayerId, username: String)
 }

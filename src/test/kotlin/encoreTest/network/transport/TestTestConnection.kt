@@ -1,5 +1,6 @@
 package encoreTest.network.transport
 
+import encore.network.transport.ConnectionIdentity
 import encore.network.transport.TestConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -15,8 +16,11 @@ class TestTestConnection {
     fun testConnection() = runTest {
         val conn = TestConnection(
             connectionScope = CoroutineScope(StandardTestDispatcher()),
-            playerId = "p1",
-            playerName = "Alice"
+            identity = ConnectionIdentity(
+                playerId = "p1",
+                username = "Alice",
+                remoteAddress = "N/A"
+            )
         )
         conn.enqueueIncoming("Hello".toByteArray())
 

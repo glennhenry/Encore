@@ -76,7 +76,8 @@ class StageActDirectorTest {
                 override val isClosedForWrite: Boolean = false
                 @InternalAPI override val writeBuffer: Sink = Buffer()
             },
-            remoteAddress = "123",
+            remoteAddress = "N/A",
+            onSend = {},
             connectionScope = cor,
         )
 

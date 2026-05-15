@@ -11,6 +11,7 @@ import encore.network.handler.HandlerContext
 import encore.network.server.GameServer
 import encore.network.server.GameServerConfig
 import encore.network.server.ServerContainer
+import encore.network.transport.ConnectionIdentity
 import encore.network.transport.TestConnection
 import encore.utils.safeAsciiString
 import kotlinx.coroutines.*
@@ -207,8 +208,7 @@ class GameServerTest {
     ): TestConnection {
         return TestConnection(
             connectionScope = scope,
-            playerId = playerId,
-            playerName = username
+            identity = ConnectionIdentity(playerId, username, "N/A")
         )
     }
 }
