@@ -30,3 +30,11 @@ object AnsiColors {
     fun bg(n: Int) = "$Esc[48;5;${n}m"
     fun bold(text: String) = "$Esc[1m$text$Esc[22m"
 }
+
+/**
+ * Colorize the given [text] with a **256-foreground** [color].
+ * This start ANSI coloring, places text, and put a reset afterward.
+ */
+fun colorizeSegment(color: Int, text: String): String {
+    return "${AnsiColors.fg(color)}$text${AnsiColors.Reset}"
+}
