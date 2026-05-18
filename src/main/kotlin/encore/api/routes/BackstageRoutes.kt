@@ -19,11 +19,11 @@ import io.ktor.server.routing.application
 import io.ktor.server.websocket.*
 import io.ktor.server.websocket.application
 import io.ktor.util.date.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 
 /**
  * Backstage routes (devtools). In the backstage, there are three sections of tools:
@@ -75,7 +75,7 @@ class BackstageRoutes(
 
                 // skip auth on developmentMode
                 if (application.developmentMode) {
-                    Fancam.info { "Auth skipped on /backstage (development mode)" }
+                    Fancam.trace { "Auth skipped on /backstage (development mode)" }
                     call.respondFile(mainHtml)
                     return@intercept
                 }
@@ -85,14 +85,14 @@ class BackstageRoutes(
 
                 // PASS: user with cookie has already authenticated before
                 if (cookie != null && serverContext.subunits.session.verify(cookie)) {
-                    Fancam.info { "Request to /backstage (passed): user has cookie and is valid" }
+                    Fancam.trace { "Passed to /backstage: cookie available" }
                     call.respondFile(mainHtml)
                     return@intercept
                 }
 
                 // WALL: user with cookie but expired
                 if (cookie != null && !serverContext.subunits.session.verify(cookie)) {
-                    Fancam.info { "Request to /backstage (wall): user has cookie but expired" }
+                    Fancam.trace { "Wall to /backstage: cookie has expired" }
                     call.respondText(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Cookie expired"),
                         ContentType.Text.Html
@@ -102,14 +102,14 @@ class BackstageRoutes(
 
                 // WALL: user without cookie and without token.
                 if (token == null) {
-                    Fancam.info { "Request to /backstage (wall): no token provided" }
+                    Fancam.trace { "Wall to /backstage: no token provided" }
                     call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Insert token"), ContentType.Text.Html)
                     return@intercept
                 }
 
                 // WALL: user has unknown token
                 if (!tokenStorage.contains(token)) {
-                    Fancam.info { "Request to /backstage (wall): got unknown token: $token" }
+                    Fancam.trace { "Wall to /backstage: got unknown token: $token" }
                     call.respondText(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Unknown token"),
                         ContentType.Text.Html
@@ -119,7 +119,7 @@ class BackstageRoutes(
 
                 // WALL: user has known token, but expired
                 if (tokenStorage.contains(token) && !timeUnderMinutes(tokenStorage[token]!!, 1)) {
-                    Fancam.info { "Request to /backstage (wall): token already expired" }
+                    Fancam.trace { "Wall to /backstage: token already expired" }
                     call.respondText(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),
                         ContentType.Text.Html
@@ -132,7 +132,7 @@ class BackstageRoutes(
                     userId = Ids.uuid(), validFor = 6.hours, lifetime = 6.hours
                 )
                 call.response.cookies.append("backstage-clientId", session.token, maxAge = 21600, path = "/backstage")
-                Fancam.info { "Request to /backstage (passed): token correct and user is now logged in" }
+                Fancam.trace { "Passed to /backstage: token is valid" }
                 call.respondFile(mainHtml)
             }
         }
@@ -194,11 +194,11 @@ class BackstageRoutes(
                 }
 
                 if (token == null) {
-                    Fancam.info { "WebSocket request for /backstage: failed with invalid token=$token" }
+                    Fancam.trace { "Can't connect to /backstage WebSocket with invalid token=$token" }
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
                     return@intercept
                 }
-                Fancam.info { "WebSocket request for /backstage: success with $token" }
+                Fancam.trace { "Connected to /backstage WebSocket" }
 
                 serverContext.webSocketManager.addClient(token, this)
 
@@ -214,15 +214,16 @@ class BackstageRoutes(
                                 }
                                 serverContext.webSocketManager.handleMessage(this, wsMessage)
                             } catch (e: Exception) {
-                                Fancam.error { "Failed to parse WS message: $msg\n$e" }
+                                Fancam.error(e) { "Failed to parse WS message: $msg" }
                             }
                         }
                     }
+                } catch (_: CancellationException) {
                 } catch (e: Exception) {
-                    Fancam.error { "Error in websocket for client $this: $e" }
+                    Fancam.error(e) { "Error on /backstage WebSocket for clientId=$token" }
                 } finally {
                     serverContext.webSocketManager.removeClient(token)
-                    Fancam.info { "Client $this disconnected from websocket" }
+                    Fancam.trace { "Client $token is disconnected from websocket" }
                 }
             }
         }
