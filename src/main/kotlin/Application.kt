@@ -26,6 +26,7 @@ import encore.network.server.GameServerConfig
 import encore.network.server.Server
 import encore.network.server.ServerContainer
 import encore.presence.PlayerPresenceSubunit
+import encore.routes.interceptResponse
 import encore.routes.stringifyHttpRequest
 import encore.serialization.JSON
 import encore.session.SessionSubunit
@@ -219,6 +220,8 @@ suspend fun Application.module() {
         fileRoutes()
         with(BackstageRoutes(serverContext, backstageToken)) { install() }
     }
+
+    interceptResponse()
 
     /* 11. Initialize servers */
     // build server configs
