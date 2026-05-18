@@ -1,5 +1,6 @@
 package encore.api.routes
 
+import encore.routes.RouteHandler
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respond
@@ -8,9 +9,18 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import java.io.File
 
+/**
+ * Serve file-related endpoints.
+ *
+ * This mostly serving static files:
+ * - Game and website assets in the `assets` folder.
+ * - Docs website on production in the `docs_build` folder.
+ *
+ * Since this is simple, it doesn't use the [RouteHandler]
+ */
 fun Route.fileRoutes() {
     get("/") {
-        call.respondFile(File("assets/index.html"))
+        call.respondFile(File("assets/site/index.html"))
     }
     staticFiles("site", File("assets/site"))
 
