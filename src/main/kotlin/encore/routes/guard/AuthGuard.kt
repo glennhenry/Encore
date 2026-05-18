@@ -14,6 +14,8 @@ import io.ktor.server.application.ApplicationCall
  *   based on the available information in the request.
  *
  * This should not handle low-level security mitigation or request validation.
+ *
+ * Can use [NoAuthGuard] to skip this check.
  */
 interface AuthGuard {
     /**

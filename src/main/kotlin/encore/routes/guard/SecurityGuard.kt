@@ -14,6 +14,8 @@ import io.ktor.server.application.ApplicationCall
  * - Mitigating malformed or abusive requests.
  *
  * This should not handle authentication or application-level validation.
+ *
+ * Can use [NoSecurityGuard] to skip this check.
  */
 interface SecurityGuard {
     /**

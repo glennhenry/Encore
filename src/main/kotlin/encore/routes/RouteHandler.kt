@@ -84,6 +84,17 @@ interface RouteHandler {
  * Returning early within the intercept block is guaranteed
  * to exit the handling immediately.
  *
+ * Handler may use [NoSecurityGuard] or [NoAuthGuard] to skip
+ * automatic checks when different routes require different handling.
+ *
+ * This is useful when:
+ * - Public and authenticated routes are mixed within the same handler.
+ * - Authentication must be decided dynamically per route.
+ *
+ * In such cases, handler may:
+ * - Use empty guards and complete checks manually.
+ * - Use non-empty guards, but do not apply [intercept] to all routes.
+ *
  * @param call Ktor request representation.
  * @param block Request handling block.
  */
