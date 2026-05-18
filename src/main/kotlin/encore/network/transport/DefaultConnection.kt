@@ -3,7 +3,7 @@ package encore.network.transport
 import encore.acts.StageAct
 import encore.datastore.collection.PlayerId
 import encore.fancam.Fancam
-import encore.fancam.LOG_INDENT_PREFIX
+import encore.fancam.INDENT
 import encore.fancam.events.Level
 import encore.utils.hexString
 import encore.utils.safeAsciiString
@@ -55,8 +55,8 @@ class DefaultConnection(
                     .message {
                         buildString {
                             appendLine("[SOCKET SEND]")
-                            appendLine("$LOG_INDENT_PREFIX raw       : ${input.safeAsciiString()}")
-                            append("$LOG_INDENT_PREFIX raw (hex) : ${input.hexString()}")
+                            appendLine("$INDENT raw       : ${input.safeAsciiString()}")
+                            append("$INDENT raw (hex) : ${input.hexString()}")
                         }
                     }
                     .log(full = logFull)

@@ -1,7 +1,7 @@
 package encore.websocket
 
 import encore.fancam.Fancam
-import encore.fancam.LOG_INDENT_PREFIX
+import encore.fancam.INDENT
 import encore.websocket.handler.WebSocketHandler
 import io.ktor.server.websocket.*
 import java.util.*
@@ -85,9 +85,9 @@ class WebSocketManager {
         Fancam.debug {
             buildString {
                 appendLine("##### [WebSocket Receive]")
-                appendLine("$LOG_INDENT_PREFIX type       : ${message.type}")
-                appendLine("$LOG_INDENT_PREFIX payload    : ${message.payload}")
-                append("$LOG_INDENT_PREFIX handled by : ${handler?.name ?: "[Unhandled]"}")
+                appendLine("$INDENT type       : ${message.type}")
+                appendLine("$INDENT payload    : ${message.payload}")
+                append("$INDENT handled by : ${handler?.name ?: "[Unhandled]"}")
             }
         }
 

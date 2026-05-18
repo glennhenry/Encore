@@ -90,4 +90,4 @@ object Fancam {
  * This is hardcoded and should be modified manually when formatting changes
  * (which includes changes like padding length).
  */
-const val LOG_INDENT_PREFIX = "                                                              "
+const val INDENT = "                                                            "

@@ -1,7 +1,7 @@
 package encore.websocket
 
 import encore.fancam.Fancam
-import encore.fancam.LOG_INDENT_PREFIX
+import encore.fancam.INDENT
 import encore.serialization.JSON
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
@@ -55,8 +55,8 @@ suspend fun DefaultWebSocketServerSession.respond(type: String, payload: JsonEle
     Fancam.debug {
         buildString {
             appendLine("##### [WebSocket Send]")
-            appendLine("$LOG_INDENT_PREFIX type       : $type")
-            append("$LOG_INDENT_PREFIX payload    : $payload")
+            appendLine("$INDENT type       : $type")
+            append("$INDENT payload    : $payload")
         }
     }
 

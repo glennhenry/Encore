@@ -2,7 +2,7 @@ package encore.network.server
 
 import encore.context.ServerContext
 import encore.fancam.Fancam
-import encore.fancam.LOG_INDENT_PREFIX
+import encore.fancam.INDENT
 import encore.network.transport.Connection
 import encore.network.transport.DefaultConnection
 import encore.network.handler.DefaultHandlerContext
@@ -124,9 +124,9 @@ class GameServer(
                     Fancam.debug {
                         buildString {
                             appendLine("<===== [SOCKET END]")
-                            appendLine("$LOG_INDENT_PREFIX type      : $fanchantType")
-                            appendLine("$LOG_INDENT_PREFIX identity  : ${connection.identity}")
-                            appendLine("$LOG_INDENT_PREFIX duration  : ${elapsed}ms")
+                            appendLine("$INDENT type      : $fanchantType")
+                            appendLine("$INDENT identity  : ${connection.identity}")
+                            appendLine("$INDENT duration  : ${elapsed}ms")
                             append("====================================================================================================")
                         }
                     }
@@ -178,10 +178,10 @@ class GameServer(
         Fancam.debug {
             buildString {
                 appendLine("=====> [SOCKET RECEIVE]")
-                appendLine("$LOG_INDENT_PREFIX identity  : ${connection.identity}")
-                appendLine("$LOG_INDENT_PREFIX bytes     : ${data.size}")
-                appendLine("$LOG_INDENT_PREFIX raw       : ${data.safeAsciiString()}")
-                append("$LOG_INDENT_PREFIX raw (hex) : ${data.hexString()}")
+                appendLine("$INDENT identity  : ${connection.identity}")
+                appendLine("$INDENT bytes     : ${data.size}")
+                appendLine("$INDENT raw       : ${data.safeAsciiString()}")
+                append("$INDENT raw (hex) : ${data.hexString()}")
             }
         }
 
@@ -200,8 +200,8 @@ class GameServer(
                     Fancam.debug {
                         buildString {
                             appendLine("[SOCKET DECODE]")
-                            appendLine("$LOG_INDENT_PREFIX type   : ${fanchant.type.id}")
-                            append("$LOG_INDENT_PREFIX guide  : ${guide.name}")
+                            appendLine("$INDENT type   : ${fanchant.type.id}")
+                            append("$INDENT guide  : ${guide.name}")
                         }
                     }
 
@@ -223,7 +223,7 @@ class GameServer(
                         "Multiple fanchant guides decoded the same packet: " +
                                 matched.joinToString { "${it.first}/type=${it.second.type.id}" }
                     )
-                    append("$LOG_INDENT_PREFIX chosen: $chosenGuide/type=${fanchant.type.id}")
+                    append("$INDENT chosen: $chosenGuide/type=${fanchant.type.id}")
                 }
             }
         }

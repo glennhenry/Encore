@@ -40,6 +40,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * Fancam.warn(MultipleTag) { "Subunit x under problem." }
  * ```
  *
+ * Under basic logging, log will be truncated if it exceeds the maximum character.
+ * Use the builder below to ensure everything is printed fully.
+ *
  * ### 2. Advanced logging with builder DSL
  *
  * For more advanced config such as file target and to toggle [LogEvent.logFull].

@@ -3,7 +3,7 @@ package encore.network.fanchant
 import encore.network.handler.FanchantHandler
 import encore.network.handler.CatchAllHandler
 import encore.fancam.Fancam
-import encore.fancam.LOG_INDENT_PREFIX
+import encore.fancam.INDENT
 
 /**
  * Component responsible for dispatching [Fanchant] to the appropriate
@@ -65,8 +65,8 @@ class FanchantCoordinator {
                 } else {
                     appendLine("[SOCKET DISPATCH]")
                 }
-                appendLine("$LOG_INDENT_PREFIX fanchant (str): $fanchant")
-                append("$LOG_INDENT_PREFIX handlers      : ${handler?.name ?: catchAllHandler.name}")
+                appendLine("$INDENT fanchant (str): $fanchant")
+                append("$INDENT handlers      : ${handler?.name ?: catchAllHandler.name}")
             }
         }
 
