@@ -2,13 +2,22 @@ package encore.api.routes
 
 import encore.context.ServerContext
 import encore.fancam.Fancam
+import encore.routes.RouteHandler
+import encore.routes.guard.AuthGuard
+import encore.routes.guard.NoAuthGuard
+import encore.routes.guard.NoSecurityGuard
+import encore.routes.guard.SecurityGuard
+import encore.routes.intercept
 import encore.utils.Ids
+import encore.utils.timeUnderMinutes
 import encore.websocket.WebSocketMessage
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.routing.application
 import io.ktor.server.websocket.*
+import io.ktor.server.websocket.application
 import io.ktor.util.date.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
@@ -46,155 +55,178 @@ import kotlin.time.Duration.Companion.minutes
  *     - Client can type command and it will be executed in the server.
  * 8. When session exceeded 6 hours, user needs to refresh. (step 6A).
  */
-fun Route.backstageRoutes(serverContext: ServerContext, tokenStorage: MutableMap<String, Long>) {
-    get("/backstage") {
-        val wallHtml = File("backstage/wall.html")
-        val mainHtml = File("backstage/main.html")
+class BackstageRoutes(
+    private val serverContext: ServerContext,
+    private val tokenStorage: MutableMap<String, Long>
+) : RouteHandler {
+    override val name: String = "BackstageRoutes"
+    override val enableLogging: Boolean = true
 
-        // skip on developmentMode
-        if (application.developmentMode) {
-            Fancam.info { "Request to /backstage (passed): auth skipped in development mode" }
-            call.respondFile(mainHtml)
-            return@get
+    // in this case, security is not needed
+    // due to dynamic handling, for simplicity, auth is done manually
+    override val security: SecurityGuard = NoSecurityGuard
+    override val auth: AuthGuard = NoAuthGuard
+
+    override fun Route.install() {
+        get("/backstage") {
+            intercept(call) {
+                val wallHtml = File("backstage/wall.html")
+                val mainHtml = File("backstage/main.html")
+
+                // skip auth on developmentMode
+                if (application.developmentMode) {
+                    Fancam.info { "Auth skipped on /backstage (development mode)" }
+                    call.respondFile(mainHtml)
+                    return@intercept
+                }
+
+                val token = call.request.queryParameters["token"]
+                val cookie = call.request.cookies["backstage-clientId"]
+
+                // PASS: user with cookie has already authenticated before
+                if (cookie != null && serverContext.subunits.session.verify(cookie)) {
+                    Fancam.info { "Request to /backstage (passed): user has cookie and is valid" }
+                    call.respondFile(mainHtml)
+                    return@intercept
+                }
+
+                // WALL: user with cookie but expired
+                if (cookie != null && !serverContext.subunits.session.verify(cookie)) {
+                    Fancam.info { "Request to /backstage (wall): user has cookie but expired" }
+                    call.respondText(
+                        insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Cookie expired"),
+                        ContentType.Text.Html
+                    )
+                    return@intercept
+                }
+
+                // WALL: user without cookie and without token.
+                if (token == null) {
+                    Fancam.info { "Request to /backstage (wall): no token provided" }
+                    call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Insert token"), ContentType.Text.Html)
+                    return@intercept
+                }
+
+                // WALL: user has unknown token
+                if (!tokenStorage.contains(token)) {
+                    Fancam.info { "Request to /backstage (wall): got unknown token: $token" }
+                    call.respondText(
+                        insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Unknown token"),
+                        ContentType.Text.Html
+                    )
+                    return@intercept
+                }
+
+                // WALL: user has known token, but expired
+                if (tokenStorage.contains(token) && !timeUnderMinutes(tokenStorage[token]!!, 1)) {
+                    Fancam.info { "Request to /backstage (wall): token already expired" }
+                    call.respondText(
+                        insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),
+                        ContentType.Text.Html
+                    )
+                    return@intercept
+                }
+
+                // PASS: user has valid token
+                val session = serverContext.subunits.session.create(
+                    userId = Ids.uuid(), validFor = 6.hours, lifetime = 6.hours
+                )
+                call.response.cookies.append("backstage-clientId", session.token, maxAge = 21600, path = "/backstage")
+                Fancam.info { "Request to /backstage (passed): token correct and user is now logged in" }
+                call.respondFile(mainHtml)
+            }
         }
 
-        val token = call.request.queryParameters["token"]
-        val cookie = call.request.cookies["backstage-clientId"]
+        get("/backstage/server-status") {
+            intercept(call) {
+                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@intercept
 
-        // PASS: user with cookie already authenticated before
-        if (cookie != null && serverContext.subunits.session.verify(cookie)) {
-            Fancam.info { "Request to /backstage (passed): user has cookie and is valid" }
-            call.respondFile(mainHtml)
-            return@get
+                call.respond("Status received (work in progress).")
+            }
         }
 
-        // WALL: user with cookie but expired
-        if (cookie != null && !serverContext.subunits.session.verify(cookie)) {
-            Fancam.info { "Request to /backstage (wall): user has cookie but expired" }
-            call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Cookie expired"), ContentType.Text.Html)
-            return@get
-        }
+        get("/backstage/cmd-help-text") {
+            intercept(call) {
+                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@intercept
 
-        // WALL: user without cookie and without token.
-        if (token == null) {
-            Fancam.info { "Request to /backstage (wall): no token provided" }
-            call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Insert token"), ContentType.Text.Html)
-            return@get
-        }
+                val commands = serverContext.commandDispatcher.getAllRegisteredCommands()
+                val html = StringBuilder()
 
-        // WALL: user has unknown token
-        if (!tokenStorage.contains(token)) {
-            Fancam.info { "Request to /backstage (wall): got unknown token: $token" }
-            call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Unknown token"), ContentType.Text.Html)
-            return@get
-        }
-
-        // WALL: user has known token, but expired
-        if (tokenStorage.contains(token) && !timeUnderMinutes(tokenStorage[token]!!, 1)) {
-            Fancam.info { "Request to /backstage (wall): token already expired" }
-            call.respondText(
-                insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),
-                ContentType.Text.Html
-            )
-            return@get
-        }
-
-        // PASS: user has valid token
-        val session = serverContext.subunits.session.create(
-            userId = Ids.uuid(), validFor = 6.hours, lifetime = 6.hours
-        )
-        call.response.cookies.append("backstage-clientId", session.token, maxAge = 21600, path = "/backstage")
-        Fancam.info { "Request to /backstage (passed): token correct and user is now logged in" }
-        call.respondFile(mainHtml)
-    }
-
-    get("/backstage/server-status") {
-        if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@get
-
-        call.respond("Status received (work in progress).")
-    }
-
-    get("/backstage/cmd-help-text") {
-        if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@get
-
-        val commands = serverContext.commandDispatcher.getAllRegisteredCommands()
-        val html = StringBuilder()
-
-        html.append("<ul>")
-
-        for (cmd in commands) {
-            html.append("<li><b><code>${cmd.commandId}</code></b>: ${cmd.description}")
-            html.append("<ol>")
-
-            for (variant in cmd.variants) {
-                html.append("<li>")
                 html.append("<ul>")
 
-                // Signature list
-                for (sig in variant.signature) {
-                    html.append("<li><code>${sig.id}</code> (<code>${sig.expectedType}</code>): ${sig.description}</li>")
+                for (cmd in commands) {
+                    html.append("<li><b><code>${cmd.commandId}</code></b>: ${cmd.description}")
+                    html.append("<ol>")
+
+                    for (variant in cmd.variants) {
+                        html.append("<li>")
+                        html.append("<ul>")
+
+                        // Signature list
+                        for (sig in variant.signature) {
+                            html.append("<li><code>${sig.id}</code> (<code>${sig.expectedType}</code>): ${sig.description}</li>")
+                        }
+
+                        html.append("</ul>")
+                        html.append("</li>")
+                    }
+
+                    html.append("</ol>")
+                    html.append("</li>")
                 }
 
                 html.append("</ul>")
-                html.append("</li>")
+
+                call.respondText(html.toString(), ContentType.Text.Html)
             }
-
-            html.append("</ol>")
-            html.append("</li>")
         }
 
-        html.append("</ul>")
+        webSocket("/backstage/ws") {
+            intercept(call) {
+                val token = if (application.developmentMode) {
+                    // dev mode uses arbitrary identifier
+                    "DEV-${getTimeMillis()}"
+                } else {
+                    // websocket can't send cookie, token cookie for WS is included in the param instead
+                    // also verify the token
+                    call.request.queryParameters["token"]
+                        ?.takeIf { serverContext.subunits.session.verify(it) }
+                }
 
-        call.respondText(html.toString(), ContentType.Text.Html)
-    }
+                if (token == null) {
+                    Fancam.info { "WebSocket request for /backstage: failed with invalid token=$token" }
+                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
+                    return@intercept
+                }
+                Fancam.info { "WebSocket request for /backstage: success with $token" }
 
-    webSocket("/backstage/ws") {
-        val token = if (application.developmentMode) {
-            // dev mode uses arbitrary identifier
-            "DEV-${getTimeMillis()}"
-        } else {
-            // websocket can't send cookie, token cookie for WS is included in the param instead
-            // also verify the token
-            call.request.queryParameters["token"]
-                ?.takeIf { serverContext.subunits.session.verify(it) }
-        }
+                serverContext.webSocketManager.addClient(token, this)
 
-        if (token == null) {
-            Fancam.info { "WebSocket request for /backstage: failed with invalid token=$token" }
-            close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
-            return@webSocket
-        }
-        Fancam.info { "WebSocket request for /backstage: success with $token" }
-
-        serverContext.webSocketManager.addClient(token, this)
-
-        try {
-            for (frame in incoming) {
-                if (frame is Frame.Text) {
-                    val msg = frame.readText()
-                    try {
-                        val wsMessage = Json.decodeFromString<WebSocketMessage>(msg)
-                        if (wsMessage.type == "close") {
-                            serverContext.webSocketManager.removeClient(token)
-                            break
+                try {
+                    for (frame in incoming) {
+                        if (frame is Frame.Text) {
+                            val msg = frame.readText()
+                            try {
+                                val wsMessage = Json.decodeFromString<WebSocketMessage>(msg)
+                                if (wsMessage.type == "close") {
+                                    serverContext.webSocketManager.removeClient(token)
+                                    break
+                                }
+                                serverContext.webSocketManager.handleMessage(this, wsMessage)
+                            } catch (e: Exception) {
+                                Fancam.error { "Failed to parse WS message: $msg\n$e" }
+                            }
                         }
-                        serverContext.webSocketManager.handleMessage(this, wsMessage)
-                    } catch (e: Exception) {
-                        Fancam.error { "Failed to parse WS message: $msg\n$e" }
                     }
+                } catch (e: Exception) {
+                    Fancam.error { "Error in websocket for client $this: $e" }
+                } finally {
+                    serverContext.webSocketManager.removeClient(token)
+                    Fancam.info { "Client $this disconnected from websocket" }
                 }
             }
-        } catch (e: Exception) {
-            Fancam.error { "Error in websocket for client $this: $e" }
-        } finally {
-            serverContext.webSocketManager.removeClient(token)
-            Fancam.info { "Client $this disconnected from websocket" }
         }
     }
-}
-
-fun timeUnderMinutes(timeMillis: Long, minutes: Int): Boolean {
-    return getTimeMillis() - timeMillis < minutes.minutes.inWholeMilliseconds
 }
 
 fun insertHtmlTemplate(file: File, templateId: String, message: String): String {

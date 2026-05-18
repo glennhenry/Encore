@@ -1,9 +1,13 @@
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import encore.EncoreIdentity
 import encore.account.AccountSubunit
-import encore.api.routes.backstageRoutes
+import encore.account.MongoAccountRepository
+import encore.account.PlayerCreationSubunit
+import encore.acts.ActIdStore
+import encore.acts.StageActDirector
+import encore.api.routes.BackstageRoutes
 import encore.api.routes.fileRoutes
-import encore.api.routes.timeUnderMinutes
+import encore.auth.AuthSubunit
 import encore.backstage.command.CommandDispatcher
 import encore.backstage.command.ExampleCommand
 import encore.context.DefaultContextTracker
@@ -11,28 +15,23 @@ import encore.context.ServerContext
 import encore.context.ServerSubunits
 import encore.datastore.MongoCollectionName
 import encore.datastore.MongoDataStore
-import encore.account.PlayerCreationSubunit
 import encore.definition.GameReference
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam
-import encore.serialization.JSON
-import encore.network.server.GameServer
-import encore.network.server.GameServerConfig
-import encore.network.server.ServerContainer
-import encore.presence.PlayerPresenceSubunit
-import encore.network.server.Server
 import encore.network.fanchant.guide.FanchantGuide
 import encore.network.fanchant.guide.FanchantGuideRegistry
-import encore.account.MongoAccountRepository
-import encore.acts.ActIdStore
-import encore.acts.StageActDirector
-import encore.auth.AuthSubunit
-import encore.fancam.INDENT
-import encore.fancam.formatter.AnsiColors
 import encore.network.lifecycle.PlayerLifecycleHandler
+import encore.network.server.GameServer
+import encore.network.server.GameServerConfig
+import encore.network.server.Server
+import encore.network.server.ServerContainer
+import encore.presence.PlayerPresenceSubunit
+import encore.routes.stringifyHttpRequest
+import encore.serialization.JSON
 import encore.session.SessionSubunit
 import encore.utils.Ids
 import encore.utils.SystemTime
+import encore.utils.timeUnderMinutes
 import encore.venue.Venue
 import encore.websocket.WebSocketManager
 import encore.websocket.handler.WsCommandHandler
@@ -139,7 +138,8 @@ suspend fun Application.module() {
         }
 
         unhandled { call ->
-            Fancam.error { "Unhandled API route: ${call.request.httpMethod} ${call.request.uri}." }
+            Fancam.warn { call.stringifyHttpRequest(unhandled = true) }
+
             call.respondText(
                 text = errorHtml(404, "Not found in the system."),
                 contentType = ContentType.Text.Html,
@@ -217,7 +217,7 @@ suspend fun Application.module() {
     /* 10. Register routes */
     routing {
         fileRoutes()
-        backstageRoutes(serverContext, backstageToken)
+        with(BackstageRoutes(serverContext, backstageToken)) { install() }
     }
 
     /* 11. Initialize servers */
@@ -294,7 +294,8 @@ suspend fun Application.module() {
                 container.shutdownAll()
                 appScope.cancel("Application closed")
                 appScope.coroutineContext.job.cancel()
-            } catch (_: CancellationException) {}
+            } catch (_: CancellationException) {
+            }
         }
         Fancam.info { "Server shutdown complete." }
     })

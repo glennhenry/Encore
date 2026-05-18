@@ -1,7 +1,16 @@
 package encore.utils
 
+import io.ktor.util.date.getTimeMillis
 import java.time.Instant
 import java.time.ZoneId
+import kotlin.time.Duration.Companion.minutes
+
+/**
+ * Returns whether the given time in millis is under [minutes].
+ */
+fun timeUnderMinutes(timeMillis: Long, minutes: Int): Boolean {
+    return getTimeMillis() - timeMillis < minutes.minutes.inWholeMilliseconds
+}
 
 /**
  * Represents a specific time of day using a 24-hour clock.
