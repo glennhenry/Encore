@@ -37,7 +37,7 @@ class SessionSubunit(
 ) : Subunit<ServerScope> {
     // token to UserSession
     private val sessions = ConcurrentHashMap<String, UserSession>()
-    private val cleanUpInterval = 5.minutes
+    private val cleanUpInterval = 20.minutes
     private val cleanupJob: Job
 
     init {
