@@ -20,10 +20,11 @@ class LogEventFancamFormatter(
     private val config: EncoreFancamConfig,
     private val isFileTarget: Boolean,
 ) : FancamFormatter<LogEvent> {
-    private val timeFormat = SimpleDateFormat("HH:mm:ss.SSS")
+    private val logTimeFormat = SimpleDateFormat("HH:mm:ss.SSS")
+    private val fileTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
     override fun format(event: LogEvent): String {
-        val timestamp = formatTimestamp(event.timestamp, timeFormat)
+        val timestamp = formatTimestamp(event.timestamp, isFileTarget)
         val source = formatSourceHint(event.source, config.fileNamePadding, isFileTarget)
         val level = if (config.colorEnabled && !isFileTarget) {
             colorizeText(event.level, "[${event.level.label()}]")
@@ -75,8 +76,12 @@ class LogEventFancamFormatter(
         }
     }
 
-    private fun formatTimestamp(timestamp: Long, format: SimpleDateFormat): String {
-        return format.format(timestamp)
+    private fun formatTimestamp(timestamp: Long, isFileTarget: Boolean): String {
+        return if (isFileTarget) {
+            fileTimeFormat.format(timestamp)
+        } else {
+            logTimeFormat.format(timestamp)
+        }
     }
 
     private fun formatSourceHint(source: TraceElement?, fileNamePadding: Int, noTruncation: Boolean): String {

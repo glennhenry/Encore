@@ -11,7 +11,10 @@ import kotlin.test.Test
  * Only test the logger display, not actual code unit tests.
  *
  * use this to show color
+ * ./gradlew test --tests "encoreTest.fancam.FancamDisplayTest.<test function>" --console=plain
+ * for example:
  * ./gradlew test --tests "encoreTest.fancam.FancamDisplayTest" --console=plain
+ * ./gradlew test --tests "encoreTest.fancam.FancamDisplayTest.fancam with color" --console=plain
  */
 class FancamDisplayTest {
     @Test
