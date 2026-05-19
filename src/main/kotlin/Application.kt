@@ -28,6 +28,7 @@ import encore.network.server.ServerContainer
 import encore.presence.PlayerPresenceSubunit
 import encore.routes.guard.DefaultSecurity
 import encore.routes.guard.GuardResult
+import encore.routes.guard.SecurityGuard
 import encore.routes.interceptResponse
 import encore.routes.stringifyHttpRequest
 import encore.serialization.JSON
@@ -47,6 +48,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -225,8 +227,9 @@ suspend fun Application.module() {
 
     interceptResponse()
 
-    val bannedAddresses = emptySet<String>()
-    configureSecurity(bannedAddresses)
+    val bannedAddresses = mutableSetOf<String>()
+    val security = DefaultSecurity(bannedAddresses)
+    configureSecurity(security)
 
     /* 11. Initialize servers */
     // build server configs
@@ -309,18 +312,22 @@ suspend fun Application.module() {
     })
 }
 
-fun Application.configureSecurity(bannedAddresses: Set<String>) {
-    val security = DefaultSecurity(bannedAddresses)
-
+fun Application.configureSecurity(security: SecurityGuard) {
     intercept(ApplicationCallPipeline.Plugins) {
         when (val result = security.verify(call)) {
             is GuardResult.Welcome -> proceed()
             is GuardResult.GetOut -> {
+                Fancam.debug { call.stringifyHttpRequest(unhandled = false) }
+
                 call.respondText(
                     text = errorHtml(403, result.why),
                     contentType = ContentType.Text.Html,
                     status = HttpStatusCode.Forbidden
                 )
+
+                val remote = call.request.origin.remoteHost
+                Fancam.info { "Security refused $remote due to: ${result.why}" }
+
                 finish()
             }
         }
