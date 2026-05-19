@@ -1,10 +1,10 @@
-package encore.api.routes
+package encore.routing.routes
 
 import encore.context.ServerContext
 import encore.fancam.Fancam
-import encore.routes.RouteHandler
-import encore.routes.guard.NoAuthGuard
-import encore.routes.handle
+import encore.routing.RouteHandler
+import encore.routing.guard.NoAuthGuard
+import encore.routing.handle
 import encore.utils.Ids
 import encore.utils.timeUnderMinutes
 import encore.websocket.WebSocketMessage

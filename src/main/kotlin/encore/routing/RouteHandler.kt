@@ -1,9 +1,9 @@
-package encore.routes
+package encore.routing
 
 import encore.fancam.Fancam
-import encore.routes.guard.AuthGuard
-import encore.routes.guard.GuardResult
-import encore.routes.guard.NoAuthGuard
+import encore.routing.guard.AuthGuard
+import encore.routing.guard.GuardResult
+import encore.routing.guard.NoAuthGuard
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*

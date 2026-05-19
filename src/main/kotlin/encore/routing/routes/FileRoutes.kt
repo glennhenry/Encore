@@ -1,6 +1,6 @@
-package encore.api.routes
+package encore.routing.routes
 
-import encore.routes.RouteHandler
+import encore.routing.RouteHandler
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respond

@@ -1,4 +1,4 @@
-package encore.routes.guard
+package encore.routing.guard
 
 import io.ktor.server.application.ApplicationCall
 

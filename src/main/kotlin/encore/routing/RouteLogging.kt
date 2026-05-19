@@ -1,4 +1,4 @@
-package encore.routes
+package encore.routing
 
 import encore.fancam.Fancam
 import encore.fancam.INDENT

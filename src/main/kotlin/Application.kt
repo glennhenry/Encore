@@ -5,8 +5,8 @@ import encore.account.MongoAccountRepository
 import encore.account.PlayerCreationSubunit
 import encore.acts.ActIdStore
 import encore.acts.StageActDirector
-import encore.api.routes.BackstageRoutes
-import encore.api.routes.fileRoutes
+import encore.routing.routes.BackstageRoutes
+import encore.routing.routes.fileRoutes
 import encore.auth.AuthSubunit
 import encore.backstage.command.CommandDispatcher
 import encore.backstage.command.ExampleCommand
@@ -26,11 +26,11 @@ import encore.network.server.GameServerConfig
 import encore.network.server.Server
 import encore.network.server.ServerContainer
 import encore.presence.PlayerPresenceSubunit
-import encore.routes.guard.DefaultSecurity
-import encore.routes.guard.GuardResult
-import encore.routes.guard.SecurityGuard
-import encore.routes.interceptResponse
-import encore.routes.stringifyHttpRequest
+import encore.routing.guard.DefaultSecurity
+import encore.routing.guard.GuardResult
+import encore.routing.guard.SecurityGuard
+import encore.routing.interceptResponse
+import encore.routing.stringifyHttpRequest
 import encore.serialization.JSON
 import encore.session.SessionSubunit
 import encore.utils.Ids
