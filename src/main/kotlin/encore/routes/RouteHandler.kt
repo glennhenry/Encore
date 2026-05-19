@@ -1,8 +1,11 @@
 package encore.routes
 
 import encore.fancam.Fancam
-import encore.routes.guard.*
+import encore.routes.guard.AuthGuard
+import encore.routes.guard.GuardResult
+import encore.routes.guard.NoAuthGuard
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.date.*
 
@@ -11,25 +14,23 @@ import io.ktor.util.date.*
  *
  * Implementations register routes through the [Route] receiver in [install].
  *
- * Routes may be wrapped with [intercept] to apply:
- * - Request/response logging.
- * - Security checks.
- * - Authentication checks.
+ * Routes handling can be wrapped with [guard] to apply authentication guard.
+ * Alternatively, wrap with [intercept] to also log the request/response.
  *
  * Example:
  * ```
  * override fun Route.install() {
  *     get("/home") {
- *         intercept(call) {
+ *         handle(call, NoAuthGuard) {
  *             if (...) {
- *                 return@intercept
+ *                 return@handle
  *             }
  *             call.respond(...)
  *         }
  *     }
  *
  *     get("/home/help") {
- *         intercept(call) {
+ *         handle(call, HomeAuthGuard) {
  *             call.respond(...)
  *         }
  *     }
@@ -52,79 +53,71 @@ interface RouteHandler {
     val name: String
 
     /**
-     * Whether to enable request and response logging.
-     */
-    val enableLogging: Boolean
-
-    /**
-     * Security guard applied before handling requests.
-     * Use [NoSecurityGuard] to disable security checks.
-     */
-    val security: SecurityGuard
-
-    /**
-     * Authentication guard applied before handling requests.
-     * Use [NoAuthGuard] to disable authentication checks.
-     */
-    val auth: AuthGuard
-
-    /**
      * Register routes for this handler.
      */
     fun Route.install()
 }
 
 /**
- * Intercepts route handling to:
- * - Log incoming requests when [enableLogging] is `true`.
- * - Apply [security] and [auth] guards before handling.
- * - Abort processing unless both guards return [GuardResult.Welcome].
- * - Log outgoing responses when [enableLogging] is `true`.
+ * Handles this route by:
+ * - Logging incoming requests and outgoing responses.
+ * - Applying the optional [auth] guard before executing [block].
  *
- * Returning early within the intercept block is guaranteed
- * to exit the handling immediately.
+ * Request handling is aborted if [AuthGuard.verify] does not return
+ * [GuardResult.Welcome].
  *
- * Handler may use [NoSecurityGuard] or [NoAuthGuard] to skip
- * automatic checks when different routes require different handling.
+ * Returning early from [block] immediately stops further handling.
  *
- * This is useful when:
- * - Public and authenticated routes are mixed within the same handler.
- * - Authentication must be decided dynamically per route.
- *
- * In such cases, handler may:
- * - Use empty guards and complete checks manually.
- * - Use non-empty guards, but do not apply [intercept] to all routes.
+ * Use [guard] instead to apply authentication without logging.
  *
  * @param call Ktor request representation.
+ * @param auth Auth guard to apply. Defaults to [NoAuthGuard].
  * @param block Request handling block.
  */
-suspend fun RouteHandler.intercept(call: ApplicationCall, block: suspend () -> Unit) {
-    if (enableLogging) {
-        val startedAt = getTimeMillis()
-        call.attributes.put(ReqResLoggingKey, startedAt)
-
-        Fancam.debug { call.stringifyHttpRequest(unhandled = false) }
-    }
-
-    try {
-        val result = security.verify(call)
-        if (result is GuardResult.GetOut) {
-            Fancam.trace { "Request refused by security due to: ${result.why}" }
-            return
-        }
-    } catch (e: Throwable) {
-        Fancam.error(e) { "Error on security verify of $name at .../..." }
-        return
-    }
+suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
+    val startedAt = getTimeMillis()
+    call.attributes.put(ReqResLoggingKey, startedAt)
+    Fancam.debug { call.stringifyHttpRequest(unhandled = false) }
 
     try {
         val result = auth.verify(call)
         if (result is GuardResult.GetOut) {
-            Fancam.trace { "Request refused by authentication due to: ${result.why}" }
+            Fancam.trace { "Request refused by auth guard due to: ${result.why}" }
             return
         }
     } catch (e: Throwable) {
-        Fancam.error(e) { "Error on auth verify of $name at .../..." }
+        val method = colorizeHttpMethod(call.request.httpMethod.value)
+        val uri = call.request.uri
+        Fancam.error(e) { "Error on auth verify of $name at $method $uri" }
+        return
+    }
+
+    block()
+}
+
+/**
+ * Handles this route using the given [auth] guard.
+ *
+ * Request handling is aborted if [AuthGuard.verify] does not return
+ * [GuardResult.Welcome].
+ *
+ * Unlike [handle], this does not perform request or response logging.
+ *
+ * @param call Ktor request representation.
+ * @param auth Auth guard to apply.
+ * @param block Request handling block.
+ */
+suspend fun RouteHandler.guard(call: ApplicationCall, auth: AuthGuard, block: suspend () -> Unit) {
+    try {
+        val result = auth.verify(call)
+        if (result is GuardResult.GetOut) {
+            Fancam.trace { "Request refused by auth guard due to: ${result.why}" }
+            return
+        }
+    } catch (e: Throwable) {
+        val method = colorizeHttpMethod(call.request.httpMethod.value)
+        val uri = call.request.uri
+        Fancam.error(e) { "Error on auth verify of $name at $method $uri" }
         return
     }
 

@@ -3,11 +3,8 @@ package encore.api.routes
 import encore.context.ServerContext
 import encore.fancam.Fancam
 import encore.routes.RouteHandler
-import encore.routes.guard.AuthGuard
 import encore.routes.guard.NoAuthGuard
-import encore.routes.guard.NoSecurityGuard
-import encore.routes.guard.SecurityGuard
-import encore.routes.intercept
+import encore.routes.handle
 import encore.utils.Ids
 import encore.utils.timeUnderMinutes
 import encore.websocket.WebSocketMessage
@@ -15,11 +12,9 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.routing.application
 import io.ktor.server.websocket.*
-import io.ktor.server.websocket.application
 import io.ktor.util.date.*
-import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -60,16 +55,10 @@ class BackstageRoutes(
     private val tokenStorage: MutableMap<String, Long>
 ) : RouteHandler {
     override val name: String = "BackstageRoutes"
-    override val enableLogging: Boolean = true
-
-    // in this case, security is not needed
-    // due to dynamic handling, for simplicity, auth is done manually
-    override val security: SecurityGuard = NoSecurityGuard
-    override val auth: AuthGuard = NoAuthGuard
 
     override fun Route.install() {
         get("/backstage") {
-            intercept(call) {
+            handle(call, NoAuthGuard) {
                 val wallHtml = File("backstage/wall.html")
                 val mainHtml = File("backstage/main.html")
 
@@ -77,7 +66,7 @@ class BackstageRoutes(
                 if (application.developmentMode) {
                     Fancam.trace { "Auth skipped on /backstage (development mode)" }
                     call.respondFile(mainHtml)
-                    return@intercept
+                    return@handle
                 }
 
                 val token = call.request.queryParameters["token"]
@@ -87,7 +76,7 @@ class BackstageRoutes(
                 if (cookie != null && serverContext.subunits.session.verify(cookie)) {
                     Fancam.trace { "Passed to /backstage: cookie available" }
                     call.respondFile(mainHtml)
-                    return@intercept
+                    return@handle
                 }
 
                 // WALL: user with cookie but expired
@@ -97,14 +86,14 @@ class BackstageRoutes(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Cookie expired"),
                         ContentType.Text.Html
                     )
-                    return@intercept
+                    return@handle
                 }
 
                 // WALL: user without cookie and without token.
                 if (token == null) {
                     Fancam.trace { "Wall to /backstage: no token provided" }
                     call.respondText(insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Insert token"), ContentType.Text.Html)
-                    return@intercept
+                    return@handle
                 }
 
                 // WALL: user has unknown token
@@ -114,7 +103,7 @@ class BackstageRoutes(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Unknown token"),
                         ContentType.Text.Html
                     )
-                    return@intercept
+                    return@handle
                 }
 
                 // WALL: user has known token, but expired
@@ -124,7 +113,7 @@ class BackstageRoutes(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),
                         ContentType.Text.Html
                     )
-                    return@intercept
+                    return@handle
                 }
 
                 // PASS: user has valid token
@@ -138,16 +127,16 @@ class BackstageRoutes(
         }
 
         get("/backstage/server-status") {
-            intercept(call) {
-                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@intercept
+            handle(call, NoAuthGuard) {
+                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@handle
 
                 call.respond("Status received (work in progress).")
             }
         }
 
         get("/backstage/cmd-help-text") {
-            intercept(call) {
-                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@intercept
+            handle(call, NoAuthGuard) {
+                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@handle
 
                 val commands = serverContext.commandDispatcher.getAllRegisteredCommands()
                 val html = StringBuilder()
@@ -182,7 +171,7 @@ class BackstageRoutes(
         }
 
         webSocket("/backstage/ws") {
-            intercept(call) {
+            handle(call, NoAuthGuard) {
                 val token = if (application.developmentMode) {
                     // dev mode uses arbitrary identifier
                     "DEV-${getTimeMillis()}"
@@ -196,7 +185,7 @@ class BackstageRoutes(
                 if (token == null) {
                     Fancam.trace { "Can't connect to /backstage WebSocket with invalid token=$token" }
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
-                    return@intercept
+                    return@handle
                 }
                 Fancam.trace { "Connected to /backstage WebSocket" }
 
