@@ -8,8 +8,8 @@ import encore.session.SessionSubunit
 import encore.session.UserSession
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.utils.Outcome
-import encore.utils.fold
+import encore.utils.types.Outcome
+import encore.utils.types.fold
 import game.AdminData
 import kotlin.io.encoding.Base64
 

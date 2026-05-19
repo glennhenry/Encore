@@ -1,7 +1,7 @@
 package encoreTest.session
 
 import encore.session.SessionSubunit
-import encore.utils.ManualTimeProvider
+import encore.time.ManualTimeProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

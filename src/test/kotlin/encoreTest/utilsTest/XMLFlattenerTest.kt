@@ -1,6 +1,6 @@
 package encoreTest.utilsTest
 
-import encore.utils.XMLFlattener
+import encore.utils.xml.XMLFlattener
 import testUtils.toTempFile
 import kotlin.test.Test
 import kotlin.test.assertEquals

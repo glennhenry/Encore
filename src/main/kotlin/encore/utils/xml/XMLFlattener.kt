@@ -1,4 +1,4 @@
-package encore.utils
+package encore.utils.xml
 
 import encore.fancam.Fancam
 import org.w3c.dom.Element

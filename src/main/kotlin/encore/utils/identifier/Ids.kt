@@ -1,4 +1,4 @@
-package encore.utils
+package encore.utils.identifier
 
 import io.ktor.util.date.getTimeMillis
 import java.util.UUID
@@ -32,7 +32,7 @@ import kotlin.random.Random
  */
 object Ids {
     /**
-     * Returns a v4 UUID as a string based on Java's [UUID.randomUUID].
+     * Returns a v4 UUID as a string based on Java's [java.util.UUID.randomUUID].
      */
     fun uuid(): String {
         return UUID.randomUUID().toString()

@@ -1,4 +1,4 @@
-package encore.utils
+package encore.utils.types
 
 /**
  * Represents the summary of an operation, capturing success with a value
@@ -118,9 +118,9 @@ inline fun <T> Outcome<T>.handles(onOk: (T) -> Unit, onFail: () -> Unit) {
 
 /**
  * Converts a [Result] into an [Outcome] by:
- * - If [Result.isSuccess], executes [transform] on the result's value
+ * - If [isSuccess], executes [transform] on the result's value
  *   and returns [Outcome.Ok] containing the output of `transform`.
- * - If [Result.isFailure] returns [Outcome.Fail] immediately.
+ * - If [isFailure] returns [Outcome.Fail] immediately.
  */
 inline fun <T, R> Result<T>.toOutcome(
     transform: (T) -> R

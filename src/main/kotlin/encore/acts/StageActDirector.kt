@@ -3,10 +3,10 @@ package encore.acts
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
-import encore.utils.Ids
-import encore.utils.SystemTime
-import encore.utils.TimeProvider
-import encore.utils.safelySuspend
+import encore.utils.identifier.Ids
+import encore.time.SystemTime
+import encore.time.TimeProvider
+import encore.utils.support.safelySuspend
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job

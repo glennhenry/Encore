@@ -3,8 +3,8 @@ package encore.subunit
 import encore.repository.Repository
 import encore.subunit.scope.SubunitScope
 import encore.subunit.scope.ServerScope
-import encore.utils.Outcome
-import encore.utils.Report
+import encore.utils.types.Outcome
+import encore.utils.types.Report
 
 /**
  * A `Subunit` is a scope-bound service responsible for managing

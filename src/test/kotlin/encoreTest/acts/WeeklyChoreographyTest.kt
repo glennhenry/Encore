@@ -3,8 +3,8 @@ package encoreTest.acts
 import encore.acts.ActConcept
 import encore.acts.choreo.ChoreographyContext
 import encore.acts.choreo.WeeklyChoreography
-import encore.utils.DayOfWeek
-import encore.utils.at
+import encore.time.model.DayOfWeek
+import encore.time.model.at
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.Test

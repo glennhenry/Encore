@@ -7,7 +7,7 @@ import encore.datastore.collection.*
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.utils.Ids
+import encore.utils.identifier.Ids
 import encore.utils.hash
 import game.AdminData
 import io.ktor.util.date.*

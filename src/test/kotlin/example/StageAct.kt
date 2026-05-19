@@ -10,7 +10,7 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
 import encore.acts.template.runTimer
 import encore.fancam.Fancam
-import encore.utils.TimeProvider
+import encore.time.TimeProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.test.advanceTimeBy

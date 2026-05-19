@@ -1,7 +1,7 @@
 package testUtils
 
-import encore.utils.TimeProvider
-import encore.utils.ManualTimeProvider
+import encore.time.TimeProvider
+import encore.time.ManualTimeProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 

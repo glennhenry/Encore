@@ -7,10 +7,10 @@ import encore.datastore.collection.PlayerId
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.utils.Outcome
-import encore.utils.Report
-import encore.utils.toOutcome
-import encore.utils.toReport
+import encore.utils.types.Outcome
+import encore.utils.types.Report
+import encore.utils.types.toOutcome
+import encore.utils.types.toReport
 
 /**
  * Server subunits that handles [PlayerAccount] concerns from [AccountRepository].

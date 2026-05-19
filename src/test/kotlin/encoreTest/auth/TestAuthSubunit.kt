@@ -14,8 +14,8 @@ import encore.datastore.MongoDataStore
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.session.SessionSubunit
-import encore.utils.Outcome
-import encore.utils.okOrThrow
+import encore.utils.types.Outcome
+import encore.utils.types.okOrThrow
 import initMongo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher

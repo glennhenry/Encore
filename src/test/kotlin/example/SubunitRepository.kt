@@ -13,7 +13,12 @@ import encore.subunit.Subunit
 import encore.subunit.helper.failHandleGet
 import encore.subunit.helper.failHandleUpdate
 import encore.subunit.scope.PlayerScope
-import encore.utils.*
+import encore.utils.types.Outcome
+import encore.utils.types.Report
+import encore.utils.types.isOk
+import encore.utils.types.okOrNull
+import encore.utils.types.toOutcome
+import encore.utils.types.toReport
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
@@ -249,8 +254,8 @@ class MongoPlayerRepository(val data: MongoCollection<PlayerModel>) : PlayerRepo
  * ### Return Types
  *
  * In a strict handling requirement, subunit's operations may:
- * - Use [Report] type for operations that returns `Unit`.
- * - Use [Outcome] type for operations that returns a value.
+ * - Use [encore.utils.types.Report] type for operations that returns `Unit`.
+ * - Use [encore.utils.types.Outcome] type for operations that returns a value.
  *
  * Since initialization is fail-late and fields may remain null, all `get` operations
  * are made to return non-null value by throwing [error]; unless when null values are acceptable.

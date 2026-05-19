@@ -3,9 +3,9 @@ package encore.acts.choreo
 import SystemTimezone
 import encore.acts.ActConcept
 import encore.acts.StageAct
-import encore.utils.DayOfWeek
-import encore.utils.TimeOfDay
-import encore.utils.nextOccurrence
+import encore.time.model.DayOfWeek
+import encore.time.model.TimeOfDay
+import encore.time.model.nextOccurrence
 import java.time.ZoneId
 
 /**

@@ -1,4 +1,4 @@
-package encore.utils
+package encore.utils.types
 
 /**
  * Represents the summary of an operation, capturing success or failure.
@@ -78,8 +78,8 @@ inline fun Report.onFail(action: () -> Unit): Report {
 
 /**
  * Converts a [Result] into a [Report] by:
- * - If [Result.isSuccess] returns [Report.Ok].
- * - If [Result.isFailure] returns [Report.Fail].
+ * - If [isSuccess] returns [Report.Ok].
+ * - If [isFailure] returns [Report.Fail].
  */
 fun <T> Result<T>.toReport(): Report {
     return fold(

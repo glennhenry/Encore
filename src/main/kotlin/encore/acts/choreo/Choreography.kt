@@ -2,8 +2,8 @@ package encore.acts.choreo
 
 import encore.acts.ActConcept
 import encore.acts.StageAct
-import encore.utils.DayOfWeek
-import encore.utils.TimeOfDay
+import encore.time.model.DayOfWeek
+import encore.time.model.TimeOfDay
 
 /**
  * Defines how a [StageAct] is scheduled over time.

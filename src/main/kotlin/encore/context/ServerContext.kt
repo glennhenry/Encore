@@ -17,8 +17,8 @@ import encore.network.fanchant.guide.FanchantGuideRegistry
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.utils.SystemTime
-import encore.utils.TimeProvider
+import encore.time.SystemTime
+import encore.time.TimeProvider
 import encore.websocket.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.EmptyCoroutineContext

@@ -5,8 +5,8 @@ import encore.account.MongoAccountRepository
 import encore.account.PlayerCreationSubunit
 import encore.acts.ActIdStore
 import encore.acts.StageActDirector
-import encore.backstage.BackstageRoutes
 import encore.auth.AuthSubunit
+import encore.backstage.BackstageRoutes
 import encore.backstage.command.CommandDispatcher
 import encore.backstage.command.ExampleCommand
 import encore.context.DefaultContextTracker
@@ -33,9 +33,9 @@ import encore.route.interceptResponse
 import encore.route.stringifyHttpRequest
 import encore.serialization.JSON
 import encore.session.SessionSubunit
-import encore.utils.Ids
-import encore.utils.SystemTime
-import encore.utils.timeUnderMinutes
+import encore.time.SystemTime
+import encore.time.isMoreThanMinutes
+import encore.utils.identifier.Ids
 import encore.venue.Venue
 import encore.websocket.WebSocketManager
 import encore.websocket.handler.WsCommandHandler
@@ -45,11 +45,11 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.http.content.staticFiles
+import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -283,7 +283,7 @@ suspend fun Application.module() {
                         backstageToken[token] = getTimeMillis()
                         val toRemove = mutableListOf<String>()
                         backstageToken.forEach { (token, millis) ->
-                            if (!timeUnderMinutes(millis, 1)) {
+                            if (isMoreThanMinutes(millis, 1)) {
                                 toRemove.add(token)
                             }
                         }
