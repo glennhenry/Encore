@@ -26,6 +26,8 @@ import encore.network.server.GameServerConfig
 import encore.network.server.Server
 import encore.network.server.ServerContainer
 import encore.presence.PlayerPresenceSubunit
+import encore.routes.guard.DefaultSecurity
+import encore.routes.guard.GuardResult
 import encore.routes.interceptResponse
 import encore.routes.stringifyHttpRequest
 import encore.serialization.JSON
@@ -223,6 +225,9 @@ suspend fun Application.module() {
 
     interceptResponse()
 
+    val bannedAddresses = emptySet<String>()
+    configureSecurity(bannedAddresses)
+
     /* 11. Initialize servers */
     // build server configs
     val gameServerConfig = GameServerConfig(
@@ -302,6 +307,24 @@ suspend fun Application.module() {
         }
         Fancam.info { "Server shutdown complete." }
     })
+}
+
+fun Application.configureSecurity(bannedAddresses: Set<String>) {
+    val security = DefaultSecurity(bannedAddresses)
+
+    intercept(ApplicationCallPipeline.Plugins) {
+        when (val result = security.verify(call)) {
+            is GuardResult.Welcome -> proceed()
+            is GuardResult.GetOut -> {
+                call.respondText(
+                    text = errorHtml(403, result.why),
+                    contentType = ContentType.Text.Html,
+                    status = HttpStatusCode.Forbidden
+                )
+                finish()
+            }
+        }
+    }
 }
 
 /**
