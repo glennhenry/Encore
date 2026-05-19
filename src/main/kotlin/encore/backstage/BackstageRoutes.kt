@@ -171,49 +171,47 @@ class BackstageRoutes(
         }
 
         webSocket("/backstage/ws") {
-            handle(call, NoAuthGuard) {
-                val token = if (application.developmentMode) {
-                    // dev mode uses arbitrary identifier
-                    "DEV-${getTimeMillis()}"
-                } else {
-                    // websocket can't send cookie, token cookie for WS is included in the param instead
-                    // also verify the token
-                    call.request.queryParameters["token"]
-                        ?.takeIf { serverContext.subunits.session.verify(it) }
-                }
+            val token = if (application.developmentMode) {
+                // dev mode uses arbitrary identifier
+                "DEV-${getTimeMillis()}"
+            } else {
+                // websocket can't send cookie, token cookie for WS is included in the param instead
+                // also verify the token
+                call.request.queryParameters["token"]
+                    ?.takeIf { serverContext.subunits.session.verify(it) }
+            }
 
-                if (token == null) {
-                    Fancam.trace { "Can't connect to /backstage WebSocket with invalid token=$token" }
-                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
-                    return@handle
-                }
-                Fancam.trace { "Connected to /backstage WebSocket" }
+            if (token == null) {
+                Fancam.trace { "Can't connect to /backstage WebSocket with invalid token=$token" }
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
+                return@webSocket
+            }
+            Fancam.trace { "Connected to /backstage WebSocket" }
 
-                serverContext.webSocketManager.addClient(token, this)
+            serverContext.webSocketManager.addClient(token, this)
 
-                try {
-                    for (frame in incoming) {
-                        if (frame is Frame.Text) {
-                            val msg = frame.readText()
-                            try {
-                                val wsMessage = Json.decodeFromString<WebSocketMessage>(msg)
-                                if (wsMessage.type == "close") {
-                                    serverContext.webSocketManager.removeClient(token)
-                                    break
-                                }
-                                serverContext.webSocketManager.handleMessage(this, wsMessage)
-                            } catch (e: Exception) {
-                                Fancam.error(e) { "Failed to parse WS message: $msg" }
+            try {
+                for (frame in incoming) {
+                    if (frame is Frame.Text) {
+                        val msg = frame.readText()
+                        try {
+                            val wsMessage = Json.decodeFromString<WebSocketMessage>(msg)
+                            if (wsMessage.type == "close") {
+                                serverContext.webSocketManager.removeClient(token)
+                                break
                             }
+                            serverContext.webSocketManager.handleMessage(this, wsMessage)
+                        } catch (e: Exception) {
+                            Fancam.error(e) { "Failed to parse WS message: $msg" }
                         }
                     }
-                } catch (_: CancellationException) {
-                } catch (e: Exception) {
-                    Fancam.error(e) { "Error on /backstage WebSocket for clientId=$token" }
-                } finally {
-                    serverContext.webSocketManager.removeClient(token)
-                    Fancam.trace { "Client $token is disconnected from websocket" }
                 }
+            } catch (_: CancellationException) {
+            } catch (e: Exception) {
+                Fancam.error(e) { "Error on /backstage WebSocket for clientId=$token" }
+            } finally {
+                serverContext.webSocketManager.removeClient(token)
+                Fancam.trace { "Client $token is disconnected from websocket" }
             }
         }
     }
