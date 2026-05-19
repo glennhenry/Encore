@@ -1,4 +1,4 @@
-package encore.routing.guard
+package encore.route.guard
 
 /**
  * Result returned by [SecurityGuard] and [AuthGuard].

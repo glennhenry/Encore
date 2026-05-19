@@ -6,7 +6,6 @@ import encore.account.PlayerCreationSubunit
 import encore.acts.ActIdStore
 import encore.acts.StageActDirector
 import encore.backstage.BackstageRoutes
-import encore.routing.routes.fileRoutes
 import encore.auth.AuthSubunit
 import encore.backstage.command.CommandDispatcher
 import encore.backstage.command.ExampleCommand
@@ -26,11 +25,12 @@ import encore.network.server.GameServerConfig
 import encore.network.server.Server
 import encore.network.server.ServerContainer
 import encore.presence.PlayerPresenceSubunit
-import encore.routing.guard.DefaultSecurity
-import encore.routing.guard.GuardResult
-import encore.routing.guard.SecurityGuard
-import encore.routing.interceptResponse
-import encore.routing.stringifyHttpRequest
+import encore.route.RouteHandler
+import encore.route.guard.DefaultSecurity
+import encore.route.guard.GuardResult
+import encore.route.guard.SecurityGuard
+import encore.route.interceptResponse
+import encore.route.stringifyHttpRequest
 import encore.serialization.JSON
 import encore.session.SessionSubunit
 import encore.utils.Ids
@@ -45,6 +45,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.content.staticFiles
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
@@ -330,6 +331,35 @@ fun Application.configureSecurity(security: SecurityGuard) {
 
                 finish()
             }
+        }
+    }
+}
+
+/**
+ * Serve file-related endpoints.
+ *
+ * This mostly serving static files:
+ * - Game and website assets in the `assets` folder.
+ * - Docs website on production in the `docs_build` folder.
+ *
+ * Since this is simple, it doesn't use the [RouteHandler]
+ */
+fun Route.fileRoutes() {
+    get("/") {
+        call.respondFile(File("assets/site/index.html"))
+    }
+    staticFiles("site", File("assets/site"))
+
+    val docsDir = File("docs_build")
+    if (File(docsDir, "index.html").exists()) {
+        staticFiles("docs", docsDir)
+    } else {
+        get("/docs") {
+            call.respond(
+                HttpStatusCode.NotFound,
+                "Docs website not available. Please start it with a separate vite server. " +
+                        "If in prod, build the documentation website to access it."
+            )
         }
     }
 }

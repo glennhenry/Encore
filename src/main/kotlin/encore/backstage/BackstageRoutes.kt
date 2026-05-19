@@ -2,9 +2,9 @@ package encore.backstage
 
 import encore.context.ServerContext
 import encore.fancam.Fancam
-import encore.routing.RouteHandler
-import encore.routing.guard.NoAuthGuard
-import encore.routing.handle
+import encore.route.RouteHandler
+import encore.route.guard.NoAuthGuard
+import encore.route.handle
 import encore.utils.Ids
 import encore.utils.timeUnderMinutes
 import encore.websocket.WebSocketMessage

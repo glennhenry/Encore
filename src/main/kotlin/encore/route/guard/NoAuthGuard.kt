@@ -1,11 +1,11 @@
-package encore.routing.guard
+package encore.route.guard
 
 import io.ktor.server.application.ApplicationCall
 
 /**
- * [SecurityGuard] implementation that always allows the request.
+ * [AuthGuard] implementation that always allows the request.
  */
-object NoSecurityGuard : SecurityGuard {
+object NoAuthGuard : AuthGuard {
     override suspend fun verify(call: ApplicationCall): GuardResult {
         return GuardResult.Welcome
     }

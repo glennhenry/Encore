@@ -1,4 +1,4 @@
-package encore.routing.guard
+package encore.route.guard
 
 import encore.security.SimpleRateLimit
 import io.ktor.server.application.ApplicationCall
