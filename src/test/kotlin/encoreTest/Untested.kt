@@ -3,7 +3,7 @@ package encoreTest
 import errorHtml
 
 /**
- * Untested things on server (ktor, routing, non-sockets).
+ * Untested things on server (mostly on routing).
  * These are typically lazy and annoying to tests while producing little value and rarely change.
  *
  * --core routing--
