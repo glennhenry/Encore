@@ -13,5 +13,7 @@ package encore.definition
  *
  * Instances are typically produced from a [GameDataSource]
  * via a corresponding [GameDataLoader].
+ *
+ * See example `encoreTest.definition.GameReferenceTest`.
  */
 interface GameDefinition

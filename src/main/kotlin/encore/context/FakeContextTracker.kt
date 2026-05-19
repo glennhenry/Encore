@@ -21,7 +21,7 @@ class FakeContextTracker : ContextTracker {
     }
 
     override fun getContext(playerId: PlayerId): PlayerContext? {
-        return players.get(playerId)
+        return players[playerId]
     }
 
     override fun removeContext(playerId: PlayerId) {
