@@ -6,9 +6,9 @@ import encore.fancam.events.Level
 import encore.EncoreConfig
 import encore.venue.FakeEnvProvider
 import encore.venue.VenuePreparer
-import testHelper.TestFancam
-import testHelper.assertDoesNotFail
-import testHelper.toTempFile
+import testUtils.TestFancam
+import testUtils.assertDoesNotFail
+import testUtils.toTempFile
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

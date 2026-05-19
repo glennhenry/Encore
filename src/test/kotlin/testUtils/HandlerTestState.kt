@@ -1,4 +1,4 @@
-package testHelper
+package testUtils
 
 import encore.context.FakeContextTracker
 import encore.context.PlayerContext

@@ -1,7 +1,7 @@
-package encoreTest
+package encoreTest.utilsTest
 
 import encore.utils.XMLFlattener
-import testHelper.toTempFile
+import testUtils.toTempFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

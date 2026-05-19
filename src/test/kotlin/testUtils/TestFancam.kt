@@ -1,4 +1,4 @@
-package testHelper
+package testUtils
 
 import encore.fancam.Fancam
 import encore.fancam.impl.RehearsalFancam

@@ -18,8 +18,8 @@ import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
-import testHelper.TestFancam
-import testHelper.VirtualTimeProvider
+import testUtils.TestFancam
+import testUtils.VirtualTimeProvider
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds

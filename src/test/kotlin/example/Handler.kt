@@ -11,8 +11,8 @@ import encore.network.fanchant.FanchantType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import testHelper.HandlerTestState
-import testHelper.createAccount
+import testUtils.HandlerTestState
+import testUtils.createAccount
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

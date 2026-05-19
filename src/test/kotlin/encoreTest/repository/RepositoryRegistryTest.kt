@@ -2,7 +2,7 @@ package encoreTest.repository
 
 import encore.repository.Repository
 import encore.repository.RepositoryRegistry
-import testHelper.assertDoesNotFail
+import testUtils.assertDoesNotFail
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertIs

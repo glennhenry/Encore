@@ -7,8 +7,8 @@ import encore.fancam.impl.OfficialFancam
 import encore.security.Screening
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
-import testHelper.assertDoesNotFail
-import testHelper.assertDoesNotFailSuspend
+import testUtils.assertDoesNotFail
+import testUtils.assertDoesNotFailSuspend
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

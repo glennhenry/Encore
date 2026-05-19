@@ -1,12 +1,14 @@
 package encoreTest.account
 
+import TestMongoCollectionName
 import encore.account.MongoAccountRepository
 import encore.account.model.Credentials
 import encore.datastore.collection.PlayerAccount
 import encore.utils.Ids
 import encore.utils.hash
+import initMongo
 import kotlinx.coroutines.test.runTest
-import testHelper.*
+import testUtils.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

@@ -1,4 +1,4 @@
-package encoreTest.user
+package encoreTest.session
 
 import encore.session.SessionSubunit
 import encore.utils.ManualTimeProvider

@@ -1,4 +1,4 @@
-package testHelper
+package testUtils
 
 import encore.utils.TimeProvider
 import encore.utils.ManualTimeProvider

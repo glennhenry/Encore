@@ -17,7 +17,7 @@ import encore.utils.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
-import testHelper.initMongo
+import initMongo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

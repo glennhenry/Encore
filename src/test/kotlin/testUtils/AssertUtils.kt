@@ -1,4 +1,4 @@
-package testHelper
+package testUtils
 
 import kotlin.test.Test
 import kotlin.test.assertFailsWith

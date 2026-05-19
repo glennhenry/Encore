@@ -1,4 +1,4 @@
-package testHelper
+package testUtils
 
 import encore.datastore.collection.PlayerAccount
 import encore.account.model.Profile

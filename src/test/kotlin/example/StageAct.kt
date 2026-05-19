@@ -17,7 +17,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import testHelper.VirtualTimeProvider
+import testUtils.VirtualTimeProvider
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds

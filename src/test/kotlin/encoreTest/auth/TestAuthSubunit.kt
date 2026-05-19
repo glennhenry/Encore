@@ -1,6 +1,7 @@
-package encoreTest.user
+package encoreTest.auth
 
-import com.mongodb.assertions.Assertions.assertFalse
+import TestMongoCollectionName
+import com.mongodb.assertions.Assertions
 import encore.account.AccountRepository
 import encore.account.AccountSubunit
 import encore.account.MongoAccountRepository
@@ -15,22 +16,21 @@ import encore.datastore.collection.PlayerId
 import encore.session.SessionSubunit
 import encore.utils.Outcome
 import encore.utils.okOrThrow
+import initMongo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import testHelper.TestMongoCollectionName
-import testHelper.createProfile
-import testHelper.initMongo
+import testUtils.createProfile
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 /**
- * Integration test for [AuthSubunit] and [AccountRepository].
+ * Integration test for [encore.auth.AuthSubunit] and [encore.account.AccountRepository].
  *
  * Ensure MongoDB is running.
  *
- * [AuthSubunit.isUsernameAvailable] has extra logic than [AccountRepository.usernameExists]
+ * [encore.auth.AuthSubunit.isUsernameAvailable] has extra logic than [encore.account.AccountRepository.usernameExists]
  * try calling `repo.usernameExists("name").getOrThrow()` in addition to `isUsernameAvailable`.
  */
 class TestAuthSubunit {
@@ -61,7 +61,7 @@ class TestAuthSubunit {
         )
         collection.insertOne(account)
 
-        assertFalse(auth.isUsernameAvailable("name").okOrThrow())
+        Assertions.assertFalse(auth.isUsernameAvailable("name").okOrThrow())
         assertTrue(repo.usernameExists("name").getOrThrow())
     }
 
@@ -80,7 +80,7 @@ class TestAuthSubunit {
         val auth = AuthSubunit(accountSubunit, pcs, manager)
 
         assertTrue(auth.isUsernameAvailable("xyz").okOrThrow())
-        assertFalse(repo.usernameExists("xyz").getOrThrow())
+        Assertions.assertFalse(repo.usernameExists("xyz").getOrThrow())
     }
 
     @Test
@@ -98,7 +98,7 @@ class TestAuthSubunit {
         val auth = AuthSubunit(accountSubunit, pcs, manager)
 
         auth.register("helloworld", "kotlinktor")
-        assertFalse(auth.isUsernameAvailable("helloworld").okOrThrow())
+        Assertions.assertFalse(auth.isUsernameAvailable("helloworld").okOrThrow())
         assertTrue(repo.usernameExists("helloworld").getOrThrow())
     }
 
@@ -154,7 +154,9 @@ class TestAuthSubunit {
             override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?> = TODO()
             override suspend fun getAccountByUsername(username: String): Result<PlayerAccount?> = TODO()
             override suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?> = TODO()
-            override suspend fun getCredentials(username: String): Result<Credentials?> = Result.failure(RuntimeException("xiaoting"))
+            override suspend fun getCredentials(username: String): Result<Credentials?> =
+                Result.failure(RuntimeException("xiaoting"))
+
             override suspend fun updatePlayerAccount(playerId: PlayerId, account: PlayerAccount): Result<Unit> = TODO()
             override suspend fun updateProfile(playerId: PlayerId, profile: Profile): Result<Unit> = TODO()
             override suspend fun updateLastActivity(playerId: PlayerId, lastActivity: Long): Result<Unit> = TODO()

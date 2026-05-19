@@ -1,4 +1,4 @@
-import testHelper.TestFancam
+import testUtils.TestFancam
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 

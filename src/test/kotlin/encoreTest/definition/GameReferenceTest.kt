@@ -4,7 +4,7 @@ import encore.definition.GameDataLoader
 import encore.definition.GameReference
 import encore.definition.GameDataSource
 import encore.definition.GameDefinition
-import testHelper.assertDoesNotFail
+import testUtils.assertDoesNotFail
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
