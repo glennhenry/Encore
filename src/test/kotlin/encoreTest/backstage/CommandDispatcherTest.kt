@@ -1,15 +1,15 @@
 package encoreTest.backstage
 
 import com.mongodb.assertions.Assertions.assertTrue
-import encore.backstage.command.ArgumentCollection
-import encore.backstage.command.ArgumentDescriptor
+import encore.backstage.command.types.ArgumentCollection
+import encore.backstage.command.types.ArgumentDescriptor
 import encore.backstage.command.Command
 import encore.backstage.command.CommandDispatcher
-import encore.backstage.command.CommandRequest
-import encore.backstage.command.CommandResult
-import encore.backstage.command.CommandVariant
+import encore.backstage.command.types.CommandRequest
+import encore.backstage.command.types.CommandResult
+import encore.backstage.command.types.CommandVariant
 import encore.context.ServerContext
-import encore.backstage.command.variantsAsString
+import encore.backstage.command.types.variantsAsString
 import encore.fancam.events.Level
 import testHelper.TestFancam
 import testHelper.randomString

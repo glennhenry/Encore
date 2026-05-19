@@ -5,7 +5,7 @@ import encore.account.MongoAccountRepository
 import encore.account.PlayerCreationSubunit
 import encore.acts.ActIdStore
 import encore.acts.StageActDirector
-import encore.routing.routes.BackstageRoutes
+import encore.backstage.BackstageRoutes
 import encore.routing.routes.fileRoutes
 import encore.auth.AuthSubunit
 import encore.backstage.command.CommandDispatcher

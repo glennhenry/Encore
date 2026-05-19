@@ -1,4 +1,4 @@
-package encore.backstage.command
+package encore.backstage.command.types
 
 /**
  * Represents the outcome of executing a server command.

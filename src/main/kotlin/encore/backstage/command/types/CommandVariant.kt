@@ -1,4 +1,4 @@
-package encore.backstage.command
+package encore.backstage.command.types
 
 /**
  * Represents a specific variant of a command.

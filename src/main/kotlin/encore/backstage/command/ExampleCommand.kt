@@ -1,7 +1,15 @@
 package encore.backstage.command
 
+import encore.backstage.command.types.ArgumentCollection
+import encore.backstage.command.types.ArgumentDescriptor
+import encore.backstage.command.types.CommandResult
+import encore.backstage.command.types.CommandVariant
 import encore.context.ServerContext
 
+/**
+ * An example implementation of command.
+ * Does nothing meaningful beside introducing patterns and testing command invocation.
+ */
 class ExampleCommand : Command {
     override val commandId: String = "test"
     override val description: String = "This is merely a test command, does nothing. arg3=2 simulates uncaught exception, arg3=3 simulates failure"

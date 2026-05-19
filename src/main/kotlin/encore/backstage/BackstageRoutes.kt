@@ -1,4 +1,4 @@
-package encore.routing.routes
+package encore.backstage
 
 import encore.context.ServerContext
 import encore.fancam.Fancam

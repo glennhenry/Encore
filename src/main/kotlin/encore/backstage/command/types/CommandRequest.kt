@@ -1,4 +1,4 @@
-package encore.backstage.command
+package encore.backstage.command.types
 
 /**
  * Represent a single command request of [commandId] with the input of [arguments].

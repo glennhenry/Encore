@@ -1,6 +1,8 @@
 package encore.backstage.command
 
-import encore.annotation.source.RevisitLater
+import encore.backstage.command.types.CommandRequest
+import encore.backstage.command.types.CommandResult
+import encore.backstage.command.types.CommandVariant
 import encore.context.ServerContext
 import encore.fancam.Fancam
 
@@ -55,14 +57,8 @@ class CommandDispatcher {
      *
      * @throws IllegalArgumentException throws when:
      * - `commandId` is blank or contains invalid character (see [allowedPattern]).
-     * - Command has duplicate [CommandVariant].
+     * - [Command.variants] contains a duplicate variant.
      */
-    @RevisitLater(
-        "It is not possible to enforce unique variants on command, " +
-                "since variants are implemented by the command itself. " +
-                "As a result, we chose to throw exception on registration. " +
-                "We may not want random error for something as trivial as a command registration."
-    )
     fun register(command: Command) {
         val cleanId = sanitizeCommandId(command.commandId)
 
@@ -109,7 +105,7 @@ class CommandDispatcher {
      *
      * Internally parse the raw command and use the [handleCommand].
      *
-     * @return [CommandResult] that represents the outcome.
+     * @return [encore.backstage.command.types.CommandResult] that represents the outcome.
      */
     fun handleRawCommand(raw: String): CommandResult {
         val request = try {

@@ -1,5 +1,8 @@
 package encore.backstage.command
 
+import encore.backstage.command.types.ArgumentCollection
+import encore.backstage.command.types.CommandRequest
+
 /**
  * Parser for command system.
  */
@@ -11,9 +14,9 @@ class CommandParser {
     private val allowedPattern = Regex("^(?=.*\\S)[a-zA-Z0-9_\\-\\s]+$")
 
     /**
-     * Parse the [raw] command input and produce a [CommandRequest].
+     * Parse the [raw] command input and produce a [encore.backstage.command.types.CommandRequest].
      *
-     * @return [CommandRequest] The processed command request.
+     * @return [encore.backstage.command.types.CommandRequest] The processed command request.
      * @throws IllegalArgumentException When input fails to match the [allowedPattern] regex.
      */
     fun parse(raw: String): CommandRequest {
