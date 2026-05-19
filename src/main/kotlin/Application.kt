@@ -335,7 +335,10 @@ fun Application.configureSecurity(security: SecurityGuard) {
 }
 
 /**
- * HTML template for error page.
+ * Simple HTML template of an error page.
+ *
+ * @param code HTTP response status code.
+ * @param message Context message to display.
  */
 fun errorHtml(code: Int, message: String): String {
     return "<!doctypehtml>" +
