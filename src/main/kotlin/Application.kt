@@ -66,6 +66,7 @@ import org.bson.Document
 import java.io.File
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 val MongoCollectionName = MongoCollectionName(
@@ -289,7 +290,7 @@ suspend fun Application.module() {
                         backstageToken[token] = getTimeMillis()
                         val toRemove = mutableListOf<String>()
                         backstageToken.forEach { (token, millis) ->
-                            if (TimeCenter.system.isMoreThanMinutes(millis, 1)) {
+                            if (TimeCenter.system.hasElapsedBy(millis, 1.minutes)) {
                                 toRemove.add(token)
                             }
                         }

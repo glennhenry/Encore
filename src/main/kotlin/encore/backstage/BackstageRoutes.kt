@@ -19,6 +19,7 @@ import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Backstage routes (devtools). In the backstage, there are three sections of tools:
@@ -107,7 +108,7 @@ class BackstageRoutes(
                 }
 
                 // WALL: user has known token, but expired
-                if (tokenStorage.contains(token) && TimeCenter.system.isMoreThanMinutes(tokenStorage[token]!!, 1)) {
+                if (tokenStorage.contains(token) && TimeCenter.system.hasElapsedBy(tokenStorage[token]!!, 1.minutes)) {
                     Fancam.trace { "Wall to /backstage: token already expired" }
                     call.respondText(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),

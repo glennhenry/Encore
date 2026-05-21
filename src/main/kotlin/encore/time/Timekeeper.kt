@@ -6,6 +6,7 @@ import encore.time.source.ScaledTimeSource
 import encore.time.source.SystemTimeSource
 import encore.time.source.TimeController
 import encore.time.source.TimeSource
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -39,11 +40,11 @@ class Timekeeper(private val source: TimeSource) {
     }
 
     /**
-     * Returns `true` if the distance between [timestampMillis]
-     * and current time is more than [minutes].
+     * Returns `true` if more than [minutes] of minutes have elapsed
+     * since [timestampMillis].
      */
-    fun isMoreThanMinutes(timestampMillis: Long, minutes: Int): Boolean {
-        return now() - timestampMillis > minutes.minutes.inWholeMilliseconds
+    fun hasElapsedBy(timestampMillis: Long, duration: Duration): Boolean {
+        return now() > timestampMillis + duration.inWholeMilliseconds
     }
 
     /**
@@ -57,7 +58,7 @@ class Timekeeper(private val source: TimeSource) {
      * Returns whether [targetTime] is strictly after now.
      */
     fun isAfterNow(targetTime: Long): Boolean {
-        return now() > targetTime
+        return targetTime > now()
     }
 }
 
