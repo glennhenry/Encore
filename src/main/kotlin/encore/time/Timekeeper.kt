@@ -48,6 +48,24 @@ class Timekeeper(private val source: TimeSource) {
     }
 
     /**
+     * Returns the elapsed time since [timestampMillis].
+     *
+     * If [timestampMillis] is in the future, `0` is returned.
+     */
+    fun elapsedTimeSince(timestampMillis: Long): Long {
+        return max(0, now() - timestampMillis)
+    }
+
+    /**
+     * Returns the remaining time until [timestampMillis].
+     *
+     * If [timestampMillis] has already passed, `0` is returned.
+     */
+    fun remainingTime(timestampMillis: Long): Long {
+        return max(0, timestampMillis - now())
+    }
+
+    /**
      * Returns whether [targetTime] is strictly before now.
      */
     fun isBeforeNow(targetTime: Long): Boolean {
