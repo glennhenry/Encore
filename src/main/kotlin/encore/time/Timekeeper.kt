@@ -17,8 +17,7 @@ import kotlin.time.Duration.Companion.minutes
  * Usage:
  * - Using the given [TimeSource], retrieve the current system time with [now].
  * - Manipulates time from [TimeController] via [control].
- * - Provide various time utilies which relies on the same time source
- *   to get the time reference.
+ * - Provide time utilies that relies on a time source (e.g., [isBeforeNow], [isAfterNow]).
  *
  * Application components that relies on time should depend on [Timekeeper] instead
  * (e.g., replaces [System.currentTimeMillis]).
@@ -45,6 +44,20 @@ class Timekeeper(private val source: TimeSource) {
      */
     fun isMoreThanMinutes(timestampMillis: Long, minutes: Int): Boolean {
         return now() - timestampMillis > minutes.minutes.inWholeMilliseconds
+    }
+
+    /**
+     * Returns whether [targetTime] is strictly before now.
+     */
+    fun isBeforeNow(targetTime: Long): Boolean {
+        return now() > targetTime
+    }
+
+    /**
+     * Returns whether [targetTime] is strictly after now.
+     */
+    fun isAfterNow(targetTime: Long): Boolean {
+        return now() > targetTime
     }
 }
 

@@ -4,8 +4,8 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
 import encore.utils.identifier.Ids
-import encore.time.SystemTime
-import encore.time.TimeProvider
+import encore.time.source.SystemTimeSource
+import encore.time.Timekeeper
 import encore.utils.support.safelySuspend
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineStart
@@ -104,11 +104,12 @@ import kotlin.time.Duration.Companion.milliseconds
  * - delete persisted progress data
  * - notify client
  *
- * @property timeProvider Component to provide time. Use [SystemTime] for real use.
+ * @property timekeeper Component that provides time.
+ *                      Use [Timekeeper] with [SystemTimeSource] for real usage.
  * @property actStore Provides storage and access for running act identifiers.
  */
 class StageActDirector(
-    private val timeProvider: TimeProvider,
+    private val timekeeper: Timekeeper,
     private val actStore: ActIdStore
 ) {
     private val activeActs = mutableMapOf<String, Job>()
@@ -167,7 +168,7 @@ class StageActDirector(
         callOnStart: Boolean,
         performDirectly: Boolean
     ): String {
-        val startedAt = timeProvider.now()
+        val startedAt = timekeeper.now()
         val id = Ids.uuid()
         val choreo = act.choreography(concept)
 
@@ -183,7 +184,7 @@ class StageActDirector(
                 }
 
                 if (performDirectly) {
-                    val now = timeProvider.now()
+                    val now = timekeeper.now()
                     firstPerformAt = now
                     previousPerformAt = now
                     act.perform(concept, 1)
@@ -191,7 +192,7 @@ class StageActDirector(
                 }
 
                 while (true) {
-                    val now = timeProvider.now()
+                    val now = timekeeper.now()
                     val delay = choreo.next(
                         concept = concept,
                         context = ChoreographyContext(
@@ -206,7 +207,7 @@ class StageActDirector(
 
                     if (delay == null) break
                     if (delay > 0) delay(delay.milliseconds)
-                    if (firstPerformAt == null) firstPerformAt = timeProvider.now()
+                    if (firstPerformAt == null) firstPerformAt = timekeeper.now()
 
                     act.perform(concept, ++performCount)
                 }

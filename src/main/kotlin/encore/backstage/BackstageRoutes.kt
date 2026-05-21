@@ -5,8 +5,8 @@ import encore.fancam.Fancam
 import encore.route.RouteHandler
 import encore.route.guard.NoAuthGuard
 import encore.route.handle
+import encore.time.TimeCenter
 import encore.utils.identifier.Ids
-import encore.time.isMoreThanMinutes
 import encore.websocket.WebSocketMessage
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -107,7 +107,7 @@ class BackstageRoutes(
                 }
 
                 // WALL: user has known token, but expired
-                if (tokenStorage.contains(token) && isMoreThanMinutes(tokenStorage[token]!!, 1)) {
+                if (tokenStorage.contains(token) && TimeCenter.system.isMoreThanMinutes(tokenStorage[token]!!, 1)) {
                     Fancam.trace { "Wall to /backstage: token already expired" }
                     call.respondText(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),

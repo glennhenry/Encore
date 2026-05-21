@@ -33,8 +33,9 @@ import encore.route.interceptResponse
 import encore.route.stringifyHttpRequest
 import encore.serialization.JSON
 import encore.session.SessionSubunit
-import encore.time.SystemTime
-import encore.time.isMoreThanMinutes
+import encore.time.source.SystemTimeSource
+import encore.time.TimeCenter
+import encore.time.Timekeeper
 import encore.utils.identifier.Ids
 import encore.venue.Venue
 import encore.websocket.WebSocketManager
@@ -169,19 +170,24 @@ suspend fun Application.module() {
 
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    TimeCenter.initialize(
+        system = Timekeeper(SystemTimeSource()),
+        game = Timekeeper(SystemTimeSource())
+    )
+
     /* 8. Setup ServerContext */
     val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
     val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
     val contextTracker = DefaultContextTracker()
     val playerLifecycleHandler = PlayerLifecycleHandler()
     val fanchantGuideRegistry = FanchantGuideRegistry()
-    val stageActDirector = StageActDirector(SystemTime, ActIdStore)
+    val stageActDirector = StageActDirector(TimeCenter.system, ActIdStore)
     val commandDispatcher = CommandDispatcher()
     val webSocketManager = WebSocketManager()
 
     val accountSubunit = AccountSubunit(accountRepository)
     val playerPresenceSubunit = PlayerPresenceSubunit()
-    val sessionSubunit = SessionSubunit(appScope)
+    val sessionSubunit = SessionSubunit(appScope, TimeCenter.system)
     val playerCreationSubunit = PlayerCreationSubunit(dataStore)
     val authSubunit = AuthSubunit(accountSubunit, playerCreationSubunit, sessionSubunit)
 
@@ -283,7 +289,7 @@ suspend fun Application.module() {
                         backstageToken[token] = getTimeMillis()
                         val toRemove = mutableListOf<String>()
                         backstageToken.forEach { (token, millis) ->
-                            if (isMoreThanMinutes(millis, 1)) {
+                            if (TimeCenter.system.isMoreThanMinutes(millis, 1)) {
                                 toRemove.add(token)
                             }
                         }

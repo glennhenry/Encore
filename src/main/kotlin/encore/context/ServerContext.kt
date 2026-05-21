@@ -17,8 +17,8 @@ import encore.network.fanchant.guide.FanchantGuideRegistry
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.time.SystemTime
-import encore.time.TimeProvider
+import encore.time.SystemTimekeeper
+import encore.time.Timekeeper
 import encore.websocket.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.EmptyCoroutineContext
@@ -50,14 +50,14 @@ data class ServerContext(
          * Creates a test instance of [ServerContext].
          *
          * @param parentScope `CoroutineScope` for [SessionSubunit].
-         * @param timeProvider [TimeProvider] for [StageActDirector].
+         * @param timekeeper [Timekeeper] for [StageActDirector].
          * @param dataStore Also used to build [PlayerCreationSubunit].
          * @param accountRepository Used to build [AccountSubunit].
          * @param contextTracker Use [FakeContextTracker] by default.
          */
         fun createForTest(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-            timeProvider: TimeProvider = SystemTime,
+            timekeeper: Timekeeper = SystemTimekeeper,
             dataStore: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
             contextTracker: ContextTracker = FakeContextTracker()
@@ -71,7 +71,7 @@ data class ServerContext(
                 contextTracker = contextTracker,
                 playerLifecycleHandler = PlayerLifecycleHandler(),
                 fanchantGuideRegistry = FanchantGuideRegistry(),
-                stageActDirector = StageActDirector(timeProvider, ActIdStore),
+                stageActDirector = StageActDirector(timekeeper, ActIdStore),
                 commandDispatcher = CommandDispatcher(),
                 webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(

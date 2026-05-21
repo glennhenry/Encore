@@ -1,23 +1,19 @@
 package example
 
-import encore.acts.ActConcept
-import encore.acts.ActIdStore
-import encore.acts.ActScope
-import encore.acts.StageAct
-import encore.acts.StageActDirector
+import encore.acts.*
 import encore.acts.choreo.BasicChoreography
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
 import encore.acts.template.runTimer
 import encore.fancam.Fancam
-import encore.time.TimeProvider
+import encore.time.Timekeeper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
-import testUtils.VirtualTimeProvider
+import testUtils.virtualTimekeeper
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -42,7 +38,7 @@ class ExampleStageAct {
         val pid = "playerABC"
         val bid = "outpost"
 
-        val time = VirtualTimeProvider(this)
+        val time = virtualTimekeeper(this)
         val director = StageActDirector(time, ActIdStore)
         val repo = BuildingRepo()
         val scope = ActScope(pid, this)
@@ -119,7 +115,10 @@ class BuildingRepo {
     val constructedBuildings = mutableListOf<String>()
 }
 
-class BuildingConstructionAct(private val repo: BuildingRepo, private val timeProvider: TimeProvider) :
+class BuildingConstructionAct(
+    private val repo: BuildingRepo,
+    private val timekeeper: Timekeeper
+) :
     StageAct<BuildingConstructionConcept> {
     override val name: String = "BuildingConstructionAct"
 
@@ -146,7 +145,7 @@ class BuildingConstructionAct(private val repo: BuildingRepo, private val timePr
         }
 
         important {
-            val finishAtTimestamp = timeProvider.now() + concept.buildDuration.inWholeMilliseconds
+            val finishAtTimestamp = timekeeper.now() + concept.buildDuration.inWholeMilliseconds
             repo.unfinishedBuildings[concept.buildingId] = finishAtTimestamp
         }
     }

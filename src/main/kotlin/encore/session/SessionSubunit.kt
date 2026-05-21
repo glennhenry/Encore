@@ -2,11 +2,11 @@ package encore.session
 
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
+import encore.time.source.MutableTimeSource
+import encore.time.MutableTimekeeper
+import encore.time.Timekeeper
 import game.AdminData
-import encore.time.ManualTimeProvider
 import encore.utils.identifier.Ids
-import encore.time.SystemTime
-import encore.time.TimeProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -29,11 +29,11 @@ import kotlin.time.Duration.Companion.minutes
  * - Use [refresh] to extend the session's duration.
  *
  * @param parentScope The parent coroutine scope that holds the lifecycle.
- * @param time [TimeProvider] implementation, default is [SystemTime].
+ * @param timekeeper [Timekeeper] implementation.
  */
 class SessionSubunit(
     private val parentScope: CoroutineScope,
-    private val time: TimeProvider = SystemTime,
+    private val timekeeper: Timekeeper,
 ) : Subunit<ServerScope> {
     // token to UserSession
     private val sessions = ConcurrentHashMap<String, UserSession>()
@@ -55,7 +55,7 @@ class SessionSubunit(
      * - lifetime of [lifetime], default 6 hours.
      */
     fun create(userId: String, validFor: Duration = 1.hours, lifetime: Duration = 6.hours): UserSession {
-        val now = time.now()
+        val now = timekeeper.now()
 
         val token = if (userId == AdminData.PLAYER_ID) {
             AdminData.TOKEN
@@ -87,7 +87,7 @@ class SessionSubunit(
      */
     fun verify(token: String): Boolean {
         val session = sessions[token] ?: return false
-        val now = time.now()
+        val now = timekeeper.now()
 
         return now < session.expiresAt
     }
@@ -103,7 +103,7 @@ class SessionSubunit(
      */
     fun refresh(token: String): Boolean {
         val session = sessions[token] ?: return false
-        val now = time.now()
+        val now = timekeeper.now()
 
         val usedLifetime = now - session.issuedAt
         if (usedLifetime > session.lifetime) {
@@ -125,7 +125,7 @@ class SessionSubunit(
      * @return `null` if the token is invalid.
      */
     fun getUserId(token: String): String? {
-        return sessions[token]?.takeIf { time.now() < it.expiresAt }?.userId
+        return sessions[token]?.takeIf { timekeeper.isBeforeNow(it.expiresAt) }?.userId
     }
 
     /**
@@ -133,7 +133,7 @@ class SessionSubunit(
      * and can't be refreshed anymore.
      */
     private fun cleanupExpiredSessions() {
-        val now = time.now()
+        val now = timekeeper.now()
         sessions.entries.removeIf { (_, session) ->
             now - session.issuedAt > session.lifetime
         }
@@ -153,13 +153,13 @@ class SessionSubunit(
          * Creates a test instance of [SessionSubunit].
          *
          * @param parentScope scope used for lifecycle and cleanup job (e.g., `TestScope`).
-         * @param time time provider used to control session timing (e.g., [ManualTimeProvider]).
+         * @param timekeeper time model used to control session timing (e.g., [MutableTimeSource]).
          */
         fun createForTest(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-            time: TimeProvider = ManualTimeProvider(0)
+            timekeeper: Timekeeper = MutableTimekeeper
         ): SessionSubunit {
-            return SessionSubunit(parentScope, time)
+            return SessionSubunit(parentScope, timekeeper)
         }
     }
 }
