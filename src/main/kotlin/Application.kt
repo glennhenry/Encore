@@ -56,7 +56,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -171,7 +170,7 @@ suspend fun Application.module() {
 
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    TimeCenter.initialize(
+    TimeCenter.update(
         system = Timekeeper(SystemTimeSource()),
         game = Timekeeper(SystemTimeSource())
     )
@@ -236,7 +235,7 @@ suspend fun Application.module() {
     interceptResponse()
 
     val bannedAddresses = mutableSetOf<String>()
-    val security = DefaultSecurity(bannedAddresses)
+    val security = DefaultSecurity(bannedAddresses, TimeCenter.system)
     configureSecurity(security)
 
     /* 11. Initialize servers */
@@ -287,7 +286,7 @@ suspend fun Application.module() {
                     "token" -> {
                         val token = Ids.uuid()
                         println(token)
-                        backstageToken[token] = getTimeMillis()
+                        backstageToken[token] = TimeCenter.system.now()
                         val toRemove = mutableListOf<String>()
                         backstageToken.forEach { (token, millis) ->
                             if (TimeCenter.system.hasElapsedBy(millis, 1.minutes)) {

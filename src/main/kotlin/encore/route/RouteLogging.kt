@@ -3,6 +3,7 @@ package encore.route
 import encore.fancam.Fancam
 import encore.fancam.INDENT
 import encore.fancam.formatter.colorizeSegment
+import encore.time.TimeCenter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.PipelineCall
@@ -13,7 +14,6 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
 import io.ktor.server.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
-import io.ktor.util.date.getTimeMillis
 
 fun ApplicationCall.stringifyHttpRequest(unhandled: Boolean): String {
     return buildString {
@@ -43,7 +43,7 @@ fun Application.interceptResponse() {
     sendPipeline.intercept(ApplicationSendPipeline.After) {
         val call = context.request.call
         val startedAt = call.attributes.getOrNull(ReqResLoggingKey) ?: return@intercept
-        val elapsed = getTimeMillis() - startedAt
+        val elapsed = TimeCenter.system.elapsedTimeSince(startedAt)
 
         Fancam.debug { call.stringifyHttpResponse(subject, elapsed) }
     }

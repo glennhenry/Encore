@@ -2,7 +2,7 @@ package encore.fancam.events
 
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam
-import io.ktor.util.date.getTimeMillis
+import encore.time.TimeCenter
 
 /**
  * A DSL-style builder used to construct [LogEvent].
@@ -90,7 +90,7 @@ class LogEventBuilder(
         onLogCalled(
             LogEvent(
                 message = message,
-                timestamp = getTimeMillis(),
+                timestamp = TimeCenter.system.now(),
                 level = level,
                 tag = tag,
                 logFull = full,
@@ -114,7 +114,7 @@ class LogEventBuilder(
         onLogCalled(
             LogEvent(
                 message = message,
-                timestamp = getTimeMillis(),
+                timestamp = TimeCenter.system.now(),
                 level = level,
                 tag = tag,
                 logFull = true,

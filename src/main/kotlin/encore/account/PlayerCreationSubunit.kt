@@ -7,10 +7,10 @@ import encore.datastore.collection.*
 import encore.fancam.Fancam
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
+import encore.time.TimeCenter
 import encore.utils.identifier.Ids
 import encore.utils.hash
 import game.AdminData
-import io.ktor.util.date.*
 
 /**
  * Server-scoped subunit responsible for player creation.
@@ -102,7 +102,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
     }
 
     private fun defaultProfile(playerId: PlayerId): Profile {
-        val now = getTimeMillis()
+        val now = TimeCenter.system.now()
         return Profile(
             playerId = playerId,
             createdAt = now,

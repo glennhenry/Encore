@@ -13,7 +13,6 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
@@ -174,7 +173,7 @@ class BackstageRoutes(
         webSocket("/backstage/ws") {
             val token = if (application.developmentMode) {
                 // dev mode uses arbitrary identifier
-                "DEV-${getTimeMillis()}"
+                "DEV-${TimeCenter.system.now()}"
             } else {
                 // websocket can't send cookie, token cookie for WS is included in the param instead
                 // also verify the token

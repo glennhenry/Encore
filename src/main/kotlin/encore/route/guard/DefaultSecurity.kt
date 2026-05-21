@@ -1,6 +1,7 @@
 package encore.route.guard
 
 import encore.security.SimpleRateLimit
+import encore.time.Timekeeper
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentLength
@@ -12,8 +13,8 @@ import io.ktor.server.request.contentLength
  * - Rejects requests from hosts listed in [bannedAddresses].
  * - Applies [SimpleRateLimit], limiting requests to 30 per 10-second window.
  */
-class DefaultSecurity(private val bannedAddresses: Set<String>) : SecurityGuard {
-    private val rateLimiter = SimpleRateLimit()
+class DefaultSecurity(private val bannedAddresses: Set<String>, timekeeper: Timekeeper) : SecurityGuard {
+    private val rateLimiter = SimpleRateLimit(timekeeper = timekeeper)
 
     override suspend fun verify(call: ApplicationCall): GuardResult {
         verifyContentLength(call)?.let { return it }

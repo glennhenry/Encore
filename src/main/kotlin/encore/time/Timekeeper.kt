@@ -1,11 +1,7 @@
 package encore.time
 
-import encore.time.source.MutableTimeSource
-import encore.time.source.PausableTimeSource
-import encore.time.source.ScaledTimeSource
-import encore.time.source.SystemTimeSource
-import encore.time.source.TimeController
-import encore.time.source.TimeSource
+import encore.time.source.*
+import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 

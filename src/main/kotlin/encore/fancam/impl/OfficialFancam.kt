@@ -10,7 +10,7 @@ import encore.fancam.producer.ConsoleFancamProducer
 import encore.fancam.producer.FancamProducer
 import encore.fancam.producer.FileFancamProducer
 import encore.fancam.utils.StackTraceResolver
-import io.ktor.util.date.*
+import encore.time.TimeCenter
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -162,7 +162,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
         level: Level, throwable: Throwable? = null
     ): LogEvent = LogEvent(
         message = msg,
-        timestamp = getTimeMillis(),
+        timestamp = TimeCenter.system.now(),
         level = level,
         tag = tag,
         logFull = false,

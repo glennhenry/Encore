@@ -3,7 +3,7 @@ package encore.presence
 import encore.datastore.collection.PlayerId
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import io.ktor.util.date.*
+import encore.time.TimeCenter
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -22,7 +22,7 @@ class PlayerPresenceSubunit : Subunit<ServerScope> {
      * Mark the [playerId] as online. Does nothing if the player is already online.
      */
     fun markOnline(playerId: PlayerId) {
-        val now = getTimeMillis()
+        val now = TimeCenter.system.now()
         onlinePlayers[playerId] = PlayerPresence(
             playerId = playerId,
             onlineSince = now,
@@ -55,7 +55,7 @@ class PlayerPresenceSubunit : Subunit<ServerScope> {
      * Update the last network activity of [playerId]. Does nothing if the player is not online.
      */
     fun updateLastActivity(playerId: PlayerId) {
-        onlinePlayers[playerId]?.lastNetworkActivity = getTimeMillis()
+        onlinePlayers[playerId]?.lastNetworkActivity = TimeCenter.system.now()
     }
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)

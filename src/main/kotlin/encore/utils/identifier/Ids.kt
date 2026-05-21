@@ -1,6 +1,6 @@
 package encore.utils.identifier
 
-import io.ktor.util.date.getTimeMillis
+import encore.time.TimeCenter
 import java.util.UUID
 import kotlin.math.pow
 import kotlin.random.Random
@@ -55,7 +55,7 @@ object Ids {
      * Returns the current epoch time in milliseconds as a string.
      */
     fun time(): String {
-        return getTimeMillis().toString()
+        return TimeCenter.system.now().toString()
     }
 
     /**

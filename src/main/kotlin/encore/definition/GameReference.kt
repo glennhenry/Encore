@@ -3,7 +3,7 @@ package encore.definition
 import encore.definition.GameReference.get
 import encore.definition.GameReference.initialize
 import encore.fancam.Fancam
-import io.ktor.util.date.getTimeMillis
+import encore.time.TimeCenter
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -59,15 +59,15 @@ object GameReference {
         }
         initializeState = 1
 
-        val start1 = getTimeMillis()
+        val start1 = TimeCenter.system.now()
         Fancam.info { "Initializing GameReference..." }
 
         val ctx = InitContext()
         ctx.block()
         ctx.entries.forEach { (source, loader) ->
-            val start2 = getTimeMillis()
+            val start2 = TimeCenter.system.now()
             val definitions = loader.produce(source)
-            val finish2 = (getTimeMillis() - start2).milliseconds
+            val finish2 = (TimeCenter.system.now() - start2).milliseconds
             Fancam.trace {
                 "Loaded '${source.name}' in $finish2, produced ${definitions.size} definition entries."
             }
@@ -75,7 +75,7 @@ object GameReference {
             definitions.forEach { registry[it::class] = it }
         }
 
-        Fancam.info { "GameReference initialization finished in ${(getTimeMillis() - start1).milliseconds}" }
+        Fancam.info { "GameReference initialization finished in ${(TimeCenter.system.now() - start1).milliseconds}" }
         initializeState = 2
     }
 

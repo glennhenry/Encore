@@ -2,7 +2,7 @@ package encore.fancam.events
 
 import encore.fancam.utils.StackTraceResolver
 import encore.fancam.Fancam
-import io.ktor.util.date.getTimeMillis
+import encore.time.TimeCenter
 
 /**
  * A DSL-style builder used to construct a [TrackEvent].
@@ -100,7 +100,7 @@ class TrackEventBuilder(
 
     private fun create(): TrackEvent = TrackEvent(
         name = name,
-        timestamp = getTimeMillis(),
+        timestamp = TimeCenter.system.now(),
         data = data,
         route = route,
         tags = tags,

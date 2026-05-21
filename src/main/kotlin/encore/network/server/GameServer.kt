@@ -12,11 +12,11 @@ import encore.network.fanchant.guide.FanchantGuide
 import encore.network.fanchant.Fanchant
 import encore.network.fanchant.FanchantCoordinator
 import encore.subunit.scope.ServerScope
+import encore.time.TimeCenter
 import encore.utils.hexString
 import encore.utils.safeAsciiString
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.ClosedByteChannelException
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
@@ -144,7 +144,7 @@ class GameServer(
                 // Only perform cleanup if playerId is set (client was authenticated)
                 if (connection.playerId != "[Undetermined]") {
                     serverContext.subunits.presence.markOffline(connection.playerId)
-                    serverContext.subunits.account.updateLastActivity(connection.playerId, getTimeMillis())
+                    serverContext.subunits.account.updateLastActivity(connection.playerId, TimeCenter.system.now())
                     serverContext.contextTracker.removeContext(connection.playerId)
                 }
 

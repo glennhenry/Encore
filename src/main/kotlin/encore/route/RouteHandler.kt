@@ -4,10 +4,10 @@ import encore.fancam.Fancam
 import encore.route.guard.AuthGuard
 import encore.route.guard.GuardResult
 import encore.route.guard.NoAuthGuard
+import encore.time.TimeCenter
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import io.ktor.util.date.*
 
 /**
  * Handler for one or more server endpoints.
@@ -75,7 +75,7 @@ interface RouteHandler {
  * @param block Request handling block.
  */
 suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
-    val startedAt = getTimeMillis()
+    val startedAt = TimeCenter.system.now()
     call.attributes.put(ReqResLoggingKey, startedAt)
     Fancam.debug { call.stringifyHttpRequest(unhandled = false) }
 

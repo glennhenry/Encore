@@ -4,7 +4,7 @@ import encore.fancam.Fancam
 import encore.fancam.events.*
 import encore.fancam.formatter.toLimitedString
 import encore.serialization.toJsonElement
-import io.ktor.util.date.*
+import encore.time.TimeCenter
 import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 
@@ -104,7 +104,7 @@ class RehearsalFancam : FancamTemplate {
         level: Level, throwable: Throwable? = null
     ): LogEvent = LogEvent(
         message = msg,
-        timestamp = getTimeMillis(),
+        timestamp = TimeCenter.system.now(),
         level = level,
         tag = tag,
         logFull = true,
