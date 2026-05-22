@@ -1,6 +1,5 @@
 package encore.subunit
 
-import encore.repository.Repository
 import encore.subunit.scope.SubunitScope
 import encore.subunit.scope.ServerScope
 import encore.utils.types.Outcome
@@ -37,12 +36,14 @@ import encore.utils.types.Report
  * - Subunit should remain focused on a single domain concern.
  * - Subunit should not perform low-level database operations directly
  *   and instead provide abstraction to caller. DB operations should be
- *   directed to [Repository].
+ *   directed to repository classes.
  * - When operating with a repository, subunit should handles the [Result]
  *   type returned by each repository operations.
  * - In a strict handling requirement, subunit may:
  *     - Use the [Report] type for operations that returns `Unit`.
  *     - Use the [Outcome] type for operations that returns a value.
+ *
+ * See example in `test.example.SubunitRepository`.
  */
 interface Subunit<T : SubunitScope> {
     /**
