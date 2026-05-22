@@ -1,4 +1,4 @@
-package encore.network.server
+package encore.network.stage
 
 import encore.context.ServerContext
 import encore.fancam.Fancam
@@ -22,7 +22,7 @@ import io.ktor.utils.io.ClosedByteChannelException
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
-data class GameServerConfig(
+data class GameStageConfig(
     val host: String,
     val port: Int,
 )
@@ -34,11 +34,11 @@ data class GameServerConfig(
  * @property setup Contains necessary registration and setup across context,
  *                 such as message format and tasks registration.
  */
-class GameServer(
-    private val config: GameServerConfig,
+class GameStage(
+    private val config: GameStageConfig,
     private val setup: (FanchantCoordinator, ServerContext) -> Unit
-) : Server {
-    private lateinit var gameServerScope: CoroutineScope
+) : Stage {
+    private lateinit var gameStageScope: CoroutineScope
     private lateinit var serverContext: ServerContext
     private val socketDispatcher = FanchantCoordinator()
 
@@ -46,7 +46,7 @@ class GameServer(
     override fun isRunning(): Boolean = running
 
     override suspend fun initialize(scope: CoroutineScope, context: ServerContext) {
-        this.gameServerScope = scope
+        this.gameStageScope = scope
         this.serverContext = context
         setup(socketDispatcher, context)
     }
@@ -71,7 +71,7 @@ class GameServer(
     }
 
     private fun listenForConnections(serverSocket: ServerSocket) {
-        gameServerScope.launch(Dispatchers.IO) {
+        gameStageScope.launch(Dispatchers.IO) {
             try {
                 while (isActive) {
                     val socket = serverSocket.accept()
@@ -89,6 +89,7 @@ class GameServer(
                 Fancam.info { "Game server coroutine cancelled (shutdown)" }
             } catch (e: Exception) {
                 Fancam.error { "ERROR on server: $e" }
+            } finally {
                 shutdown()
             }
         }
@@ -256,6 +257,6 @@ class GameServer(
         serverContext.subunits.presence.disband(ServerScope)
         serverContext.subunits.session.disband(ServerScope)
         serverContext.stageActDirector.shutdown()
-        gameServerScope.cancel()
+        gameStageScope.cancel()
     }
 }

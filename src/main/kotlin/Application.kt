@@ -20,10 +20,9 @@ import encore.fancam.impl.OfficialFancam
 import encore.network.fanchant.guide.FanchantGuide
 import encore.network.fanchant.guide.FanchantGuideRegistry
 import encore.network.lifecycle.PlayerLifecycleHandler
-import encore.network.server.GameServer
-import encore.network.server.GameServerConfig
-import encore.network.server.Server
-import encore.network.server.ServerContainer
+import encore.network.stage.GameStage
+import encore.network.stage.GameStageConfig
+import encore.network.stage.Stage
 import encore.presence.PlayerPresenceSubunit
 import encore.route.RouteHandler
 import encore.route.guard.DefaultSecurity
@@ -212,7 +211,7 @@ suspend fun Application.module() {
     webSocketManager.registerHandler(WsCommandHandler(serverContext))
 
     // initialize components with circular dependency
-    // possible solution for dependency: pass servercontext on runtime action
+    // possible solution for dependency: pass studiocontext on runtime action
     // add ServerContext to parameter of ws handle or command dispatch handle
     commandDispatcher.initialize(serverContext)
 
@@ -240,41 +239,36 @@ suspend fun Application.module() {
 
     /* 11. Initialize servers */
     // build server configs
-    val gameServerConfig = GameServerConfig(
+    val gameStageConfig = GameStageConfig(
         host = Venue.encore.server.host,
         port = Venue.encore.server.socketPort
     )
 
     val apiPort = Venue.encore.server.port
     Fancam.info { "Server successfully started." }
-    Fancam.info { "File/API server available at ${gameServerConfig.host}:$apiPort." }
-    Fancam.info { "Devtools available at ${gameServerConfig.host}:$apiPort/backstage." }
+    Fancam.info { "File/API server available at ${gameStageConfig.host}:$apiPort." }
+    Fancam.info { "Devtools available at ${gameStageConfig.host}:$apiPort/backstage." }
 
     if (File("docs_build/index.html").exists()) {
-        Fancam.info { "Docs website available on ${gameServerConfig.host}:$apiPort." }
+        Fancam.info { "Docs website available on ${gameStageConfig.host}:$apiPort." }
     } else {
         Fancam.info { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
     }
 
-    val gameServer = GameServer(gameServerConfig) { socketDispatcher, serverContext ->
-        // REPLACE ADD
-        val possibleFormats = listOf<FanchantGuide<*>>(
-
-        )
+    val gameStage = GameStage(gameStageConfig) { socketDispatcher, serverContext ->
+        val possibleFormats = listOf<FanchantGuide<*>>()
         possibleFormats.forEach {
             serverContext.fanchantGuideRegistry.register(it)
         }
     }
 
-    val servers = buildList<Server> {
-        add(gameServer)
+    val servers = buildList<Stage> {
+        add(gameStage)
     }
 
-    /* 12. Run all the servers */
-    val container = ServerContainer(appScope, servers, serverContext)
-    run {
-        container.initializeAll()
-        container.startAll()
+    servers.forEach { server ->
+        server.initialize(appScope, serverContext)
+        server.start()
     }
 
     launch(Dispatchers.IO) {
@@ -309,7 +303,9 @@ suspend fun Application.module() {
     Runtime.getRuntime().addShutdownHook(Thread {
         runBlocking {
             try {
-                container.shutdownAll()
+                servers.forEach { server ->
+                    server.shutdown()
+                }
                 appScope.cancel("Application closed")
                 appScope.coroutineContext.job.cancel()
             } catch (_: CancellationException) {

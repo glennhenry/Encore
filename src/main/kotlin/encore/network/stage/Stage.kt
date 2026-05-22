@@ -1,4 +1,4 @@
-package encore.network.server
+package encore.network.stage
 
 import encore.context.ServerContext
 import kotlinx.coroutines.CoroutineScope
@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 /**
  * Represent a server.
  */
-interface Server {
+interface Stage {
     /**
      * Initialize the server with the given coroutine scope and [encore.context.ServerContext].
      */

@@ -8,9 +8,8 @@ import encore.network.fanchant.guide.DecodeResult
 import encore.network.fanchant.guide.FanchantGuide
 import encore.network.handler.FanchantHandler
 import encore.network.handler.HandlerContext
-import encore.network.server.GameServer
-import encore.network.server.GameServerConfig
-import encore.network.server.ServerContainer
+import encore.network.stage.GameStage
+import encore.network.stage.GameStageConfig
 import encore.network.transport.ConnectionIdentity
 import encore.network.transport.TestConnection
 import encore.utils.safeAsciiString
@@ -25,15 +24,15 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Integration test of game server components.
  *
- * Given arbitrary byte, the GameServer should decode, dispatch,
+ * Given arbitrary byte, the GameStage should decode, dispatch,
  * and handle the message correctly.
  *
- * Uses [GameServer.activateConnection] with [TestConnection] directly instead
+ * Uses [GameStage.activateConnection] with [TestConnection] directly instead
  * of making actual socket connection (though the socket port 7777 will still be used).
  */
-class GameServerTest {
-    fun config(port: Int): GameServerConfig {
-        return GameServerConfig(host = "127.0.0.1", port = port)
+class GameStageTest {
+    fun config(port: Int): GameStageConfig {
+        return GameStageConfig(host = "127.0.0.1", port = port)
     }
 
     /**
@@ -45,7 +44,7 @@ class GameServerTest {
     @Test
     fun `success handling with casual packet`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameServer = GameServer(config(7770)) { socketDispatcher, serverContext ->
+        val gameStage = GameStage(config(7770)) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(
                 Guide1(), Guide2(), Guide3()
             )
@@ -56,12 +55,11 @@ class GameServerTest {
             socketDispatcher.register(Fc2Handler())
             socketDispatcher.register(Fc3Handler())
         }
-        val container = ServerContainer(scope, listOf(gameServer), ServerContext.createForTest())
-        container.initializeAll()
-        container.startAll()
+        gameStage.initialize(scope, ServerContext.createForTest())
+        gameStage.start()
 
         val connection = createConnection(scope = scope)
-        gameServer.activateConnection(connection)
+        gameStage.activateConnection(connection)
 
         // "a12345" will be identified as Guide1 and materialized into Fc1
         val packet = "a12345".toByteArray()
@@ -73,7 +71,6 @@ class GameServerTest {
         val result = connection.getOutgoing()
         assertEquals(1, result.size)
         assertContentEquals(byteArrayOf(1, 1, 1), result.first())
-        container.shutdownAll()
     }
 
     /**
@@ -82,9 +79,11 @@ class GameServerTest {
      * - however, no format decoded successfully
      * should be taken care by catch all handler
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `handled by catch all handler when no fanchant guide matches`() = runTest {
-        val gameServer = GameServer(config(7771)) { socketDispatcher, serverContext ->
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val gameStage = GameStage(config(7771)) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(
                 Guide1(), Guide2(), Guide3()
             )
@@ -95,12 +94,11 @@ class GameServerTest {
             socketDispatcher.register(Fc2Handler())
             socketDispatcher.register(Fc3Handler())
         }
-        val container = ServerContainer(this, listOf(gameServer), ServerContext.createForTest())
-        container.initializeAll()
-        container.startAll()
+        gameStage.initialize(scope, ServerContext.createForTest())
+        gameStage.start()
 
-        val connection = createConnection(scope = this.backgroundScope)
-        gameServer.activateConnection(connection)
+        val connection = createConnection(scope = scope)
+        gameStage.activateConnection(connection)
 
         // nobody can handle this (decode fails)
         val packet = "wioenyrv😍😂80u803uvr💀".toByteArray()
@@ -109,11 +107,10 @@ class GameServerTest {
         // can't use awaitOutgoing since it waits until getOutgoing is non empty
 
         assertTrue(connection.getOutgoing().isEmpty())
-        container.shutdownAll()
     }
 
     /**
-     * .\gradlew test --tests "encoreTest.network.server.GameServerTest.should capable serving multiple clients"
+     * .\gradlew test --tests "encoreTest.network.server.GameStageTest.should capable serving multiple clients"
      *
      * No assertation in this, but successful test of this shouldn't produce
      * server fatal error that causes innocent clients to disrupt.
@@ -125,7 +122,7 @@ class GameServerTest {
     @Test
     fun `should capable serving multiple clients`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameServer = GameServer(config(7772)) { socketDispatcher, serverContext ->
+        val gameStage = GameStage(config(7772)) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(
                 Guide1(), Guide2(), Guide3(),
             )
@@ -137,10 +134,8 @@ class GameServerTest {
             socketDispatcher.register(Fc3Handler())
             socketDispatcher.register(Fc4Handler())
         }
-        val context = ServerContext.createForTest()
-        val container = ServerContainer(scope, listOf(gameServer), context)
-        container.initializeAll()
-        container.startAll()
+        gameStage.initialize(scope, ServerContext.createForTest())
+        gameStage.start()
 
         // preparation
         val packetA = "a12345".toByteArray()
@@ -156,10 +151,10 @@ class GameServerTest {
         delay(1.seconds)
 
         // clients connect
-        gameServer.activateConnection(connection1)
-        gameServer.activateConnection(connection2A)
+        gameStage.activateConnection(connection1)
+        gameStage.activateConnection(connection2A)
         delay(1.seconds)
-        gameServer.activateConnection(connection3)
+        gameStage.activateConnection(connection3)
 
         // clients send message (1)
         connection1.enqueueIncoming(packetA)
@@ -174,14 +169,14 @@ class GameServerTest {
 
         // clients send message (2)
         // client 2 must reconnect (+ different scope) because it fails before
-        gameServer.activateConnection(connection2B)
+        gameStage.activateConnection(connection2B)
         delay(1.seconds)
         connection2B.enqueueIncoming(packetB)
         connection3.enqueueIncoming(packetC)
         delay(1.seconds)
 
         // client 1 re-enter
-        gameServer.activateConnection(connection1)
+        gameStage.activateConnection(connection1)
         delay(1.seconds)
 
         // clients send message (3) with handler failure on client 3
@@ -195,9 +190,6 @@ class GameServerTest {
         connection2B.shutdown()
         delay(1.seconds)
         // client 3 is already shut down, calling shutdown here is not needed
-
-        // server shutdown
-        container.shutdownAll()
     }
 
     /**

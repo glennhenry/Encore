@@ -64,7 +64,7 @@ class StageActDirectorTest {
         // through structred concurrency.
 
         // simulates real connection
-        // coroutine constructed like in GameServer
+        // coroutine constructed like in GameStage
         val cor = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val connection = DefaultConnection(
             inputChannel = ByteReadChannel("", Charset.defaultCharset()),
