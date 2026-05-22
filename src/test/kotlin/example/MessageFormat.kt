@@ -102,8 +102,6 @@ class SpaceDelimitedStringFormatTest {
  * - Add all bytes to the byte array.
  */
 class SpaceSeparatedStringFanchantGuide : FanchantGuide<List<String>> {
-    override val name: String = "SpaceSeparatedStringFanchantGuide"
-
     override fun verify(data: ByteArray): Boolean {
         return data.first().toInt() in 0..9
     }

@@ -25,11 +25,6 @@ import encore.network.fanchant.FanchantType
  */
 interface FanchantHandler<T : Fanchant> {
     /**
-     * Human-readable name of the handler for logging and debugging.
-     */
-    val name: String
-
-    /**
      * Type association between the protocol identifier in a network message
      * with the concrete [Fanchant] class that this handler is responsible to handle.
      *

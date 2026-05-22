@@ -15,6 +15,7 @@ import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
 import encore.utils.hexString
 import encore.utils.safeAsciiString
+import encore.utils.support.className
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.ClosedByteChannelException
@@ -37,8 +38,6 @@ class GameServer(
     private val config: GameServerConfig,
     private val setup: (FanchantCoordinator, ServerContext) -> Unit
 ) : Server {
-    override val name: String = "GameServer"
-
     private lateinit var gameServerScope: CoroutineScope
     private lateinit var serverContext: ServerContext
     private val socketDispatcher = FanchantCoordinator()
@@ -201,14 +200,14 @@ class GameServer(
                         buildString {
                             appendLine("[SOCKET DECODE]")
                             appendLine("$INDENT type   : ${fanchant.type.id}")
-                            append("$INDENT guide  : ${guide.name}")
+                            append("$INDENT guide  : ${guide.className()}")
                         }
                     }
 
-                    matched += guide.name to fanchant
+                    matched += guide.className() to fanchant
                 }
             } catch (e: Exception) {
-                Fancam.error(e) { "Decode error in fanchant guide ${guide.name}" }
+                Fancam.error(e) { "Decode error in fanchant guide ${guide.className()}" }
             }
         }
 

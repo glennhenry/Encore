@@ -2,6 +2,7 @@ package encore.websocket
 
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.utils.support.className
 import encore.websocket.handler.WebSocketHandler
 import io.ktor.server.websocket.*
 import java.util.*
@@ -87,7 +88,7 @@ class WebSocketManager {
                 appendLine("##### [WebSocket Receive]")
                 appendLine("$INDENT type       : ${message.type}")
                 appendLine("$INDENT payload    : ${message.payload}")
-                append("$INDENT handled by : ${handler?.name ?: "[Unhandled]"}")
+                append("$INDENT handled by : ${handler?.className() ?: "[Unhandled]"}")
             }
         }
 

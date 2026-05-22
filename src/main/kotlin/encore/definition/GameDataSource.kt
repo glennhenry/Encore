@@ -11,11 +11,6 @@ package encore.definition
  */
 interface GameDataSource {
     /**
-     * Human-readable identifier for this game resource.
-     */
-    val name: String
-
-    /**
      * Path to the resource file.
      */
     val path: String

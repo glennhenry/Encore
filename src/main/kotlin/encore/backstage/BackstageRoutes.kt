@@ -54,8 +54,6 @@ class BackstageRoutes(
     private val serverContext: ServerContext,
     private val tokenStorage: MutableMap<String, Long>
 ) : RouteHandler {
-    override val name: String = "BackstageRoutes"
-
     override fun Route.install() {
         get("/backstage") {
             handle(call, NoAuthGuard) {

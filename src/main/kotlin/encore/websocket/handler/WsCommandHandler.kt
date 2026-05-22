@@ -14,7 +14,6 @@ import kotlinx.serialization.json.put
  * WebSocket handler for the command input.
  */
 class WsCommandHandler(private val serverContext: ServerContext) : WebSocketHandler {
-    override val name: String = "WsCommandHandler"
     override val type: String = WebSocketMessageType.CMD_INPUT
 
     override suspend fun handle(

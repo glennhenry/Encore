@@ -15,8 +15,6 @@ import kotlin.time.Duration
  * [RepeatingTimerConcept.interval].
  */
 class RepeatingTimerAct : StageAct<RepeatingTimerConcept> {
-    override val name: String = "RepeatTimerAct"
-
     override fun choreography(concept: RepeatingTimerConcept): Choreography<RepeatingTimerConcept> {
         return BasicChoreography(
             initialDelay = concept.initialDelay,

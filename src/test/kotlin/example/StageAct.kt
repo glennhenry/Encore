@@ -118,10 +118,7 @@ class BuildingRepo {
 class BuildingConstructionAct(
     private val repo: BuildingRepo,
     private val timekeeper: Timekeeper
-) :
-    StageAct<BuildingConstructionConcept> {
-    override val name: String = "BuildingConstructionAct"
-
+) : StageAct<BuildingConstructionConcept> {
     override fun choreography(concept: BuildingConstructionConcept): Choreography<BuildingConstructionConcept> {
         // building construction only perform once when build duration finish
         return BasicChoreography(

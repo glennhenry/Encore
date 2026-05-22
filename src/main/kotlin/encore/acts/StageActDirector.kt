@@ -6,6 +6,7 @@ import encore.fancam.Fancam
 import encore.utils.identifier.Ids
 import encore.time.source.SystemTimeSource
 import encore.time.Timekeeper
+import encore.utils.support.className
 import encore.utils.support.safelySuspend
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineStart
@@ -221,7 +222,7 @@ class StageActDirector(
                     }
                 }
             } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.name}' for '${scope.ownerId}'" }
+                Fancam.error(e) { "Error on act '${act.className()}' for '${scope.ownerId}'" }
                 safelySuspend {
                     act.onError(concept, e)
                 }

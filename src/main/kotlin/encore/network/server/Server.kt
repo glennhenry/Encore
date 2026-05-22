@@ -7,8 +7,6 @@ import kotlinx.coroutines.CoroutineScope
  * Represent a server.
  */
 interface Server {
-    val name: String
-
     /**
      * Initialize the server with the given coroutine scope and [encore.context.ServerContext].
      */

@@ -68,8 +68,6 @@ class GameReferenceTest {
  * Generally, content retrieval goes through [readText].
  */
 class IniDataSource(override val path: String) : GameDataSource {
-    override val name: String = "IniSource"
-
     override fun readText(): String {
         return File(path).readText()
     }

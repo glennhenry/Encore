@@ -5,6 +5,7 @@ import encore.network.fanchant.FanchantCoordinator
 import encore.network.fanchant.FanchantType
 import encore.network.handler.FanchantHandler
 import encore.network.handler.HandlerContext
+import encore.utils.support.className
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -17,7 +18,7 @@ class SocketDispatcherTest {
         dispatcher.register(handler1)
 
         val actual = dispatcher.findHandler(ExFc("asdf"))
-        assertEquals(handler1.name, actual.name)
+        assertEquals(handler1.className(), actual.className())
     }
 
     @Test
@@ -31,7 +32,6 @@ class SocketDispatcherTest {
 }
 
 class Handler1 : FanchantHandler<ExFc> {
-    override val name: String = "Handler1"
     override val fanchantType: FanchantType<ExFc> = ExFcType
     override suspend fun handle(ctx: HandlerContext<ExFc>) {
         println("Handler1 - handle")
@@ -39,7 +39,6 @@ class Handler1 : FanchantHandler<ExFc> {
 }
 
 class Handler2 : FanchantHandler<ExFc> {
-    override val name: String = "Handler2"
     override val fanchantType: FanchantType<ExFc> = ExFcType
     override suspend fun handle(ctx: HandlerContext<ExFc>) {
         println("Handler2 - handle")

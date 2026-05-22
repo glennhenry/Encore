@@ -15,7 +15,6 @@ import encore.network.fanchant.FanchantType
  * actually implementing a strict fanchant guide or fanchant class.
  */
 class CatchAllHandler : FanchantHandler<CatchAllFanchant> {
-    override val name: String = "CatchAllHandler"
     override val fanchantType: FanchantType<CatchAllFanchant> = CatchAllFanchantType
 
     override suspend fun handle(ctx: HandlerContext<CatchAllFanchant>) = with(ctx) {

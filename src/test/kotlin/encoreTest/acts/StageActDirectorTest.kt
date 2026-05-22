@@ -411,8 +411,6 @@ class StageActDirectorTest {
 }
 
 class TimerWithOnStartAct : StageAct<TimerWithOnStartConcept> {
-    override val name: String = "TimerWithOnStartAct"
-
     override suspend fun onStart(concept: TimerWithOnStartConcept) {
         concept.onStart()
     }
@@ -436,8 +434,6 @@ data class TimerWithOnStartConcept(
 ) : ActConcept
 
 class RepeatTimerWithOnStartAct : StageAct<RepeatTimerWithOnStartConcept> {
-    override val name: String = "RepeatTimerWithOnStartAct"
-
     override suspend fun onStart(concept: RepeatTimerWithOnStartConcept) {
         concept.onStart()
     }

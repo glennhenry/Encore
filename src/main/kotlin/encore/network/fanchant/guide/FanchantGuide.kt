@@ -28,11 +28,6 @@ import encore.network.fanchant.Fanchant
  */
 interface FanchantGuide<T> {
     /**
-     * Name of this fanchant guide used for debugging and logging.
-     */
-    val name: String
-
-    /**
      * Performs a cheap, permissive check to determine whether the raw byte
      * sequence [data] *may* conform to the fanchant described by this guide.
      *

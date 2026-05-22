@@ -216,7 +216,6 @@ class GameServerTest {
 }
 
 class Guide1 : FanchantGuide<String> {
-    override val name: String = "Guide1"
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {
@@ -234,7 +233,6 @@ class Guide1 : FanchantGuide<String> {
 }
 
 class Guide2 : FanchantGuide<String> {
-    override val name: String = "Guide2"
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {
@@ -252,7 +250,6 @@ class Guide2 : FanchantGuide<String> {
 }
 
 class Guide3 : FanchantGuide<String> {
-    override val name: String = "Guide3"
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {
@@ -306,7 +303,6 @@ object Fc4Type : FanchantType<Fc4> {
 }
 
 class Fc1Handler : FanchantHandler<Fc1> {
-    override val name: String = "Fc1Handler"
     override val fanchantType: FanchantType<Fc1> = Fc1Type
     override suspend fun handle(ctx: HandlerContext<Fc1>) {
         ctx.sendRaw(byteArrayOf(1, 1, 1))
@@ -314,7 +310,6 @@ class Fc1Handler : FanchantHandler<Fc1> {
 }
 
 class Fc2Handler : FanchantHandler<Fc2> {
-    override val name: String = "Fc2Handler"
     override val fanchantType: FanchantType<Fc2> = Fc2Type
     override suspend fun handle(ctx: HandlerContext<Fc2>) {
         ctx.sendRaw(byteArrayOf(2, 2, 2))
@@ -322,7 +317,6 @@ class Fc2Handler : FanchantHandler<Fc2> {
 }
 
 class Fc3Handler : FanchantHandler<Fc3> {
-    override val name: String = "Fc3Handler"
     override val fanchantType: FanchantType<Fc3> = Fc3Type
     override suspend fun handle(ctx: HandlerContext<Fc3>) {
         ctx.sendRaw(byteArrayOf(3, 3, 3))
@@ -330,7 +324,6 @@ class Fc3Handler : FanchantHandler<Fc3> {
 }
 
 class Fc4Handler : FanchantHandler<Fc4> {
-    override val name: String = "Fc4Handler"
     override val fanchantType: FanchantType<Fc4> = Fc4Type
     override suspend fun handle(ctx: HandlerContext<Fc4>) {
         throw Exception("Requested on Handler9")

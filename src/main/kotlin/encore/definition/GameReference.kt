@@ -4,6 +4,7 @@ import encore.definition.GameReference.get
 import encore.definition.GameReference.initialize
 import encore.fancam.Fancam
 import encore.time.TimeCenter
+import encore.utils.support.className
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -69,7 +70,7 @@ object GameReference {
             val definitions = loader.produce(source)
             val finish2 = (TimeCenter.system.now() - start2).milliseconds
             Fancam.trace {
-                "Loaded '${source.name}' in $finish2, produced ${definitions.size} definition entries."
+                "Loaded '${source.className()}' in $finish2, produced ${definitions.size} definition entries."
             }
 
             definitions.forEach { registry[it::class] = it }

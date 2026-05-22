@@ -4,6 +4,7 @@ import encore.network.handler.FanchantHandler
 import encore.network.handler.CatchAllHandler
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.utils.support.className
 
 /**
  * Component responsible for dispatching [Fanchant] to the appropriate
@@ -39,7 +40,7 @@ class FanchantCoordinator {
 
         if (existing != null) {
             throw IllegalArgumentException(
-                "Fanchant type '${type.id}' is already associated with ${existing.name}."
+                "Fanchant type '${type.id}' is already associated with ${existing.className()}."
             )
         }
 
@@ -66,7 +67,7 @@ class FanchantCoordinator {
                     appendLine("[SOCKET DISPATCH]")
                 }
                 appendLine("$INDENT fanchant (str): $fanchant")
-                append("$INDENT handlers      : ${handler?.name ?: catchAllHandler.name}")
+                append("$INDENT handlers      : ${handler?.className() ?: catchAllHandler.className()}")
             }
         }
 

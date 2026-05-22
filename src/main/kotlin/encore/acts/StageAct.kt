@@ -39,11 +39,6 @@ import encore.acts.choreo.PerformMode
  */
 interface StageAct<T : ActConcept> {
     /**
-     * The name of this `StageAct`, used for debugging purposes.
-     */
-    val name: String
-
-    /**
      * Produces the choreography for this act.
      */
     fun choreography(concept: T): Choreography<T>

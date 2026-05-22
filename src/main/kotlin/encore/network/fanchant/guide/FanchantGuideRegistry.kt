@@ -1,6 +1,7 @@
 package encore.network.fanchant.guide
 
 import encore.fancam.Fancam
+import encore.utils.support.className
 
 /**
  * Contains every [FanchantGuide]s supported by the server.
@@ -44,7 +45,7 @@ class FanchantGuideRegistry {
             } catch (e: Exception) {
                 Fancam.warn {
                     val peek = data.copyOfRange(0, minOf(20, data.size))
-                    "${format.name} verify failed; peek=${peek.contentToString()}; error=$e"
+                    "${format.className()} verify failed; peek=${peek.contentToString()}; error=$e"
                 }
             }
         }

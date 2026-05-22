@@ -8,11 +8,6 @@ import io.ktor.server.websocket.DefaultWebSocketServerSession
  */
 interface WebSocketHandler {
     /**
-     * Human-readable identifier of the websocket handler for logging purposes.
-     */
-    val name: String
-
-    /**
      * The type of websocket message this handler is responsible for.
      */
     val type: String

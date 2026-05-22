@@ -94,7 +94,6 @@ class ExampleHandlerTest {
  * Example of handler that handles [DotSeparatedFanchant]
  */
 class DotSeparatedHandler: FanchantHandler<DotSeparatedFanchant> {
-    override val name: String = "ExampleHandler"
     override val fanchantType: FanchantType<DotSeparatedFanchant> = DotSeparatedFanchantType
 
     /**

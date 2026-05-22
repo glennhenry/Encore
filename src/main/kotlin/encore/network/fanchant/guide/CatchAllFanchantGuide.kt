@@ -17,8 +17,6 @@ import encore.network.fanchant.CatchAllFanchant
  * - [materialize] wraps the decoded string into a [CatchAllFanchant].
  */
 class CatchAllFanchantGuide : FanchantGuide<String> {
-    override val name: String = "DefaultFormat"
-
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {

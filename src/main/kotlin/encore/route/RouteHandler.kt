@@ -5,6 +5,7 @@ import encore.route.guard.AuthGuard
 import encore.route.guard.GuardResult
 import encore.route.guard.NoAuthGuard
 import encore.time.TimeCenter
+import encore.utils.support.className
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
@@ -48,11 +49,6 @@ import io.ktor.server.routing.*
  */
 interface RouteHandler {
     /**
-     * Human-readable name used for logging purpose.
-     */
-    val name: String
-
-    /**
      * Register routes for this handler.
      */
     fun Route.install()
@@ -88,7 +84,7 @@ suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthG
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)
         val uri = call.request.uri
-        Fancam.error(e) { "Error on auth verify of $name at $method $uri" }
+        Fancam.error(e) { "Error on auth verify of ${className()} at $method $uri" }
         return
     }
 
@@ -117,7 +113,7 @@ suspend fun RouteHandler.guard(call: ApplicationCall, auth: AuthGuard, block: su
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)
         val uri = call.request.uri
-        Fancam.error(e) { "Error on auth verify of $name at $method $uri" }
+        Fancam.error(e) { "Error on auth verify of ${className()} at $method $uri" }
         return
     }
 
