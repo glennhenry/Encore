@@ -6,10 +6,9 @@ import encore.context.PlayerSubunits
 import encore.context.ServerContext
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
-import encore.network.transport.TestConnection
+import encore.network.fanchant.Fanchant
 import encore.network.handler.DefaultHandlerContext
 import encore.network.handler.HandlerContext
-import encore.network.fanchant.Fanchant
 import encore.network.transport.ConnectionIdentity
 import encore.network.transport.TestConnection
 import kotlinx.coroutines.CoroutineScope

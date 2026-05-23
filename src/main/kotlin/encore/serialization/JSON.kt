@@ -7,8 +7,8 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 
 /**
- * Global JSON serialization helper, intended to provide a single,
- * shared [Json] configuration.
+ * Global JSON serialization helper, intended to provide a serialization operation
+ * from a single shared [Json] configuration.
  *
  * This must be initialized via [initialize] before use.
  */

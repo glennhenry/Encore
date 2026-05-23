@@ -1,9 +1,14 @@
 package game.config
 
+import encore.annotation.runtime.VenueKey
+
 /**
- * Definition of custom config.
+ * Custom application config definition.
  *
- * All field should be immutable for discipline.
+ * Place every venue-supplied configuration here, also annotate with [VenueKey].
+ * After that, modify `venue.xml` accordingly from this data class entries.
+ *
+ * All field is preferred to be immutable.
  */
 data class CustomConfig(
     val dummy: Int = 0

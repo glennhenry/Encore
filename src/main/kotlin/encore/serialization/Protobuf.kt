@@ -4,6 +4,12 @@ import encore.fancam.Fancam
 import kotlinx.serialization.*
 import kotlinx.serialization.protobuf.ProtoBuf
 
+/**
+ * Global Protobuf serialization helper, intended to provide a serialization operation
+ * from a single shared [ProtoBuf] configuration.
+ *
+ * This must be initialized via [initialize] before use.
+ */
 @OptIn(ExperimentalSerializationApi::class)
 object Protobuf {
     private var _protoBuf: ProtoBuf? = null

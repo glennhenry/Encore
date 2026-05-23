@@ -10,9 +10,9 @@ import kotlinx.serialization.json.*
 
 /**
  * Serialize `Map<String, Any>` to JSON in a strict manner,
- * where every fields are transformed into JSONElement.
+ * where every fields are transformed into `JSONElement`.
  *
- * Must annotate custom type with @Serializable for serialization to work nestedly.
+ * Must annotate custom type with `@Serializable` for serialization to work nestedly.
  */
 object AnyMapSerializer : KSerializer<Map<String, Any>> {
     override val descriptor: SerialDescriptor =

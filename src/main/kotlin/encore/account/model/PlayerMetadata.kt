@@ -3,11 +3,10 @@ package encore.account.model
 import kotlinx.serialization.Serializable
 
 /**
- * Server-owned information associated with a specific player.
+ * Additional information for the player.
  *
- * Contains non-gameplay data managed at server-level.
- *
- * Typically includes extra data like flags, ban, permissions, or
+ * `PlayerMetadata` contains non-gameplay data managed at server-level.
+ * It typically includes extra data like flags, ban, permissions, or
  * any other metadata for temporary or administrative purposes.
  */
 @Serializable

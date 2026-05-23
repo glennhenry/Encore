@@ -14,9 +14,9 @@ import game.AdminData
 import kotlin.io.encoding.Base64
 
 /**
- * Represent a server-scoped subunit that handles authentication.
+ * Server-scoped subunit that handles authentication.
  *
- * `AuthSubunit` is high-level subunit that requires other subunits to function:
+ * `AuthSubunit` requires other subunits:
  * - [AccountSubunit] to get account information for registration or login.
  * - [PlayerCreationSubunit] to create account during registration.
  * - [SessionSubunit] to create session after successful registration or login.

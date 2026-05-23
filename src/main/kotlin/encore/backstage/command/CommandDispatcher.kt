@@ -12,7 +12,7 @@ import encore.fancam.Fancam
  * Server commands offers the ability to control the server from command implementation.
  * It gives the possibility to modify server's behavior, such as modifying player's data.
  *
- * The server accepts command from simple CLI via the external web devtools (backstage).
+ * The server accepts command from a simple text input in the external web devtools (backstage).
  *
  * How to use:
  * - Implement [Command].
@@ -54,7 +54,6 @@ class CommandDispatcher {
      * Register a server command.
      *
      * @param command The command to be registered.
-     *
      * @throws IllegalArgumentException throws when:
      * - `commandId` is blank or contains invalid character (see [allowedPattern]).
      * - [Command.variants] contains a duplicate variant.
@@ -70,10 +69,12 @@ class CommandDispatcher {
         for (variant in command.variants) {
             if (variant.argCount in seenVariant) {
                 throw IllegalArgumentException(
-                    "\n\tFound duplicate command variant for command '${cleanId}' " +
-                            "with argument length of ${variant.argCount}: $variant\n" +
-                            "\tVariants must have unique argument counts.\n" +
-                            "\tThe first-come variant: (${seenVariant[variant.argCount]?.detailedString()}) will be used"
+                    buildString {
+                        appendLine("Found duplicate variant for command '${cleanId}': $variant.")
+                        appendLine("Argument length is ${variant.argCount}.")
+                        appendLine("Variants must have unique argument counts.")
+                        append("The first-come variant: (${seenVariant[variant.argCount]?.detailedString()}) will be used.")
+                    }
                 )
             } else {
                 seenVariant[variant.argCount] = variant
@@ -101,20 +102,18 @@ class CommandDispatcher {
     }
 
     /**
-     * Handle raw command request of plain string.
+     * Handle raw command request in plain string.
      *
-     * Internally parse the raw command and use the [handleCommand].
-     *
-     * @return [encore.backstage.command.types.CommandResult] that represents the outcome.
+     * @return [CommandResult] that represents the outcome.
      */
     fun handleRawCommand(raw: String): CommandResult {
         val request = try {
             parser.parse(raw)
         } catch (e: IllegalArgumentException) {
-            // just parse error which is not severe
+            // parse error from parser which is not severe
             return CommandResult.Error("Parsing error: ${e.message}")
         } catch (e: Exception) {
-            Fancam.error { "Unexpected parsing error on handleRawCommand: ${e.message}" }
+            Fancam.error(e) { "Unexpected parsing error on '$raw'" }
             return CommandResult.Error("Parsing error: ${e.message}")
         }
 
@@ -139,9 +138,8 @@ class CommandDispatcher {
             Fancam.info { "Done executing command '${request.commandId}' with result=$result" }
             return result
         } catch (e: Exception) {
-            val msg = "Unexpected error while executing the command '${request.commandId}'; error: ${e.message ?: e}"
-            Fancam.error { msg }
-            return CommandResult.Error(msg)
+            Fancam.error(e) { "Error while executing the command '${request.commandId}'" }
+            return CommandResult.Error("Execution error: ${e.message}")
         }
     }
 

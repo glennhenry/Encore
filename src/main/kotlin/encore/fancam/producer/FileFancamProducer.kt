@@ -7,7 +7,7 @@ import encore.fancam.formatter.FancamFormatter
 import encore.fancam.formatter.LogEventFancamFormatter
 import encore.fancam.formatter.TrackEventFancamFormatter
 import encore.utils.getRotatedFile
-import encore.utils.toMB
+import encore.utils.mbToBytes
 
 /**
  * Producer implementation tailored for file output.
@@ -32,7 +32,7 @@ class FileFancamProducer<T>(
             extension = event.extension,
             maxRotation = config.maxFileRotation
         ) { file ->
-            file.length() > (config.maxFileSize.toMB())
+            file.length() > (config.maxFileSize.mbToBytes())
         }
 
         val text = formatter.format(event)

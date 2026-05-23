@@ -15,6 +15,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlin.time.measureTime
 
+/**
+ * Encompasses the name of mongo database collection for the 4 base collections.
+ */
 data class MongoCollectionName(
     val playerAccount: String,
     val playerObjects: String,
@@ -43,7 +46,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
         val elapsed = measureTime {
             initJob.await()
         }
-        Fancam.info { "MongoDB completed initialization ($elapsed)" }
+        Fancam.info { "MongoDB completed initialization (${elapsed}ms)" }
     }
 
     private suspend fun setupCollections() {
@@ -93,7 +96,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
     }
 
     override suspend fun getServerObjects(): ServerObjects {
-        return serverObjects.find(Filters.eq("dbId", "sobjs")).firstOrNull()
+        return serverObjects.find(ServerObjectsFilter).firstOrNull()
             ?: throw NoSuchElementException("ServerObjects not found, please ensure ServerObjects creation.")
     }
 

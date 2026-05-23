@@ -6,7 +6,7 @@ import encore.backstage.command.types.CommandVariant
 import encore.context.ServerContext
 
 /**
- * Represents a server command that can be invoked to perform a specific action in server.
+ * Represents a server command that can be invoked to perform a specific action in the server.
  *
  * See [ExampleCommand] or `encoreTest.backstage.CommandDispatcherTest` for example.
  */
@@ -34,9 +34,9 @@ interface Command {
      * @param args Input arguments object.
      *
      * @return Result of command execution, which should be any of the three:
-     * - [encore.backstage.command.types.CommandResult.Executed]
-     * - [encore.backstage.command.types.CommandResult.ExecutionFailure]
-     * - [encore.backstage.command.types.CommandResult.Error]
+     * - [CommandResult.Executed]
+     * - [CommandResult.ExecutionFailure]
+     * - [CommandResult.Error]
      */
     fun execute(serverContext: ServerContext, args: ArgumentCollection): CommandResult
 }

@@ -215,10 +215,23 @@ class BackstageRoutes(
     }
 }
 
+/**
+ * Simple helper for HTML templating.
+ *
+ * This will replace every occurence of `templateId` with [message] in the [file].
+ */
 fun insertHtmlTemplate(file: File, templateId: String, message: String): String {
     return file.readText().replace(templateId, message)
 }
 
+/**
+ * Ensure backstage session is valid.
+ *
+ * Request must contain a non-expired cookie of `backstage-clientId`.
+ *
+ * @param verify Function used to verify the validity of the cookie.
+ * @return Returns `true` when session is valid, `false` otherwise.
+ */
 suspend fun ApplicationCall.ensureSession(verify: (String) -> Boolean): Boolean {
     val cookie = request.cookies["backstage-clientId"]
     val cookieValid = cookie != null && verify(cookie)

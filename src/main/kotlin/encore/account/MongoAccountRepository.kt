@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import org.bson.codecs.pojo.annotations.BsonId
 
 /**
- * MongoDB implementation of [AccountRepository].
+ * [AccountRepository] implementation using MongoDB.
  */
 class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccount>) : AccountRepository {
     override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount> {

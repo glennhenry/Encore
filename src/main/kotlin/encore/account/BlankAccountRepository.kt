@@ -6,7 +6,7 @@ import encore.account.model.Credentials
 import encore.account.model.Profile
 
 /**
- * Blank implementation (no operation) of [AccountRepository] only used for testing purposes.
+ * No-operation implementation of [AccountRepository] used for testing purposes.
  */
 class BlankAccountRepository : AccountRepository {
     override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?> = TODO("NO OPERATION")

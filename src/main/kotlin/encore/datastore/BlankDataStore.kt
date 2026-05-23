@@ -7,7 +7,7 @@ import encore.datastore.collection.PlayerServerObjects
 import encore.datastore.collection.ServerObjects
 
 /**
- * Blank (no-operation) implementation for [DataStore].
+ * No-operation implementation for [DataStore] used for testing purposes.
  */
 class BlankDataStore : DataStore {
     override suspend fun awaitInit() = Unit

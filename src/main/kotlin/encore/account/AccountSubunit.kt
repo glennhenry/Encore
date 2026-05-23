@@ -15,13 +15,12 @@ import encore.utils.types.toReport
 /**
  * Server subunits that handles [PlayerAccount] concerns from [AccountRepository].
  *
- * This subunit focuses on abstracting the `AccountRepository`, providing API
- * to callers.
+ * This subunit focuses on abstracting low-level API of `AccountRepository`.
+ * Every operations here return a [Report] or [Outcome] type. It doesn't interpret
+ * or handle the result from repository. Instead, callers (e.g., [AuthSubunit] should be
+ * responsible for it.
  *
- * It doesn't interpret the result of the underlying repository operation,
- * only passing it to the caller (e.g., [AuthSubunit]).
- *
- * @property accountRepository access entry for account data
+ * @property accountRepository [AccountRepository] implementation.
  */
 class AccountSubunit(private val accountRepository: AccountRepository) : Subunit<ServerScope> {
     /**
@@ -62,7 +61,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun getCredentials(username: String): Outcome<Credentials?> {
         return accountRepository.getCredentials(username)
             .onFailure {
-                Fancam.error(it) { "Get credentials: internal repository error for '$username'" }
+                Fancam.error(it) { "getCredentials failed: internal repository error for '$username'" }
                 return Outcome.Fail
             }
             .toOutcome { credentials ->
@@ -77,7 +76,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun updateLastActivity(playerId: PlayerId, lastActivity: Long): Report {
         return accountRepository.updateLastActivity(playerId, lastActivity)
             .onFailure {
-                Fancam.error(it) { "updateLastActivity: internal repository error for $playerId lastActivity=$lastActivity" }
+                Fancam.error(it) { "updateLastActivity failed: internal repository error for '$playerId', lastActivity=$lastActivity" }
             }
             .toReport()
     }

@@ -4,7 +4,7 @@ import encore.acts.StageAct
 import kotlin.time.Duration
 
 /**
- * Describes [StageAct] performs portion.
+ * Describes a [StageAct] performs portion.
  *
  * - [Once]
  * - [Repeat]

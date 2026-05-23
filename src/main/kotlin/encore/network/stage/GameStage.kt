@@ -145,7 +145,7 @@ class GameStage(
                 if (connection.playerId != "[Undetermined]") {
                     serverContext.subunits.presence.markOffline(connection.playerId)
                     serverContext.subunits.account.updateLastActivity(connection.playerId, TimeCenter.system.now())
-                    serverContext.contextTracker.removeContext(connection.playerId)
+                    serverContext.contextRegistry.removeContext(connection.playerId)
                 }
 
                 connection.shutdown()
@@ -253,7 +253,6 @@ class GameStage(
 
     override suspend fun shutdown() {
         running = false
-        serverContext.contextTracker.shutdown()
         serverContext.subunits.presence.disband(ServerScope)
         serverContext.subunits.session.disband(ServerScope)
         serverContext.stageActDirector.shutdown()

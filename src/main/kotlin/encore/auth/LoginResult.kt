@@ -1,13 +1,14 @@
 package encore.auth
 
 import encore.session.UserSession
+import encore.utils.types.Outcome
 
 /**
  * Represents the result of a login attempt.
  *
  * This only contains business-level outcomes of authentication.
  * Internal/system errors (e.g., database failures) are not represented here
- * and should be handled separately (e.g., via `Outcome`).
+ * and should be handled separately (e.g., via [Outcome]).
  *
  * - [LoginResult.Success]: authentication succeeded.
  * - [LoginResult.InvalidCredentials]: authentication failed due to invalid credentials.

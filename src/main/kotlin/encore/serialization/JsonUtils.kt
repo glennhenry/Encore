@@ -9,7 +9,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
 /**
- * Parse a JSON string into a map.
+ * Parse a JSON string into a Kotlin map.
  */
 fun parseJsonToMap(serializer: Json, jsonStr: String): Map<String, Any> {
     return try {

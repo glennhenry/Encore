@@ -3,7 +3,7 @@ package encore.fancam.formatter
 /**
  * Ansi colors (256) constants to style console.
  *
- * Must use "--console=plain" for color to work consistently.
+ * Must use Gradle argument "--console=plain" for color to work consistently.
  */
 @Suppress("unused", "ConstPropertyName")
 object AnsiColors {

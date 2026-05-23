@@ -15,8 +15,9 @@ import encore.subunit.scope.PlayerScope
  * - The player's [PlayerAccount], which includes profile and server-related metadata.
  * - The player's game-specific state, accessible through various [PlayerSubunits].
  *
- * A [PlayerContext] must be created before usage, typically right after a player
- * successfully authenticates. Context creation is handled by [ContextTracker].
+ * During gameplay, [PlayerContext] is frequently accessed.
+ * Typically, right after a player successfully authenticates context instance is created.
+ * Context creation is handled by [ContextFactory] and registered in [ContextRegistry].
  */
 data class PlayerContext(
     val playerId: PlayerId,

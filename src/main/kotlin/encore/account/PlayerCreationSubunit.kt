@@ -15,21 +15,21 @@ import game.AdminData
 /**
  * Server-scoped subunit responsible for player creation.
  *
- * This should handle the logic to create a player, which typically involves
- * inserting default data to the three base collections: [PlayerAccount],
+ * Responsible for handling the logic to create a player, which involves
+ * inserting some default data to the three base collections: [PlayerAccount],
  * [PlayerObjects], and [PlayerServerObjects].
  *
  * This subunit doesn't handle server data update in [ServerObjects]
  * for the player. This should be handled separately via external orchestration
- * (e.g., in the registration).
+ * (e.g., in the account registration).
  *
- * Requires a [DataStore] to persist the newly created players.
+ * @property dataStore [DataStore] to persist the newly created players.
  */
 class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerScope> {
     /**
      * Create a player account with the specified [username], [password], and [email].
      *
-     * Email is optional and will be defaulted to username@email.com
+     * Email is optional and will be defaulted to `username@email.com`
      *
      * @return [PlayerId] of the newly created player
      * @throws [Throwable] an exception type from the underlying datastore or
@@ -90,11 +90,9 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         val result = dataStore.create(account, pObj, psObj)
 
         if (result.isSuccess) {
-            Fancam.info { "New admin account created" }
+            Fancam.info { "New admin account created with username=${AdminData.USERNAME}, playerId=${AdminData.PLAYER_ID}" }
         } else {
-            Fancam.error {
-                "Admin account creation failed, reason: ${result.exceptionOrNull()}"
-            }
+            Fancam.error { "Admin account creation failed" }
 
             throw result.exceptionOrNull()
                 ?: IllegalStateException("Admin account creation failed with unknown error (exception was null)")
@@ -110,7 +108,6 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         )
     }
 
-    // unused
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
     override suspend fun disband(scope: ServerScope): Result<Unit> = Result.success(Unit)
 

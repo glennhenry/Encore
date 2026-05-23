@@ -1,12 +1,15 @@
 package game.config
 
+import encore.annotation.runtime.VenueKey
+
 /**
- * Definition of custom config for secret.
+ * Application secret config definition.
  *
- * These entries should be listed in `venue.secret.xml`.
- * The file is not tracked by Git.
+ * Place every venue-supplied configuration here, also annotate with [VenueKey].
+ * After that, modify `venue.secret.xml` accordingly from this data class entries.
+ * The secret file will not be tracked by Git.
  *
- * All field should be immutable for discipline.
+ * All field is preferred to be immutable.
  */
 data class SecretConfig(
     val dummy: Int = 0

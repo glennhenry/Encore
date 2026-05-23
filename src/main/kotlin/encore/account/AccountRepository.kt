@@ -6,17 +6,18 @@ import encore.account.model.Credentials
 import encore.account.model.Profile
 
 /**
- * Repository template for [PlayerAccount].
+ * Repository for [PlayerAccount] core collection.
  *
- * Implementation should abstract the data access to player's account.
+ * Implementation should abstract the data access to player accounts.
  * For instance:
- * - Mongo implementation provides API to the underlying `MongoCollection`
- * - SQL implementation provides API to the account table.
- * - In-memory implementation provides API to the in-memory data representation.
+ * - Mongo implementation provides query and update APIs from the
+ *   underlying `MongoCollection`.
+ * - SQL implementation provides similar APIs to the account table.
+ * - In-memory implementation provides APIs using an in-memory storage.
  *
  * Each operation should return a [Result] type to denote the outcome.
- * [Result.failure] is used when the operation fails due to an internal failure
- * like DB errors and not business outcome.
+ * [Result.failure] should be used when the operation fails due to an
+ * internal failure such as DB errors and not business outcome.
  */
 interface AccountRepository {
     /**

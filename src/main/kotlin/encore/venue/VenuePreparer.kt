@@ -110,7 +110,6 @@ class VenuePreparer(
      * During the binding process, it will also try checking if an environment variable
      * is defined for the same key. If it is, the environment value will take precedence.
      *
-     * @param category The name of config category, which is one of [VenueCategory].
      * @throws IllegalStateException When:
      *  1. [clazz] does not have primary constructor.
      *  2. [clazz] does not annotate all non-data value with [VenueKey].

@@ -4,10 +4,10 @@ import encore.datastore.collection.PlayerId
 import kotlinx.serialization.Serializable
 
 /**
- * Represent the required data to access an account.
+ * Representation of an account credentials in database.
  *
- * @property playerId [PlayerId] associated with this credentials.
- * @property hashedPassword the hashed version of account's password.
+ * @property playerId Unique identifier of the account.
+ * @property hashedPassword hashed representation of the account's password.
  */
 @Serializable
 data class Credentials(

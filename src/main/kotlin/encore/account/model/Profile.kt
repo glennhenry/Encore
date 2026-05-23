@@ -4,11 +4,11 @@ import encore.datastore.collection.PlayerId
 import kotlinx.serialization.Serializable
 
 /**
- * Server-owned information about a player's profile.
+ * Player profile information.
  *
- * This would include any server-related information such as
- * country, avatar, locale, and not game-specific information
- * like player's ranking or status.
+ * `Profile` contains the player's personal information in the server
+ * such as country, avatar, locale, etc. It does not include game-specific
+ * information like player's ranking or status.
  *
  * @property playerId Unique identifier of the player.
  * @property createdAt Epoch millis of the account creation date.
