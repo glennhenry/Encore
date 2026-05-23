@@ -1,6 +1,6 @@
 package encore.fancam.events
 
-import encore.fancam.utils.StackTraceResolver
+import encore.fancam.utils.SourceCallResolver
 import encore.fancam.Fancam
 import encore.time.TimeCenter
 
@@ -41,7 +41,7 @@ class TrackEventBuilder(
     private val onRecordCalled: (TrackEvent) -> Unit,
     private val onLogCalled: (TrackEvent, Level, Boolean) -> Unit,
 ) {
-    private val sourceResolver = StackTraceResolver()
+    private val sourceResolver = SourceCallResolver()
 
     private val data = mutableMapOf<String, Any>()
     private var tags: List<String> = emptyList()

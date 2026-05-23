@@ -9,7 +9,7 @@ import encore.fancam.formatter.TrackEventFancamFormatter
 import encore.fancam.producer.ConsoleFancamProducer
 import encore.fancam.producer.FancamProducer
 import encore.fancam.producer.FileFancamProducer
-import encore.fancam.utils.StackTraceResolver
+import encore.fancam.utils.SourceCallResolver
 import encore.time.TimeCenter
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
@@ -114,7 +114,7 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  */
 class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
-    private val sourceResolver: StackTraceResolver = StackTraceResolver()
+    private val sourceResolver: SourceCallResolver = SourceCallResolver()
 
     // LogEvent formatters
     private val consoleLogFormatter = LogEventFancamFormatter(config, isFileTarget = false)
