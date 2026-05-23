@@ -9,6 +9,7 @@ import encore.datastore.collection.PlayerObjects
 import encore.datastore.collection.PlayerServerObjects
 import encore.datastore.collection.ServerObjects
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -42,27 +43,27 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
     private val initJob = CoroutineScope(Dispatchers.IO).async { setupCollections() }
 
     override suspend fun awaitInit() {
-        Fancam.info { "Waiting for MongoDB initialization..." }
+        Fancam.info(Tags.Datastore) { "Waiting for MongoDB initialization..." }
         val elapsed = measureTime {
             initJob.await()
         }
-        Fancam.info { "MongoDB completed initialization (${elapsed}ms)" }
+        Fancam.info(Tags.Datastore) { "MongoDB completed initialization (${elapsed}ms)" }
     }
 
     private suspend fun setupCollections() {
         try {
             val count = accounts.estimatedDocumentCount()
-            Fancam.info { "MongoDB contains $count accounts." }
+            Fancam.info(Tags.Datastore) { "MongoDB contains $count accounts." }
             prepareServerObjects()
             setupIndexes()
         } catch (e: Exception) {
-            Fancam.error { "MongoDB failed during initialization: $e" }
+            Fancam.error(e, Tags.Datastore) { "MongoDB failed during initialization" }
         }
     }
 
     private suspend fun setupIndexes() {
         serverObjects.createIndex(Indexes.text())
-        Fancam.info { "Mongo index set up" }
+        Fancam.info(Tags.Datastore) { "Mongo index set up" }
     }
 
     private suspend fun prepareServerObjects() {
@@ -74,7 +75,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
             1L -> return
 
             else -> {
-                Fancam.warn { "Detected multiple server object document count=$count" }
+                Fancam.warn(Tags.Datastore) { "Detected multiple server object document count=$count" }
             }
         }
     }
@@ -113,7 +114,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
             if (accountAck && pObjAck && psObjAck) {
                 Result.success(Unit)
             } else {
-                Fancam.error {
+                Fancam.error(tag = Tags.Datastore) {
                     "MongoDB creation not acknowledged: playerId=${account.playerId}, accountAck=$accountAck, pObjAck=$pObjAck, psObjAck=$psObjAck"
                 }
                 Result.failure(
@@ -121,7 +122,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
                 )
             }
         } catch (e: Exception) {
-            Fancam.error(e) { "MongoDB creation failed: playerId=${account.playerId}" }
+            Fancam.error(e, Tags.Datastore) { "MongoDB creation failed: playerId=${account.playerId}" }
             Result.failure(e)
         }
     }
@@ -135,11 +136,11 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
             if (accountAck && pObjAck && psObjAck) {
                 Result.success(Unit)
             } else {
-                Fancam.error { "MongoDB deletion not acknowledged: playerId=$playerId, accountAck=$accountAck, pObjAck=$pObjAck, psObjAck=$psObjAck" }
+                Fancam.error(tag = Tags.Datastore) { "MongoDB deletion not acknowledged: playerId=$playerId, accountAck=$accountAck, pObjAck=$pObjAck, psObjAck=$psObjAck" }
                 Result.failure(IllegalStateException("MongoDB deletion not acknowledged"))
             }
         } catch (e: Exception) {
-            Fancam.error(e) { "MongoDB deletion failed: playerId=$playerId" }
+            Fancam.error(e, Tags.Datastore) { "MongoDB deletion failed: playerId=$playerId" }
             Result.failure(e)
         }
     }

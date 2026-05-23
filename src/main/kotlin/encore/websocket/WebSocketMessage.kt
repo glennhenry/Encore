@@ -2,6 +2,7 @@ package encore.websocket
 
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.fancam.Tags
 import encore.serialization.JSON
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
@@ -52,7 +53,7 @@ object WebSocketMessageType {
  * @return Websocket's response in [Frame.Text].
  */
 suspend fun DefaultWebSocketServerSession.respond(type: String, payload: JsonElement) {
-    Fancam.debug {
+    Fancam.debug(Tags.Websocket) {
         buildString {
             appendLine("##### [WebSocket Send]")
             appendLine("$INDENT type       : $type")

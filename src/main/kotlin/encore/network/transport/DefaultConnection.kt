@@ -4,6 +4,7 @@ import encore.acts.StageAct
 import encore.datastore.collection.PlayerId
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.fancam.Tags
 import encore.fancam.events.Level
 import encore.utils.hexString
 import encore.utils.safeAsciiString
@@ -51,7 +52,7 @@ class DefaultConnection(
     override suspend fun write(input: ByteArray, logOutput: Boolean, logFull: Boolean) {
         try {
             if (logOutput) {
-                Fancam.event(Level.Debug)
+                Fancam.event(Level.Debug, Tags.Socket)
                     .message {
                         buildString {
                             appendLine("[SOCKET SEND]")
@@ -64,7 +65,7 @@ class DefaultConnection(
             outputChannel.writeFully(input)
             onSend(this)
         } catch (e: Exception) {
-            Fancam.error(e) { "Failed to write to $this" }
+            Fancam.error(e, Tags.Socket) { "Failed to write to $this" }
             throw e
         }
     }
@@ -86,7 +87,7 @@ class DefaultConnection(
             connectionScope.coroutineContext.job.join()
         } catch (_: CancellationException) {
         } catch (e: Exception) {
-            Fancam.warn { "Exception during connection shutdown: ${e.message}" }
+            Fancam.warn(Tags.Socket) { "Exception during connection shutdown: ${e.message}" }
         }
     }
 

@@ -1,6 +1,7 @@
 package encore.network.fanchant.guide
 
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.utils.support.className
 
 /**
@@ -43,7 +44,7 @@ class FanchantGuideRegistry {
                     matched.add(format)
                 }
             } catch (e: Exception) {
-                Fancam.warn {
+                Fancam.warn(Tags.Fanchant) {
                     val peek = data.copyOfRange(0, minOf(20, data.size))
                     "${format.className()} verify failed; peek=${peek.contentToString()}; error=$e"
                 }

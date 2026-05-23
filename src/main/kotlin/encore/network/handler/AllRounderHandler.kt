@@ -1,6 +1,7 @@
 package encore.network.handler
 
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.network.fanchant.AllRounderFanchant
 import encore.network.fanchant.AllRounderFanchantType
 import encore.network.fanchant.FanchantType
@@ -18,7 +19,7 @@ class AllRounderHandler : FanchantHandler<AllRounderFanchant> {
     override val fanchantType: FanchantType<AllRounderFanchant> = AllRounderFanchantType
 
     override suspend fun handle(ctx: HandlerContext<AllRounderFanchant>) = with(ctx) {
-        Fancam.warn { "No handler registered/implemented for type=${fanchant.type.id}" }
+        Fancam.warn(Tags.Socket) { "No handler registered/implemented for type=${fanchant.type.id}" }
 
         // directly respond here...
     }

@@ -4,6 +4,7 @@ import com.toxicbakery.bcrypt.Bcrypt
 import encore.account.AccountSubunit
 import encore.account.PlayerCreationSubunit
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.session.SessionSubunit
 import encore.session.UserSession
 import encore.subunit.Subunit
@@ -38,11 +39,11 @@ class AuthSubunit(
     suspend fun register(username: String, password: String): Outcome<UserSession> {
         try {
             val playerId = creationSubunit.createPlayer(username, password)
-            Fancam.trace { "Registration success for '$username'" }
+            Fancam.trace(Tags.Auth) { "Registration success for '$username'" }
             val session = sessionSubunit.create(playerId)
             return Outcome.Ok(session)
         } catch (e: Throwable) {
-            Fancam.error(e) { "Registration failed for '$username'" }
+            Fancam.error(e, Tags.Auth) { "Registration failed for '$username'" }
             return Outcome.Fail
         }
     }
@@ -66,21 +67,21 @@ class AuthSubunit(
         return outcome.fold(
             onOk = { credentials ->
                 if (credentials == null) {
-                    Fancam.warn { "Login failed: account not found for '$username'" }
+                    Fancam.warn(Tags.Auth) { "Login failed: account not found for '$username'" }
                     return Outcome.Ok(LoginResult.AccountNotFound("Account not found for '$username'"))
                 }
 
                 if (verifyPassword(password, credentials.hashedPassword)) {
-                    Fancam.trace { "Login success for '$username'" }
+                    Fancam.trace(Tags.Auth) { "Login success for '$username'" }
                     val session = sessionSubunit.create(credentials.playerId)
                     Outcome.Ok(LoginResult.Success(session))
                 } else {
-                    Fancam.trace { "Login failed: wrong password for '$username'" }
+                    Fancam.trace(Tags.Auth) { "Login failed: wrong password for '$username'" }
                     Outcome.Ok(LoginResult.InvalidCredentials("Wrong password for '$username'"))
                 }
             },
             onFail = {
-                Fancam.error { "Login failed for '$username'" }
+                Fancam.error(tag = Tags.Auth) { "Login failed for '$username'" }
                 Outcome.Fail
             }
         )
@@ -115,7 +116,7 @@ class AuthSubunit(
         return outcome.fold(
             onOk = { exists ->
                 if (exists) {
-                    Fancam.trace { "Username '$username' is already taken" }
+                    Fancam.trace(Tags.Auth) { "Username '$username' is already taken" }
                     return Outcome.Ok(false)
                 }
 
@@ -126,13 +127,13 @@ class AuthSubunit(
                 }
 
                 if (triggeredWord != null) {
-                    Fancam.trace {
+                    Fancam.trace(Tags.Auth) {
                         "Prohibited words triggered on '$username' by word $triggeredWord"
                     }
                     return Outcome.Ok(false)
                 }
 
-                Fancam.trace { "Username '$username' is available" }
+                Fancam.trace(Tags.Auth) { "Username '$username' is available" }
                 Outcome.Ok(true)
             },
             onFail = { Outcome.Fail }

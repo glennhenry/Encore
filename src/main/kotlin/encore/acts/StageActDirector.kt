@@ -3,6 +3,7 @@ package encore.acts
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.utils.identifier.Ids
 import encore.time.source.SystemTimeSource
 import encore.time.Timekeeper
@@ -222,7 +223,7 @@ class StageActDirector(
                     }
                 }
             } catch (e: Exception) {
-                Fancam.error(e) { "Error on act '${act.className()}' for '${scope.ownerId}'" }
+                Fancam.error(e, Tags.Acts) { "Error on act '${act.className()}' for '${scope.ownerId}'" }
                 safelySuspend {
                     act.onError(concept, e)
                 }

@@ -1,6 +1,7 @@
 package encore.time
 
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.time.source.SystemTimeSource
 
 /**
@@ -38,7 +39,7 @@ object TimeCenter {
      */
     fun update(system: Timekeeper, game: Timekeeper) {
         if (initialized) {
-            Fancam.warn { "TimeCenter was already initialized, ignoring." }
+            Fancam.warn(Tags.Time) { "TimeCenter was already initialized, ignoring." }
             return
         }
         this._system = system

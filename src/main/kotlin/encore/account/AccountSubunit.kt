@@ -5,6 +5,7 @@ import encore.auth.AuthSubunit
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.utils.types.Outcome
@@ -31,7 +32,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun usernameExists(username: String): Outcome<Boolean> {
         return accountRepository.usernameExists(username)
             .onFailure {
-                Fancam.error(it) {
+                Fancam.error(it, Tags.Account) {
                     "Username check failed: internal repository error for '$username'"
                 }
             }
@@ -46,7 +47,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun emailExists(email: String): Outcome<Boolean> {
         return accountRepository.emailExists(email)
             .onFailure {
-                Fancam.error(it) {
+                Fancam.error(it, Tags.Account) {
                     "Email check failed: internal repository error for '$email'"
                 }
             }
@@ -61,7 +62,9 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun getCredentials(username: String): Outcome<Credentials?> {
         return accountRepository.getCredentials(username)
             .onFailure {
-                Fancam.error(it) { "getCredentials failed: internal repository error for '$username'" }
+                Fancam.error(it, Tags.Account) {
+                    "getCredentials failed: internal repository error for '$username'"
+                }
                 return Outcome.Fail
             }
             .toOutcome { credentials ->
@@ -76,7 +79,9 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun updateLastActivity(playerId: PlayerId, lastActivity: Long): Report {
         return accountRepository.updateLastActivity(playerId, lastActivity)
             .onFailure {
-                Fancam.error(it) { "updateLastActivity failed: internal repository error for '$playerId', lastActivity=$lastActivity" }
+                Fancam.error(it, Tags.Account) {
+                    "updateLastActivity failed: internal repository error for '$playerId', lastActivity=$lastActivity"
+                }
             }
             .toReport()
     }

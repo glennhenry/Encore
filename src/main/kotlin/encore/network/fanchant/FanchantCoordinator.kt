@@ -4,6 +4,7 @@ import encore.network.handler.FanchantHandler
 import encore.network.handler.AllRounderHandler
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.fancam.Tags
 import encore.utils.support.className
 
 /**
@@ -59,7 +60,7 @@ class FanchantCoordinator {
     fun findHandler(fanchant: Fanchant): FanchantHandler<*> {
         val handler = handlers[fanchant.type]
 
-        Fancam.debug {
+        Fancam.debug(Tags.Socket) {
             buildString {
                 if (handler == null) {
                     appendLine("[SOCKET DISPATCH] -> fallback")

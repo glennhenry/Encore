@@ -1,6 +1,8 @@
 package encore.presence
 
 import encore.datastore.collection.PlayerId
+import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
@@ -28,6 +30,7 @@ class PlayerPresenceSubunit : Subunit<ServerScope> {
             onlineSince = now,
             lastNetworkActivity = now,
         )
+        Fancam.trace(Tags.Presence) { "PlayerId $playerId is now online" }
     }
 
     /**
@@ -35,6 +38,7 @@ class PlayerPresenceSubunit : Subunit<ServerScope> {
      */
     fun markOffline(playerId: PlayerId) {
         onlinePlayers.remove(playerId)
+        Fancam.trace(Tags.Presence) { "PlayerId $playerId is now offline" }
     }
 
     /**

@@ -1,6 +1,7 @@
 package encore.serialization
 
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import kotlinx.serialization.*
 import kotlinx.serialization.protobuf.ProtoBuf
 
@@ -18,7 +19,7 @@ object Protobuf {
 
     fun initialize(protoBuf: ProtoBuf) {
         if (_protoBuf != null) {
-            Fancam.warn { "Protobuf.initialize() called after initialization. Ignoring." }
+            Fancam.warn(Tags.Protobuf) { "Protobuf.initialize() called after initialization. Ignoring." }
             return
         }
         this._protoBuf = protoBuf

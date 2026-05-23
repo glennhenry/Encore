@@ -1,6 +1,7 @@
 package encore.security
 
 import encore.fancam.Fancam
+import encore.fancam.Tags
 
 /**
  * A DSL-style sequential validation pipeline (guard-chain).
@@ -79,19 +80,19 @@ class Screening(
         val passed = try {
             predicate()
         } catch (e: Throwable) {
-            Fancam.error(e) {
+            Fancam.error(e, Tags.Screening) {
                 "Screening '$title' error at $stageDescription (target=$stageTarget): ${e.message}"
             }
             throw e
         }
 
         if (!passed) {
-            Fancam.info { "Screening '$title' failed at $stageDescription (target=$stageTarget)" }
+            Fancam.info(Tags.Screening) { "Screening '$title' failed at $stageDescription (target=$stageTarget)" }
             failed = true
             onFail()
         }
 
-        Fancam.trace { "Screening '$title' passed $stageDescription (target=$stageTarget)" }
+        Fancam.trace(Tags.Screening) { "Screening '$title' passed $stageDescription (target=$stageTarget)" }
 
         stageIndex += 1
         return this
@@ -113,19 +114,19 @@ class Screening(
         val passed = try {
             predicate()
         } catch (e: Throwable) {
-            Fancam.error(e) {
+            Fancam.error(e, Tags.Screening) {
                 "Screening '$title' error at $stageDescription (target=$stageTarget): ${e.message}"
             }
             throw e
         }
 
         if (!passed) {
-            Fancam.info { "Screening '$title' failed at $stageDescription (target=$stageTarget)" }
+            Fancam.info(Tags.Screening) { "Screening '$title' failed at $stageDescription (target=$stageTarget)" }
             failed = true
             onFail()
         }
 
-        Fancam.trace { "Screening '$title' passed $stageDescription (target=$stageTarget)" }
+        Fancam.trace(Tags.Screening) { "Screening '$title' passed $stageDescription (target=$stageTarget)" }
 
         stageIndex += 1
         return this

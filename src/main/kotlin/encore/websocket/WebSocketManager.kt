@@ -2,6 +2,7 @@ package encore.websocket
 
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.fancam.Tags
 import encore.utils.support.className
 import encore.websocket.handler.WebSocketHandler
 import io.ktor.server.websocket.*
@@ -69,7 +70,7 @@ class WebSocketManager {
      */
     fun registerHandler(wsHandler: WebSocketHandler) {
         if (handlers[wsHandler.type] != null) {
-            Fancam.warn { "WebSocketHandler for '${wsHandler.type}' is already registered (skipped)." }
+            Fancam.warn(Tags.Websocket) { "WebSocketHandler for '${wsHandler.type}' is already registered (skipped)." }
         } else {
             handlers[wsHandler.type] = wsHandler
         }
@@ -83,7 +84,7 @@ class WebSocketManager {
     suspend fun handleMessage(session: DefaultWebSocketServerSession, message: WebSocketMessage) {
         val handler = handlers[message.type]
 
-        Fancam.debug {
+        Fancam.debug(Tags.Websocket) {
             buildString {
                 appendLine("##### [WebSocket Receive]")
                 appendLine("$INDENT type       : ${message.type}")
@@ -93,7 +94,7 @@ class WebSocketManager {
         }
 
         if (handler == null) {
-            Fancam.warn { "No handler is registered for WebSocket message '${message.type}'" }
+            Fancam.warn(Tags.Websocket) { "No handler is registered for WebSocket message '${message.type}'" }
         }
 
         handler?.handle(message, session)

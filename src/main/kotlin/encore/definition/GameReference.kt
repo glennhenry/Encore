@@ -3,6 +3,7 @@ package encore.definition
 import encore.definition.GameReference.get
 import encore.definition.GameReference.initialize
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.time.TimeCenter
 import encore.utils.support.className
 import kotlin.reflect.KClass
@@ -55,13 +56,13 @@ object GameReference {
      */
     fun initialize(block: InitContext.() -> Unit) {
         if (initializeState == 1 || initializeState == 2) {
-            Fancam.warn { "GameReference.initialize() called during or after initialization. Ignoring." }
+            Fancam.warn(Tags.Reference) { "GameReference.initialize() called during or after initialization. Ignoring." }
             return
         }
         initializeState = 1
 
         val start1 = TimeCenter.system.now()
-        Fancam.info { "Initializing GameReference..." }
+        Fancam.info(Tags.Reference) { "Initializing GameReference..." }
 
         val ctx = InitContext()
         ctx.block()
@@ -69,14 +70,14 @@ object GameReference {
             val start2 = TimeCenter.system.now()
             val definitions = loader.produce(source)
             val finish2 = (TimeCenter.system.now() - start2).milliseconds
-            Fancam.trace {
+            Fancam.trace(Tags.Reference) {
                 "Loaded '${source.className()}' in $finish2, produced ${definitions.size} definition entries."
             }
 
             definitions.forEach { registry[it::class] = it }
         }
 
-        Fancam.info { "GameReference initialization finished in ${(TimeCenter.system.now() - start1).milliseconds}" }
+        Fancam.info(Tags.Reference) { "GameReference initialization finished in ${(TimeCenter.system.now() - start1).milliseconds}" }
         initializeState = 2
     }
 

@@ -2,6 +2,7 @@ package encore.route
 
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.fancam.Tags
 import encore.fancam.formatter.colorizeSegment
 import encore.time.TimeCenter
 import io.ktor.server.application.Application
@@ -45,7 +46,7 @@ fun Application.interceptResponse() {
         val startedAt = call.attributes.getOrNull(ReqResLoggingKey) ?: return@intercept
         val elapsed = TimeCenter.system.elapsedTimeSince(startedAt)
 
-        Fancam.debug { call.stringifyHttpResponse(subject, elapsed) }
+        Fancam.debug(Tags.Api) { call.stringifyHttpResponse(subject, elapsed) }
     }
 }
 

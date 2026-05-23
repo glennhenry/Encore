@@ -1,6 +1,7 @@
 package encore.serialization
 
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.serialization.JSON.initialize
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
@@ -19,7 +20,7 @@ object JSON {
 
     fun initialize(json: Json) {
         if (_json != null) {
-            Fancam.warn { "JSON.initialize() called after initialization. Ignoring." }
+            Fancam.warn(Tags.Json) { "JSON.initialize() called after initialization. Ignoring." }
             return
         }
         this._json = json

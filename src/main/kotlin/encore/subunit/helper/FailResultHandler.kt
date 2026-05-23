@@ -3,6 +3,7 @@ package encore.subunit.helper
 import encore.datastore.DocumentNotFoundException
 import encore.datastore.DocumentNotUpdatedException
 import encore.fancam.Fancam
+import encore.fancam.Tags
 
 /**
  * Handles a [Throwable] in the context of a subunit's **get/retrieval operations**.
@@ -35,7 +36,7 @@ inline fun Throwable.failHandleGet(
 ) {
     when (this) {
         is DocumentNotFoundException -> Fancam.error(this) { notFoundMessage() }
-        else -> Fancam.error(this) { unknownMessage() }
+        else -> Fancam.error(this, Tags.Subunit) { unknownMessage() }
     }
 }
 
@@ -68,6 +69,6 @@ inline fun Throwable.failHandleUpdate(
     when (this) {
         is DocumentNotFoundException -> Fancam.error(this) { notFoundMessage() }
         is DocumentNotUpdatedException -> Fancam.error(this) { notUpdatedMessage() }
-        else -> Fancam.error(this) { unknownMessage() }
+        else -> Fancam.error(this, Tags.Subunit) { unknownMessage() }
     }
 }

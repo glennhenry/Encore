@@ -5,6 +5,7 @@ import encore.backstage.command.types.CommandResult
 import encore.backstage.command.types.CommandVariant
 import encore.context.ServerContext
 import encore.fancam.Fancam
+import encore.fancam.Tags
 
 /**
  * Dispatch and execute server registered commands.
@@ -35,7 +36,7 @@ class CommandDispatcher {
      */
     fun initialize(context: ServerContext) {
         if (_serverContext != null) {
-            Fancam.warn { "CommandDispatcher.initialize() called after initialization. Ignoring." }
+            Fancam.warn(Tags.Command) { "CommandDispatcher.initialize() called after initialization. Ignoring." }
             return
         }
         this._serverContext = context
@@ -62,7 +63,7 @@ class CommandDispatcher {
         val cleanId = sanitizeCommandId(command.commandId)
 
         if (cleanId in commands) {
-            Fancam.warn { "The commandId '${cleanId}' has been registered before, the old one will be overwritten." }
+            Fancam.warn(Tags.Command) { "The commandId '${cleanId}' has been registered before, the old one will be overwritten." }
         }
 
         val seenVariant = mutableMapOf<Int, CommandVariant>()
@@ -113,7 +114,7 @@ class CommandDispatcher {
             // parse error from parser which is not severe
             return CommandResult.Error("Parsing error: ${e.message}")
         } catch (e: Exception) {
-            Fancam.error(e) { "Unexpected parsing error on '$raw'" }
+            Fancam.error(e, Tags.Command) { "Unexpected parsing error on '$raw'" }
             return CommandResult.Error("Parsing error: ${e.message}")
         }
 
@@ -131,14 +132,14 @@ class CommandDispatcher {
     fun handleCommand(request: CommandRequest): CommandResult {
         val command = commands[request.commandId] ?: return CommandResult.CommandNotFound(request.commandId)
 
-        Fancam.info { "Received command '${request.commandId} ${request.arguments}'" }
+        Fancam.info(Tags.Command) { "Received command '${request.commandId} ${request.arguments}'" }
 
         try {
             val result = command.execute(serverContext, request.arguments)
-            Fancam.info { "Done executing command '${request.commandId}' with result=$result" }
+            Fancam.info(Tags.Command) { "Done executing command '${request.commandId}' with result=$result" }
             return result
         } catch (e: Exception) {
-            Fancam.error(e) { "Error while executing the command '${request.commandId}'" }
+            Fancam.error(e, Tags.Command) { "Error while executing the command '${request.commandId}'" }
             return CommandResult.Error("Execution error: ${e.message}")
         }
     }

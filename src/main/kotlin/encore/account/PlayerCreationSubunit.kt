@@ -5,6 +5,7 @@ import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
 import encore.datastore.collection.*
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
@@ -56,7 +57,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             return playerId
         }
 
-        Fancam.error { "Account creation failed for $username" }
+        Fancam.error(tag = Tags.Creation) { "Account creation failed for $username" }
 
         throw result.exceptionOrNull()
             ?: IllegalStateException("Account creation failed with unknown error (exception was null)")
@@ -73,7 +74,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         if (alwaysRecreate) {
             dataStore.delete(adminData.ADMIN_PLAYER_ID)
         } else if (dataStore.playerExists(adminData.ADMIN_PLAYER_ID)) {
-            Fancam.info { "Ignoring admin account creation (already exists)" }
+            Fancam.info(Tags.Creation) { "Ignoring admin account creation (already exists)" }
             return
         }
 
@@ -90,9 +91,9 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         val result = dataStore.create(account, pObj, psObj)
 
         if (result.isSuccess) {
-            Fancam.info { "New admin account created with username=${Globals.ADMIN_USERNAME}, playerId=${Globals.ADMIN_PLAYER_ID}" }
+            Fancam.info(Tags.Creation) { "New admin account created with username=${Globals.ADMIN_USERNAME}, playerId=${Globals.ADMIN_PLAYER_ID}" }
         } else {
-            Fancam.error { "Admin account creation failed" }
+            Fancam.error(tag = Tags.Creation) { "Admin account creation failed" }
 
             throw result.exceptionOrNull()
                 ?: IllegalStateException("Admin account creation failed with unknown error (exception was null)")

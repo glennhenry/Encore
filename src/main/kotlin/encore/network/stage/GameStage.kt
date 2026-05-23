@@ -3,6 +3,7 @@ package encore.network.stage
 import encore.context.ServerContext
 import encore.fancam.Fancam
 import encore.fancam.INDENT
+import encore.fancam.Tags
 import encore.network.transport.Connection
 import encore.network.transport.DefaultConnection
 import encore.network.handler.DefaultHandlerContext
@@ -53,12 +54,12 @@ class GameStage(
 
     override suspend fun start() {
         if (running) {
-            Fancam.warn { "Game server is already running" }
+            Fancam.warn(Tags.Socket) { "Game server is already running" }
             return
         }
         running = true
 
-        Fancam.info { "Socket server listening on ${config.host}:${config.port}" }
+        Fancam.info(Tags.Socket) { "Socket server listening on ${config.host}:${config.port}" }
 
         val serverSocket = bind()
         listenForConnections(serverSocket)
@@ -86,9 +87,9 @@ class GameStage(
                     activateConnection(connection)
                 }
             } catch (_: CancellationException) {
-                Fancam.info { "Game server coroutine cancelled (shutdown)" }
+                Fancam.info(Tags.Socket) { "Game server coroutine cancelled (shutdown)" }
             } catch (e: Exception) {
-                Fancam.error { "ERROR on server: $e" }
+                Fancam.error(e, Tags.Socket) { "ERROR on server" }
             } finally {
                 shutdown()
             }
@@ -96,7 +97,7 @@ class GameStage(
     }
 
     fun activateConnection(connection: Connection) {
-        Fancam.info { "New $connection" }
+        Fancam.info(Tags.Socket) { "New $connection" }
         serverContext.playerLifecycleHandler.onConnect(serverContext, connection)
         processConnection(connection)
     }
@@ -121,7 +122,7 @@ class GameStage(
                     }
 
                     // end handle
-                    Fancam.debug {
+                    Fancam.debug(Tags.Socket) {
                         buildString {
                             appendLine("<===== [SOCKET END]")
                             appendLine("$INDENT type      : $fanchantType")
@@ -132,13 +133,13 @@ class GameStage(
                     }
                 }
             } catch (e: CancellationException) {
-                Fancam.trace { "Coroutine cancellation for $connection: ${e.message}" }
+                Fancam.trace(Tags.Socket) { "Coroutine cancellation for $connection: ${e.message}" }
             } catch (e: ClosedByteChannelException) {
-                Fancam.info { "Connection closed for $connection: ${e.message}" }
+                Fancam.info(Tags.Socket) { "Connection closed for $connection: ${e.message}" }
             } catch (e: Exception) {
-                Fancam.error(e) { "Exception in socket $connection" }
+                Fancam.error(e, Tags.Socket) { "Exception in socket $connection" }
             } finally {
-                Fancam.info { "Cleaning up for $connection" }
+                Fancam.info(Tags.Socket) { "Cleaning up for $connection" }
                 serverContext.playerLifecycleHandler.onDisconnect(serverContext, connection)
 
                 // Only perform cleanup if playerId is set (client was authenticated)
@@ -171,11 +172,11 @@ class GameStage(
     private suspend fun handleFanchant(connection: Connection, data: ByteArray): String {
         // Empty data
         if (data.isEmpty()) {
-            Fancam.debug { "[SOCKET] Ignored empty data from connection=$connection" }
+            Fancam.debug(Tags.Socket) { "[SOCKET] Ignored empty data from connection=$connection" }
             return "[Empty data]"
         }
 
-        Fancam.debug {
+        Fancam.debug(Tags.Socket) {
             buildString {
                 appendLine("=====> [SOCKET RECEIVE]")
                 appendLine("$INDENT identity  : ${connection.identity}")
@@ -197,7 +198,7 @@ class GameStage(
                     // Success decoding, convert to Fanchant
                     val fanchant = guide.materializeAny(result.value)
 
-                    Fancam.debug {
+                    Fancam.debug(Tags.Socket) {
                         buildString {
                             appendLine("[SOCKET DECODE]")
                             appendLine("$INDENT type   : ${fanchant.type.id}")
@@ -208,7 +209,7 @@ class GameStage(
                     matched += guide.className() to fanchant
                 }
             } catch (e: Exception) {
-                Fancam.error(e) { "Decode error in fanchant guide ${guide.className()}" }
+                Fancam.error(e, Tags.Socket) { "Decode error in fanchant guide ${guide.className()}" }
             }
         }
 
@@ -217,7 +218,7 @@ class GameStage(
             ?: (allRounderFanchantGuide to allRounderFanchant(data))
 
         if (matched.size > 1) {
-            Fancam.warn {
+            Fancam.warn(Tags.Socket) {
                 buildString {
                     appendLine(
                         "Multiple fanchant guides decoded the same packet: " +

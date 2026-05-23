@@ -16,6 +16,7 @@ import encore.datastore.MongoCollectionName
 import encore.datastore.MongoDataStore
 import encore.definition.GameReference
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.fancam.impl.OfficialFancam
 import encore.network.fanchant.guide.FanchantGuide
 import encore.network.fanchant.guide.FanchantGuideRegistry
@@ -129,7 +130,7 @@ suspend fun Application.module() {
     /* 5. Install status pages */
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            Fancam.error { "Internal server error: ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
+            Fancam.error(cause, Tags.Api) { "Internal server error: ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
 
             val message = if (this@module.developmentMode) {
                 cause.stackTrace.joinToString("\n")
@@ -145,7 +146,7 @@ suspend fun Application.module() {
         }
 
         unhandled { call ->
-            Fancam.warn { call.stringifyHttpRequest(unhandled = true) }
+            Fancam.warn(Tags.Api) { call.stringifyHttpRequest(unhandled = true) }
 
             call.respondText(
                 text = errorHtml(404, "Not found in the system."),
@@ -159,7 +160,7 @@ suspend fun Application.module() {
     val mongoc = MongoClient.create(Venue.encore.database.dbUrlProd)
     val db = mongoc.getDatabase("admin")
     val commandResult = db.runCommand(Document("ping", 1))
-    Fancam.info { "MongoDB connection successful: $commandResult" }
+    Fancam.info(Tags.Startup) { "MongoDB connection successful: $commandResult" }
 
     /* 7. Install websockets */
     install(WebSockets) {
@@ -246,14 +247,14 @@ suspend fun Application.module() {
     )
 
     val apiPort = Venue.encore.server.port
-    Fancam.info { "Server successfully started." }
-    Fancam.info { "File/API server available at ${gameStageConfig.host}:$apiPort." }
-    Fancam.info { "Devtools available at ${gameStageConfig.host}:$apiPort/backstage." }
+    Fancam.info(Tags.Startup) { "Server successfully started." }
+    Fancam.info(Tags.Startup) { "File/API server available at ${gameStageConfig.host}:$apiPort." }
+    Fancam.info(Tags.Startup) { "Devtools available at ${gameStageConfig.host}:$apiPort/backstage." }
 
     if (File("docs_build/index.html").exists()) {
-        Fancam.info { "Docs website available on ${gameStageConfig.host}:$apiPort." }
+        Fancam.info(Tags.Startup) { "Docs website available on ${gameStageConfig.host}:$apiPort." }
     } else {
-        Fancam.info { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
+        Fancam.info(Tags.Startup) { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
     }
 
     val gameStage = GameStage(gameStageConfig) { socketDispatcher, serverContext ->
@@ -312,7 +313,7 @@ suspend fun Application.module() {
             } catch (_: CancellationException) {
             }
         }
-        Fancam.info { "Server shutdown complete." }
+        Fancam.info(Tags.Shutdown) { "Server shutdown complete." }
     })
 }
 
@@ -321,7 +322,7 @@ fun Application.configureSecurity(security: SecurityGuard) {
         when (val result = security.verify(call)) {
             is GuardResult.Welcome -> proceed()
             is GuardResult.GetOut -> {
-                Fancam.debug { call.stringifyHttpRequest(unhandled = false) }
+                Fancam.debug(Tags.Api) { call.stringifyHttpRequest(unhandled = false) }
 
                 call.respondText(
                     text = errorHtml(403, result.why),
@@ -330,7 +331,7 @@ fun Application.configureSecurity(security: SecurityGuard) {
                 )
 
                 val remote = call.request.origin.remoteHost
-                Fancam.info { "Security refused $remote due to: ${result.why}" }
+                Fancam.info(Tags.Api) { "Security refused $remote due to: ${result.why}" }
 
                 finish()
             }

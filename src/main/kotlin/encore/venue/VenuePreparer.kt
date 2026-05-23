@@ -3,6 +3,7 @@ package encore.venue
 import encore.annotation.runtime.VenueKey
 import encore.utils.xml.XMLFlattener
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
@@ -32,12 +33,12 @@ class VenuePreparer(
         for (file in venueFiles) {
             processXml(file).forEach { (k, v) ->
                 if (k in finalKeys) {
-                    Fancam.warn { "Duplicate configuration key detected: '$k'. Last value wins $v." }
+                    Fancam.warn(Tags.Venue) { "Duplicate configuration key detected: '$k'. Last value wins $v." }
                 }
                 finalKeys[k] = v
             }
         }
-        Fancam.info { "Venue configuration loaded successfully (${finalKeys.size} total entries)." }
+        Fancam.info(Tags.Venue) { "Venue configuration loaded successfully (${finalKeys.size} total entries)." }
     }
 
     /**
@@ -82,7 +83,7 @@ class VenuePreparer(
         val unused = finalKeys.keys - usedKeys
         if (unused.isEmpty()) return
 
-        Fancam.warn {
+        Fancam.warn(Tags.Venue) {
             buildString {
                 appendLine("Unused configuration keys detected:")
                 unused.sortedBy { it.length }.forEach {
@@ -150,7 +151,7 @@ class VenuePreparer(
                     )
                 }
                 // not found in XML, but have default
-                Fancam.trace { "Defaulted: ${keyAnn.path}" }
+                Fancam.trace(Tags.Venue) { "Defaulted: ${keyAnn.path}" }
                 continue
             }
 
@@ -170,7 +171,7 @@ class VenuePreparer(
         val envKey = pathkeyToEnv(key, xmlFieldPrefix, envPrefix)
         val env = envProvider.get(envKey)
         if (env != null) {
-            Fancam.info { "Overriden by ENV: $envKey" }
+            Fancam.info(Tags.Venue) { "Overriden by ENV: $envKey" }
         }
         return env
     }

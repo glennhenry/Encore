@@ -1,6 +1,7 @@
 package encore.fancam.impl
 
 import encore.EncoreFancamConfig
+import encore.fancam.Tags
 import encore.fancam.events.*
 import encore.fancam.formatter.ConsoleTrackEventFancamFormatter
 import encore.fancam.formatter.FancamFormatter
@@ -179,7 +180,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     override fun event(level: Level, tag: String): LogEventBuilder {
         return LogEventBuilder(level, tag, sourceResolver.resolve()) { event, fileOnlyOutput ->
             if (event.level == Level.Off) {
-                warn { "Log with Level.Off is not intended to be used." }
+                warn(Tags.Fancam) { "Log with Level.Off is not intended to be used." }
             } else {
                 log(event, fileOnlyOutput)
             }
@@ -261,7 +262,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
                         fileLogProducer.produce(log)
                     }
                     if (event.fileOnlyOutput && log.filename == null) {
-                        warn { "Unexpected condition fileOnlyOutput=$event.fileOnlyOutput but filename=${log.filename}" }
+                        warn(Tags.Fancam) { "Unexpected condition fileOnlyOutput=$event.fileOnlyOutput but filename=${log.filename}" }
                     }
                 }
 

@@ -1,6 +1,7 @@
 package encore.route
 
 import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.route.guard.AuthGuard
 import encore.route.guard.GuardResult
 import encore.route.guard.NoAuthGuard
@@ -73,18 +74,18 @@ interface RouteHandler {
 suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
     val startedAt = TimeCenter.system.now()
     call.attributes.put(ReqResLoggingKey, startedAt)
-    Fancam.debug { call.stringifyHttpRequest(unhandled = false) }
+    Fancam.debug(Tags.Api) { call.stringifyHttpRequest(unhandled = false) }
 
     try {
         val result = auth.verify(call)
         if (result is GuardResult.GetOut) {
-            Fancam.trace { "Request refused by auth guard due to: ${result.why}" }
+            Fancam.trace(Tags.Api) { "Request refused by auth guard due to: ${result.why}" }
             return
         }
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)
         val uri = call.request.uri
-        Fancam.error(e) { "Error on auth verify of ${className()} at $method $uri" }
+        Fancam.error(e, Tags.Api) { "Error on auth verify of ${className()} at $method $uri" }
         return
     }
 
@@ -107,13 +108,13 @@ suspend fun RouteHandler.guard(call: ApplicationCall, auth: AuthGuard, block: su
     try {
         val result = auth.verify(call)
         if (result is GuardResult.GetOut) {
-            Fancam.trace { "Request refused by auth guard due to: ${result.why}" }
+            Fancam.trace(Tags.Api) { "Request refused by auth guard due to: ${result.why}" }
             return
         }
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)
         val uri = call.request.uri
-        Fancam.error(e) { "Error on auth verify of ${className()} at $method $uri" }
+        Fancam.error(e, Tags.Api) { "Error on auth verify of ${className()} at $method $uri" }
         return
     }
 
