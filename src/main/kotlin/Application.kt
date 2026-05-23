@@ -9,7 +9,7 @@ import encore.auth.AuthSubunit
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.CommandDispatcher
 import encore.backstage.command.ExampleCommand
-import encore.context.DefaultContextTracker
+import encore.context.ContextRegistry
 import encore.context.ServerContext
 import encore.context.ServerSubunits
 import encore.datastore.MongoCollectionName
@@ -41,6 +41,7 @@ import encore.websocket.WebSocketManager
 import encore.websocket.handler.WsCommandHandler
 import game.AdminData
 import game.GameIdentity
+import game.RealContextFactory
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -177,7 +178,7 @@ suspend fun Application.module() {
     /* 8. Setup ServerContext */
     val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
     val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
-    val contextTracker = DefaultContextTracker()
+    val contextRegistry = ContextRegistry(RealContextFactory(dataStore))
     val playerLifecycleHandler = PlayerLifecycleHandler()
     val fanchantGuideRegistry = FanchantGuideRegistry()
     val stageActDirector = StageActDirector(TimeCenter.system, ActIdStore)
@@ -199,7 +200,7 @@ suspend fun Application.module() {
     )
     val serverContext = ServerContext(
         dataStore = dataStore,
-        contextTracker = contextTracker,
+        contextRegistry = contextRegistry,
         playerLifecycleHandler = playerLifecycleHandler,
         fanchantGuideRegistry = fanchantGuideRegistry,
         stageActDirector = stageActDirector,

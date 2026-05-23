@@ -1,6 +1,6 @@
 package testUtils
 
-import encore.context.FakeContextTracker
+import encore.context.FakeContextFactory
 import encore.context.PlayerContext
 import encore.context.PlayerSubunits
 import encore.context.ServerContext
@@ -11,6 +11,7 @@ import encore.network.handler.DefaultHandlerContext
 import encore.network.handler.HandlerContext
 import encore.network.fanchant.Fanchant
 import encore.network.transport.ConnectionIdentity
+import encore.network.transport.TestConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.StandardTestDispatcher
 
@@ -34,14 +35,9 @@ data class HandlerTestState<T : Fanchant>(
         )
     )
 
-    val contextTracker = FakeContextTracker()
-
-    val serverContext = ServerContext.createForTest(contextTracker = contextTracker)
-
-    val playerContext = PlayerContext(playerId, connection, account, subunits).also {
-        contextTracker.fakeContext(it)
-    }
-
+    val playerContext = PlayerContext(playerId, connection, account, subunits)
+    val contextFactory = FakeContextFactory(mapOf(playerId to playerContext))
+    val serverContext = ServerContext.createForTest(contextFactory = contextFactory)
     val handlerContext: HandlerContext<T> = DefaultHandlerContext(
         fanchant = message,
         connection = connection

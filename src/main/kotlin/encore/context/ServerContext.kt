@@ -24,10 +24,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.EmptyCoroutineContext
 
 /**
- * Represents the **global server-side context** which includes various server components.
+ * Represents the **global server-side context**.
+ *
+ * `ServerContext` includes various server-side components.
+ * It acts as a dependency container which is distributed across every server code.
  *
  * @property dataStore [DataStore] instance of the server.
- * @property contextTracker Tracks and manages each player's context.
+ * @property contextRegistry Tracks and manages [PlayerContext].
  * @property playerLifecycleHandler Handles players lifecycle events.
  * @property fanchantGuideRegistry Track registered network messages.
  * @property stageActDirector Provide API to start and stop stage acts.
@@ -37,7 +40,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  */
 data class ServerContext(
     val dataStore: DataStore,
-    val contextTracker: ContextTracker,
+    val contextRegistry: ContextRegistry,
     val playerLifecycleHandler: PlayerLifecycleHandler,
     val fanchantGuideRegistry: FanchantGuideRegistry,
     val stageActDirector: StageActDirector,
@@ -53,14 +56,15 @@ data class ServerContext(
          * @param timekeeper [Timekeeper] for [StageActDirector].
          * @param dataStore Also used to build [PlayerCreationSubunit].
          * @param accountRepository Used to build [AccountSubunit].
-         * @param contextTracker Use [FakeContextTracker] by default.
+         * @param contextFactory Required by [ContextRegistry],
+         *                       uses [FakeContextFactory] with empty map by default.
          */
         fun createForTest(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
             timekeeper: Timekeeper = SystemTimekeeper,
             dataStore: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
-            contextTracker: ContextTracker = FakeContextTracker()
+            contextFactory: ContextFactory = FakeContextFactory(emptyMap())
         ): ServerContext {
             val account = AccountSubunit(accountRepository)
             val session = SessionSubunit.createForTest(parentScope)
@@ -68,7 +72,7 @@ data class ServerContext(
 
             return ServerContext(
                 dataStore = dataStore,
-                contextTracker = contextTracker,
+                contextRegistry = ContextRegistry(contextFactory),
                 playerLifecycleHandler = PlayerLifecycleHandler(),
                 fanchantGuideRegistry = FanchantGuideRegistry(),
                 stageActDirector = StageActDirector(timekeeper, ActIdStore),
@@ -87,21 +91,14 @@ data class ServerContext(
 }
 
 /**
- * Retrieve the [PlayerContext] of [playerId].
- *
- * @return `null` if context is not found.
- */
-fun ServerContext.getPlayerContextOrNull(playerId: PlayerId): PlayerContext? =
-    contextTracker.getContext(playerId)
-
-/**
- * Retrieve the non-null [PlayerContext] of [playerId].
+ * Shorthand to retrieve [PlayerContext] of [playerId] from [ContextRegistry].
  *
  * @throws IllegalStateException if context is not found.
  */
-fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext =
-    getPlayerContextOrNull(playerId)
+fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext {
+    return contextRegistry.getContext(playerId)
         ?: error("PlayerContext not found for playerId=$playerId")
+}
 
 /**
  * Container for all server-scoped [Subunit] instances.
