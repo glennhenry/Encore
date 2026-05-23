@@ -214,7 +214,7 @@ class GameStage(
 
         // Allow only one interpretation of the fanchant, if there is multiple
         val (chosenGuide, fanchant) = matched.firstOrNull()
-            ?: (catchAllFanchantGuide to catchAllFanchant(data))
+            ?: (allRounderFanchantGuide to allRounderFanchant(data))
 
         if (matched.size > 1) {
             Fancam.warn {
@@ -239,14 +239,14 @@ class GameStage(
         return fanchant.type.id
     }
 
-    // when no other guide matches, uses CatchAllFanchantGuide
-    private val catchAllFanchantGuide = AllRounderFanchantGuide()
+    // when no other guide matches, uses AllRounderFanchantGuide
+    private val allRounderFanchantGuide = AllRounderFanchantGuide()
 
     // which also produces an all rounder fanchant from its tryDecode
     // and materializeAny implementation
-    private fun catchAllFanchant(data: ByteArray): Fanchant {
-        return catchAllFanchantGuide.materializeAny(
-            (catchAllFanchantGuide.tryDecode(data) as DecodeResult.Success)
+    private fun allRounderFanchant(data: ByteArray): Fanchant {
+        return allRounderFanchantGuide.materializeAny(
+            (allRounderFanchantGuide.tryDecode(data) as DecodeResult.Success)
                 .value
         )
     }

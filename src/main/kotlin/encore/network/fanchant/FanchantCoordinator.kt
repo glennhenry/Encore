@@ -23,7 +23,7 @@ import encore.utils.support.className
  */
 class FanchantCoordinator {
     private val handlers = mutableMapOf<FanchantType<*>, FanchantHandler<*>>()
-    private val catchAllHandler = AllRounderHandler()
+    private val allRounderHandler = AllRounderHandler()
 
     /**
      * Register a [FanchantHandler].
@@ -67,10 +67,10 @@ class FanchantCoordinator {
                     appendLine("[SOCKET DISPATCH]")
                 }
                 appendLine("$INDENT fanchant (str): $fanchant")
-                append("$INDENT handlers      : ${handler?.className() ?: catchAllHandler.className()}")
+                append("$INDENT handlers      : ${handler?.className() ?: allRounderHandler.className()}")
             }
         }
 
-        return handler ?: catchAllHandler
+        return handler ?: allRounderHandler
     }
 }
