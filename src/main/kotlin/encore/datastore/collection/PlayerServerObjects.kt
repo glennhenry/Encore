@@ -1,7 +1,7 @@
 package encore.datastore.collection
 
 import encore.account.model.PlayerMetadata
-import game.AdminData
+import game.Globals
 
 /**
  * Represents server-managed player data.
@@ -27,7 +27,7 @@ data class PlayerServerObjects(
     companion object {
         fun admin(): PlayerServerObjects {
             return PlayerServerObjects(
-                playerId = AdminData.PLAYER_ID,
+                playerId = Globals.ADMIN_PLAYER_ID,
                 metadata = PlayerMetadata()
             )
         }

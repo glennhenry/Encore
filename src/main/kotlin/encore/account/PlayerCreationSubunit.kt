@@ -10,7 +10,7 @@ import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
 import encore.utils.identifier.Ids
 import encore.utils.hash
-import game.AdminData
+import game.Globals
 
 /**
  * Server-scoped subunit responsible for player creation.
@@ -69,20 +69,20 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
      * @throws [Throwable] an exception type from the underlying datastore or
      *         [IllegalStateException] when the account creation failed without any exception passed.
      */
-    suspend fun createAdmin(adminData: AdminData, alwaysRecreate: Boolean = false) {
+    suspend fun createAdmin(adminData: Globals, alwaysRecreate: Boolean = false) {
         if (alwaysRecreate) {
-            dataStore.delete(adminData.PLAYER_ID)
-        } else if (dataStore.playerExists(adminData.PLAYER_ID)) {
+            dataStore.delete(adminData.ADMIN_PLAYER_ID)
+        } else if (dataStore.playerExists(adminData.ADMIN_PLAYER_ID)) {
             Fancam.info { "Ignoring admin account creation (already exists)" }
             return
         }
 
         val account = PlayerAccount(
-            playerId = AdminData.PLAYER_ID,
-            username = AdminData.USERNAME,
-            email = AdminData.EMAIL,
-            hashedPassword = AdminData.HASHED_PASSWORD,
-            profile = defaultProfile(AdminData.PLAYER_ID),
+            playerId = Globals.ADMIN_PLAYER_ID,
+            username = Globals.ADMIN_USERNAME,
+            email = Globals.ADMIN_EMAIL,
+            hashedPassword = Globals.ADMIN_HASHED_PASSWORD,
+            profile = defaultProfile(Globals.ADMIN_PLAYER_ID),
         )
         val pObj = PlayerObjects.admin()
         val psObj = PlayerServerObjects.admin()
@@ -90,7 +90,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         val result = dataStore.create(account, pObj, psObj)
 
         if (result.isSuccess) {
-            Fancam.info { "New admin account created with username=${AdminData.USERNAME}, playerId=${AdminData.PLAYER_ID}" }
+            Fancam.info { "New admin account created with username=${Globals.ADMIN_USERNAME}, playerId=${Globals.ADMIN_PLAYER_ID}" }
         } else {
             Fancam.error { "Admin account creation failed" }
 

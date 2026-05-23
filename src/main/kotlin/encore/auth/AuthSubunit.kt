@@ -10,7 +10,7 @@ import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.utils.types.Outcome
 import encore.utils.types.fold
-import game.AdminData
+import game.Globals
 import kotlin.io.encoding.Base64
 
 /**
@@ -91,10 +91,10 @@ class AuthSubunit(
      *
      * This would also create a reserved admin session.
      *
-     * @return [UserSession] with fixed token of [AdminData.TOKEN].
+     * @return [UserSession] with fixed token of [Globals.ADMIN_TOKEN].
      */
     fun loginAsAdmin(): UserSession {
-        return sessionSubunit.create(AdminData.PLAYER_ID)
+        return sessionSubunit.create(Globals.ADMIN_PLAYER_ID)
     }
 
     private fun verifyPassword(password: String, hashed: String): Boolean {

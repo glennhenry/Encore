@@ -1,6 +1,6 @@
 package encore.datastore.collection
 
-import game.AdminData
+import game.Globals
 
 /**
  * Root representation of all persistent game data for a player.
@@ -23,7 +23,7 @@ data class PlayerObjects(
     companion object {
         fun admin(): PlayerObjects {
             return PlayerObjects(
-                playerId = AdminData.PLAYER_ID,
+                playerId = Globals.ADMIN_PLAYER_ID,
             )
         }
 

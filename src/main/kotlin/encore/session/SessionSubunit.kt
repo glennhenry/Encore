@@ -5,7 +5,7 @@ import encore.subunit.scope.ServerScope
 import encore.time.source.MutableTimeSource
 import encore.time.MutableTimekeeper
 import encore.time.Timekeeper
-import game.AdminData
+import game.Globals
 import encore.utils.identifier.Ids
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -57,8 +57,8 @@ class SessionSubunit(
     fun create(userId: String, validFor: Duration = 1.hours, lifetime: Duration = 6.hours): UserSession {
         val now = timekeeper.now()
 
-        val token = if (userId == AdminData.PLAYER_ID) {
-            AdminData.TOKEN
+        val token = if (userId == Globals.ADMIN_PLAYER_ID) {
+            Globals.ADMIN_TOKEN
         } else {
             Ids.uuid()
         }

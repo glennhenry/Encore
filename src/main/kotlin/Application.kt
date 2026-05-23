@@ -39,7 +39,7 @@ import encore.utils.identifier.Ids
 import encore.venue.Venue
 import encore.websocket.WebSocketManager
 import encore.websocket.handler.WsCommandHandler
-import game.AdminData
+import game.Globals
 import game.GameIdentity
 import game.RealContextFactory
 import io.ktor.http.*
@@ -218,7 +218,7 @@ suspend fun Application.module() {
 
     commandDispatcher.register(ExampleCommand())
 
-    playerCreationSubunit.createAdmin(AdminData, false)
+    playerCreationSubunit.createAdmin(Globals, false)
 
     /* 9. Initialize GameDefinition */
     GameReference.initialize {}
