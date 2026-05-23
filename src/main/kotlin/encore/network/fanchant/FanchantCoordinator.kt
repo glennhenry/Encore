@@ -1,7 +1,7 @@
 package encore.network.fanchant
 
 import encore.network.handler.FanchantHandler
-import encore.network.handler.CatchAllHandler
+import encore.network.handler.AllRounderHandler
 import encore.fancam.Fancam
 import encore.fancam.INDENT
 import encore.utils.support.className
@@ -23,7 +23,7 @@ import encore.utils.support.className
  */
 class FanchantCoordinator {
     private val handlers = mutableMapOf<FanchantType<*>, FanchantHandler<*>>()
-    private val catchAllHandler = CatchAllHandler()
+    private val catchAllHandler = AllRounderHandler()
 
     /**
      * Register a [FanchantHandler].
@@ -51,9 +51,9 @@ class FanchantCoordinator {
      * Returns the handler associated with the given [Fanchant].
      *
      * Performs a lookup against the registered handlers.
-     * If no matching handler is found, a [CatchAllHandler] is returned instead.
+     * If no matching handler is found, a [AllRounderHandler] is returned instead.
      *
-     * @return The matching [FanchantHandler], or a [CatchAllHandler]
+     * @return The matching [FanchantHandler], or a [AllRounderHandler]
      *         when no handler is registered for [Fanchant.type].
      */
     fun findHandler(fanchant: Fanchant): FanchantHandler<*> {

@@ -77,11 +77,11 @@ class GameStageTest {
      * - multiple formats are registered
      * - multiple handlers with unique fanchantType
      * - however, no format decoded successfully
-     * should be taken care by catch all handler
+     * should be taken care by all rounder handler
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `handled by catch all handler when no fanchant guide matches`() = runTest {
+    fun `handled by all rounder handler when no fanchant guide matches`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameStage = GameStage(config(7771)) { socketDispatcher, serverContext ->
             val possibleFormats = listOf<FanchantGuide<*>>(

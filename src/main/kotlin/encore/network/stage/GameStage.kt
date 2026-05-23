@@ -6,7 +6,7 @@ import encore.fancam.INDENT
 import encore.network.transport.Connection
 import encore.network.transport.DefaultConnection
 import encore.network.handler.DefaultHandlerContext
-import encore.network.fanchant.guide.CatchAllFanchantGuide
+import encore.network.fanchant.guide.AllRounderFanchantGuide
 import encore.network.fanchant.guide.DecodeResult
 import encore.network.fanchant.guide.FanchantGuide
 import encore.network.fanchant.Fanchant
@@ -240,9 +240,9 @@ class GameStage(
     }
 
     // when no other guide matches, uses CatchAllFanchantGuide
-    private val catchAllFanchantGuide = CatchAllFanchantGuide()
+    private val catchAllFanchantGuide = AllRounderFanchantGuide()
 
-    // which also produces a catch all fanchant from its tryDecode
+    // which also produces an all rounder fanchant from its tryDecode
     // and materializeAny implementation
     private fun catchAllFanchant(data: ByteArray): Fanchant {
         return catchAllFanchantGuide.materializeAny(

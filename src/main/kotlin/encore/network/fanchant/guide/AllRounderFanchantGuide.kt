@@ -2,7 +2,7 @@ package encore.network.fanchant.guide
 
 import encore.network.fanchant.Fanchant
 import encore.utils.safeAsciiString
-import encore.network.fanchant.CatchAllFanchant
+import encore.network.fanchant.AllRounderFanchant
 
 /**
  * A fallback-based implementation of [FanchantGuide].
@@ -14,9 +14,9 @@ import encore.network.fanchant.CatchAllFanchant
  * Behavior:
  * - [verify] always returns `true`.
  * - [tryDecode] always succeeds, raw bytes are converted into string via [safeAsciiString].
- * - [materialize] wraps the decoded string into a [CatchAllFanchant].
+ * - [materialize] wraps the decoded string into a [AllRounderFanchant].
  */
-class CatchAllFanchantGuide : FanchantGuide<String> {
+class AllRounderFanchantGuide : FanchantGuide<String> {
     override fun verify(data: ByteArray): Boolean = true
 
     override fun tryDecode(data: ByteArray): DecodeResult<String> {
@@ -24,6 +24,6 @@ class CatchAllFanchantGuide : FanchantGuide<String> {
     }
 
     override fun materialize(decoded: String): Fanchant {
-        return CatchAllFanchant(decoded)
+        return AllRounderFanchant(decoded)
     }
 }

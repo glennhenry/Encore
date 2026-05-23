@@ -32,7 +32,7 @@ class FanchantGuideRegistry {
      * experimental formats from disrupting format detection.
      *
      * @return A non-empty list of candidate [FanchantGuide]s that may match the data.
-     *         If no formats match, a fallback [CatchAllFanchantGuide] is returned.
+     *         If no formats match, a fallback [AllRounderFanchantGuide] is returned.
      */
     fun identify(data: ByteArray): List<FanchantGuide<*>> {
         val matched = mutableListOf<FanchantGuide<*>>()
