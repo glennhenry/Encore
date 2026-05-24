@@ -29,7 +29,7 @@ class SourceCallResolver(val filters: List<String> = defaultFilters) {
     }
 
     private fun isFiltered(className: String): Boolean {
-        return className in filters
+        return filters.any { filter -> className.startsWith(filter)  }
     }
 }
 
