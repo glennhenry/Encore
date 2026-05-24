@@ -4,16 +4,18 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
 import encore.fancam.Tags
-import encore.utils.identifier.Ids
-import encore.time.source.SystemTimeSource
+import encore.time.TimeCenter
 import encore.time.Timekeeper
+import encore.time.source.SystemTimeSource
+import encore.utils.identifier.Ids
 import encore.utils.support.className
 import encore.utils.support.safelySuspend
-import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -186,6 +188,10 @@ class StageActDirector(
                 }
 
                 if (performDirectly) {
+                    Fancam.debug(Tags.Acts) {
+                        "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=$id)"
+                    }
+
                     val now = timekeeper.now()
                     firstPerformAt = now
                     previousPerformAt = now
@@ -208,6 +214,11 @@ class StageActDirector(
                     previousPerformAt = now
 
                     if (delay == null) break
+
+                    Fancam.debug(Tags.Acts) {
+                        "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=$id)"
+                    }
+
                     if (delay > 0) delay(delay.milliseconds)
                     if (firstPerformAt == null) firstPerformAt = timekeeper.now()
 
@@ -221,9 +232,10 @@ class StageActDirector(
                     safelySuspend {
                         act.onCancelled(concept)
                     }
+                    Fancam.debug(Tags.Acts) { "Cancelled act '${act.className()}' for '${scope.ownerId}' (actId=$id)" }
                 }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Acts) { "Error on act '${act.className()}' for '${scope.ownerId}'" }
+                Fancam.error(e, Tags.Acts) { "Scandal on act '${act.className()}' for '${scope.ownerId}' (actId=$id)" }
                 safelySuspend {
                     act.onError(concept, e)
                 }
@@ -235,6 +247,17 @@ class StageActDirector(
 
         activeActs[id] = job
         return id
+    }
+
+    val formatter = SimpleDateFormat("HH:mm:ss")
+
+    fun formatFinishTime(delay: Long): String {
+        val future = (TimeCenter.system.now() + delay)
+        val formattedDuration = delay.milliseconds.toComponents { days, hours, minutes, seconds, _ ->
+            String.format("%01dd %01dhr %01dm %01ds", days, hours, minutes, seconds)
+        }
+        val finishDate = formatter.format(future)
+        return "($formattedDuration / at $finishDate)"
     }
 
     /**
