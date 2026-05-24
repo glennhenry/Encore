@@ -9,7 +9,6 @@ import encore.network.fanchant.guide.FanchantGuide
 import encore.network.handler.FanchantHandler
 import encore.network.handler.HandlerContext
 import encore.network.stage.GameStage
-import encore.network.stage.GameStageConfig
 import encore.network.transport.ConnectionIdentity
 import encore.network.transport.TestConnection
 import encore.utils.safeAsciiString
@@ -31,10 +30,6 @@ import kotlin.time.Duration.Companion.seconds
  * of making actual socket connection (though the socket port 7777 will still be used).
  */
 class GameStageTest {
-    fun config(port: Int): GameStageConfig {
-        return GameStageConfig(host = "127.0.0.1", port = port)
-    }
-
     /**
      * - multiple formats are registered
      * - multiple handlers with unique fanchantType
@@ -44,16 +39,13 @@ class GameStageTest {
     @Test
     fun `success handling with casual packet`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameStage = GameStage(config(7770)) { socketDispatcher, serverContext ->
-            val possibleFormats = listOf<FanchantGuide<*>>(
-                Guide1(), Guide2(), Guide3()
-            )
-            possibleFormats.forEach {
-                serverContext.fanchantGuideRegistry.register(it)
-            }
-            socketDispatcher.register(Fc1Handler())
-            socketDispatcher.register(Fc2Handler())
-            socketDispatcher.register(Fc3Handler())
+        val gameStage = GameStage("127.0.0.1", 7770) {
+            guide(Guide1())
+            guide(Guide2())
+            guide(Guide3())
+            handler(Fc1Handler())
+            handler(Fc2Handler())
+            handler(Fc3Handler())
         }
         gameStage.initialize(scope, ServerContext.createForTest())
         gameStage.start()
@@ -83,16 +75,13 @@ class GameStageTest {
     @Test
     fun `handled by all rounder handler when no fanchant guide matches`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameStage = GameStage(config(7771)) { socketDispatcher, serverContext ->
-            val possibleFormats = listOf<FanchantGuide<*>>(
-                Guide1(), Guide2(), Guide3()
-            )
-            possibleFormats.forEach {
-                serverContext.fanchantGuideRegistry.register(it)
-            }
-            socketDispatcher.register(Fc1Handler())
-            socketDispatcher.register(Fc2Handler())
-            socketDispatcher.register(Fc3Handler())
+        val gameStage = GameStage("127.0.0.1", 7771) {
+            guide(Guide1())
+            guide(Guide2())
+            guide(Guide3())
+            handler(Fc1Handler())
+            handler(Fc2Handler())
+            handler(Fc3Handler())
         }
         gameStage.initialize(scope, ServerContext.createForTest())
         gameStage.start()
@@ -122,17 +111,14 @@ class GameStageTest {
     @Test
     fun `should capable serving multiple clients`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameStage = GameStage(config(7772)) { socketDispatcher, serverContext ->
-            val possibleFormats = listOf<FanchantGuide<*>>(
-                Guide1(), Guide2(), Guide3(),
-            )
-            possibleFormats.forEach {
-                serverContext.fanchantGuideRegistry.register(it)
-            }
-            socketDispatcher.register(Fc1Handler())
-            socketDispatcher.register(Fc2Handler())
-            socketDispatcher.register(Fc3Handler())
-            socketDispatcher.register(Fc4Handler())
+        val gameStage = GameStage("127.0.0.1", 7772) {
+            guide(Guide1())
+            guide(Guide2())
+            guide(Guide3())
+            handler(Fc1Handler())
+            handler(Fc2Handler())
+            handler(Fc3Handler())
+            handler(Fc4Handler())
         }
         gameStage.initialize(scope, ServerContext.createForTest())
         gameStage.start()
