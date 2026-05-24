@@ -78,3 +78,10 @@ object Ids {
         return value.toString()
     }
 }
+
+/**
+ * Returns the short version of an UUID string (8-characters) for logging purposes.
+ */
+fun String.shortUuid(): String {
+    return this.take(8)
+}

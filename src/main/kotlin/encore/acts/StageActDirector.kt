@@ -8,6 +8,7 @@ import encore.time.TimeCenter
 import encore.time.Timekeeper
 import encore.time.source.SystemTimeSource
 import encore.utils.identifier.Ids
+import encore.utils.identifier.shortUuid
 import encore.utils.support.className
 import encore.utils.support.safelySuspend
 import io.ktor.utils.io.*
@@ -190,7 +191,7 @@ class StageActDirector(
                 if (performDirectly) {
                     if (act.enableLogging) {
                         Fancam.debug(Tags.Acts) {
-                            "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=$id)"
+                            "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=${id.shortUuid()})"
                         }
                     }
 
@@ -219,7 +220,7 @@ class StageActDirector(
 
                     if (act.enableLogging) {
                         Fancam.debug(Tags.Acts) {
-                            "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=$id)"
+                            "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=${id.shortUuid()})"
                         }
                     }
 
@@ -236,10 +237,10 @@ class StageActDirector(
                     safelySuspend {
                         act.onCancelled(concept)
                     }
-                    Fancam.debug(Tags.Acts) { "Cancelled act '${act.className()}' for '${scope.ownerId}' (actId=$id)" }
+                    Fancam.debug(Tags.Acts) { "Cancelled act '${act.className()}' for '${scope.ownerId}' (actId=${id.shortUuid()})" }
                 }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Acts) { "Scandal on act '${act.className()}' for '${scope.ownerId}' (actId=$id)" }
+                Fancam.error(e, Tags.Acts) { "Scandal on act '${act.className()}' for '${scope.ownerId}' (actId=${id.shortUuid()})" }
                 safelySuspend {
                     act.onError(concept, e)
                 }
