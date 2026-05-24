@@ -26,6 +26,7 @@ import encore.network.stage.GameStageConfig
 import encore.network.stage.Stage
 import encore.presence.PlayerPresenceSubunit
 import encore.route.RouteHandler
+import encore.route.colorizeHttpMethod
 import encore.route.guard.DefaultSecurity
 import encore.route.guard.GuardResult
 import encore.route.guard.SecurityGuard
@@ -130,7 +131,12 @@ suspend fun Application.module() {
     /* 5. Install status pages */
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            Fancam.error(cause, Tags.Api) { "Internal server scandal: ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
+            val method = colorizeHttpMethod(call.request.httpMethod.value)
+            val uri = call.request.uri
+
+            Fancam.error(cause, Tags.Api) {
+                "Internal server scandal on $method $uri"
+            }
 
             val message = if (this@module.developmentMode) {
                 cause.stackTrace.joinToString("\n")
