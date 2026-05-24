@@ -76,13 +76,13 @@ data class EncoreDatabaseConfig(
      * Database name used in non-tests environment (dev/production)
      */
     @VenueKey("database.mongo.dbname")
-    val dbNameProd: String,
+    val dbName: String,
 
     /**
      * Database URL used in non-tests environment (dev/production)
      */
     @VenueKey("database.mongo.dburl")
-    val dbUrlProd: String,
+    val dbUrl: String,
 )
 
 /**

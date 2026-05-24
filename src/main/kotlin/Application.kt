@@ -160,7 +160,7 @@ suspend fun Application.module() {
     }
 
     /* 6. Configure Database */
-    val mongoc = MongoClient.create(Venue.encore.database.dbUrlProd)
+    val mongoc = MongoClient.create(Venue.encore.database.dbUrl)
     val db = mongoc.getDatabase("admin")
     val commandResult = db.runCommand(Document("ping", 1))
     Fancam.info(Tags.Startup) { "MongoDB connection successful: $commandResult" }
@@ -180,7 +180,7 @@ suspend fun Application.module() {
     )
 
     /* 8. Setup ServerContext */
-    val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
+    val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbName), MongoCollectionName)
     val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
     val contextRegistry = ContextRegistry(RealContextFactory(dataStore))
     val stageActDirector = StageActDirector(TimeCenter.system, ActIdStore)

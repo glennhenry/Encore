@@ -111,7 +111,7 @@ class VenuePreparerTest {
         assertEquals(true, config.devMode)
         assertEquals("localhost", config.server.host)
         assertEquals(21, config.fancam.fileNamePadding)
-        assertEquals("CHANGE_ME-prod-DB", config.database.dbNameProd)
+        assertEquals("CHANGE_ME-prod-DB", config.database.dbName)
         assertEquals(5, config.fancam.maxFileRotation)
         assertEquals(123, custom.child)
     }
@@ -218,7 +218,7 @@ class VenuePreparerTest {
         val encore = preparer.get(EncoreConfig::class, "encore")
 
         assertEquals(false, encore.fancam.colorEnabled)
-        assertEquals("testdbname", encore.database.dbNameProd)
+        assertEquals("testdbname", encore.database.dbName)
     }
 
     @Test
