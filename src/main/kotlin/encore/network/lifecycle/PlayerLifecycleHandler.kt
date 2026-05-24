@@ -34,7 +34,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Hook of player lifecycle, provides [ServerContext]
      * and the associated player's [Connection].
      */
-    typealias LifecycleHook = (ServerContext, Connection) -> Unit
+    typealias LifecycleHook = suspend (ServerContext, Connection) -> Unit
 
     private val onConnectHooks = mutableMapOf<String, LifecycleHook>()
     private val onDisconnectHooks = mutableMapOf<String, LifecycleHook>()
@@ -60,7 +60,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
     /**
      * Represent the [PlayerLifecycle.OnConnect] event for [connection].
      */
-    fun onConnect(serverContext: ServerContext, connection: Connection) {
+    suspend fun onConnect(serverContext: ServerContext, connection: Connection) {
         if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onConnect lifecycle for '${connection.identity}'" }
         for ((name, hook) in onConnectHooks) {
             try {
@@ -75,7 +75,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
     /**
      * Represent the [PlayerLifecycle.OnDisconnect] event for [connection].
      */
-    fun onDisconnect(serverContext: ServerContext, connection: Connection) {
+    suspend fun onDisconnect(serverContext: ServerContext, connection: Connection) {
         if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onDisconnect lifecycle for '${connection.identity}'" }
         for ((name, hook) in onDisconnectHooks) {
             try {
@@ -90,7 +90,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
     /**
      * Represent the [PlayerLifecycle.OnSend] event for [connection].
      */
-    fun onSend(serverContext: ServerContext, connection: Connection) {
+    suspend fun onSend(serverContext: ServerContext, connection: Connection) {
         if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onSend lifecycle for '${connection.identity}'" }
         for ((name, hook) in onSendHooks) {
             try {
@@ -105,7 +105,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
     /**
      * Represent the [PlayerLifecycle.OnReceive] event for [connection].
      */
-    fun onReceive(serverContext: ServerContext, connection: Connection) {
+    suspend fun onReceive(serverContext: ServerContext, connection: Connection) {
         if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onReceive lifecycle for '${connection.identity}'" }
         for ((name, hook) in onReceiveHooks) {
             try {

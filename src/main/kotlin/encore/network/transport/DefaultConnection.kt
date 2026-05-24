@@ -23,7 +23,7 @@ class DefaultConnection(
     private val inputChannel: ByteReadChannel,
     private val outputChannel: ByteWriteChannel,
     private val remoteAddress: String,
-    private val onSend: (Connection) -> Unit,
+    private val onSend: suspend (Connection) -> Unit,
     override val connectionScope: CoroutineScope
 ) : Connection {
     override val identity: ConnectionIdentity = ConnectionIdentity(remoteAddress = remoteAddress)
