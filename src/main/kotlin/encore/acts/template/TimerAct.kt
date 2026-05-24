@@ -13,6 +13,8 @@ import kotlin.time.Duration
  * This will run only once after the given time from [TimerConcept.time].
  */
 class TimerAct : StageAct<TimerConcept> {
+    override val enableLogging: Boolean = false
+
     override fun choreography(concept: TimerConcept): Choreography<TimerConcept> {
         return BasicChoreography(
             initialDelay = concept.time,

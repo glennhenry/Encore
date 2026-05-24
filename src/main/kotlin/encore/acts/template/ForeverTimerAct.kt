@@ -14,6 +14,8 @@ import kotlin.time.Duration
  * and will perform repeatedly forever between interval of [ForeverTimerConcept.interval].
  */
 class ForeverTimerAct : StageAct<ForeverTimerConcept> {
+    override val enableLogging: Boolean = false
+
     override fun choreography(concept: ForeverTimerConcept): Choreography<ForeverTimerConcept> {
         return BasicChoreography(
             initialDelay = concept.initialDelay,

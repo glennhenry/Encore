@@ -81,7 +81,7 @@ class StageActDirectorTest {
             connectionScope = cor,
         )
 
-        val scope = ActScope("", connection.connectionScope)
+        val scope = ActScope("TestScope", connection.connectionScope)
         val director = StageActDirector(virtualTimekeeper(this), ActIdStore)
 
         // multiple acts running
@@ -411,6 +411,8 @@ class StageActDirectorTest {
 }
 
 class TimerWithOnStartAct : StageAct<TimerWithOnStartConcept> {
+    override val enableLogging: Boolean = false
+
     override suspend fun onStart(concept: TimerWithOnStartConcept) {
         concept.onStart()
     }
@@ -434,6 +436,8 @@ data class TimerWithOnStartConcept(
 ) : ActConcept
 
 class RepeatTimerWithOnStartAct : StageAct<RepeatTimerWithOnStartConcept> {
+    override val enableLogging: Boolean = false
+
     override suspend fun onStart(concept: RepeatTimerWithOnStartConcept) {
         concept.onStart()
     }

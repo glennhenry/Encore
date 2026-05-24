@@ -39,6 +39,18 @@ import encore.acts.choreo.PerformMode
  */
 interface StageAct<T : ActConcept> {
     /**
+     * Whether to log scheduling details which is invoked before each performs.
+     * This can potentially be noisy for acts with short delays.
+     *
+     * Example logs:
+     * ```
+     * Act 'TimerWithOnStartAct' next perform in (0d 0hr 0m 1s / at 21:34:25) for 'TestScope' (actId=0616a51e-b164-42a8-baa9-fb8020300cda)
+     * Act 'TimerWithOnStartAct' will perform directly for 'TestScope' (actId=69b19aff-e735-4dcd-832e-3d1f80c547d8)
+     * ```
+     */
+    val enableLogging: Boolean
+
+    /**
      * Produces the choreography for this act.
      */
     fun choreography(concept: T): Choreography<T>

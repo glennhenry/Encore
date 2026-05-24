@@ -188,8 +188,10 @@ class StageActDirector(
                 }
 
                 if (performDirectly) {
-                    Fancam.debug(Tags.Acts) {
-                        "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=$id)"
+                    if (act.enableLogging) {
+                        Fancam.debug(Tags.Acts) {
+                            "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=$id)"
+                        }
                     }
 
                     val now = timekeeper.now()
@@ -215,8 +217,10 @@ class StageActDirector(
 
                     if (delay == null) break
 
-                    Fancam.debug(Tags.Acts) {
-                        "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=$id)"
+                    if (act.enableLogging) {
+                        Fancam.debug(Tags.Acts) {
+                            "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=$id)"
+                        }
                     }
 
                     if (delay > 0) delay(delay.milliseconds)

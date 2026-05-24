@@ -15,6 +15,8 @@ import kotlin.time.Duration
  * [RepeatingTimerConcept.interval].
  */
 class RepeatingTimerAct : StageAct<RepeatingTimerConcept> {
+    override val enableLogging: Boolean = false
+
     override fun choreography(concept: RepeatingTimerConcept): Choreography<RepeatingTimerConcept> {
         return BasicChoreography(
             initialDelay = concept.initialDelay,

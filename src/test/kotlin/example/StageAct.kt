@@ -119,6 +119,8 @@ class BuildingConstructionAct(
     private val repo: BuildingRepo,
     private val timekeeper: Timekeeper
 ) : StageAct<BuildingConstructionConcept> {
+    override val enableLogging: Boolean = true
+
     override fun choreography(concept: BuildingConstructionConcept): Choreography<BuildingConstructionConcept> {
         // building construction only perform once when build duration finish
         return BasicChoreography(
