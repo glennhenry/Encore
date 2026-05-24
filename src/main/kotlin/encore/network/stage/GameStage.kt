@@ -4,16 +4,18 @@ import encore.context.ServerContext
 import encore.fancam.Fancam
 import encore.fancam.INDENT
 import encore.fancam.Tags
-import encore.network.transport.Connection
-import encore.network.transport.DefaultConnection
-import encore.network.handler.DefaultHandlerContext
+import encore.network.fanchant.Fanchant
+import encore.network.fanchant.FanchantCoordinator
 import encore.network.fanchant.guide.AllRounderFanchantGuide
 import encore.network.fanchant.guide.DecodeResult
 import encore.network.fanchant.guide.FanchantGuide
-import encore.network.fanchant.Fanchant
-import encore.network.fanchant.FanchantCoordinator
-import encore.subunit.scope.ServerScope
-import encore.time.TimeCenter
+import encore.network.fanchant.guide.FanchantGuideRegistry
+import encore.network.handler.DefaultHandlerContext
+import encore.network.handler.FanchantHandler
+import encore.network.lifecycle.PlayerLifecycle
+import encore.network.lifecycle.PlayerLifecycleHandler
+import encore.network.transport.Connection
+import encore.network.transport.DefaultConnection
 import encore.utils.hexString
 import encore.utils.safeAsciiString
 import encore.utils.support.className
@@ -23,50 +25,56 @@ import io.ktor.utils.io.ClosedByteChannelException
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
-data class GameStageConfig(
-    val host: String,
-    val port: Int,
-)
-
 /**
- * Main game server (socket).
+ * The [Stage] implementation handling TCP socket connections used for main gameplay.
  *
- * @property config Server host and port configuration.
- * @property setup Contains necessary registration and setup across context,
- *                 such as message format and tasks registration.
+ * @property host Server host configuration.
+ * @property port Server port configuration.
+ * @property initBlock DSL initialization block for registering
+ *                     player lifecycle hooks, fanchant guides, and handlers.
  */
 class GameStage(
-    private val config: GameStageConfig,
-    private val setup: (FanchantCoordinator, ServerContext) -> Unit
+    private val host: String,
+    private val port: Int,
+    private val initBlock: GameStageInitContext.() -> Unit
 ) : Stage {
     private lateinit var gameStageScope: CoroutineScope
     private lateinit var serverContext: ServerContext
-    private val socketDispatcher = FanchantCoordinator()
+    private lateinit var serverSocket: ServerSocket
+
+    private val fanchantGuideRegistry = FanchantGuideRegistry()
+    private val fanchantCoordinator = FanchantCoordinator()
+    private val playerLifecycleHandler = PlayerLifecycleHandler()
 
     private var running = false
 
     override suspend fun initialize(scope: CoroutineScope, context: ServerContext) {
         this.gameStageScope = scope
         this.serverContext = context
-        setup(socketDispatcher, context)
+        initBlock(
+            GameStageInitContext(
+                playerLifecycleHandler,
+                fanchantCoordinator,
+                fanchantGuideRegistry
+            )
+        )
     }
 
     override suspend fun start() {
         if (running) {
-            Fancam.warn(Tags.Socket) { "Game stage is already running" }
+            Fancam.warn(Tags.Socket) { "GameStage.start() when it's already running, ignoring." }
             return
         }
         running = true
 
-        Fancam.info(Tags.Socket) { "Game stage is listening on ${config.host}:${config.port}" }
-
-        val serverSocket = bind()
+        this.serverSocket = bind()
         listenForConnections(serverSocket)
+        Fancam.info(Tags.Socket) { "Game stage is listening on $host:$port" }
     }
 
     private suspend fun bind(): ServerSocket {
         val selectorManager = SelectorManager(Dispatchers.IO)
-        val serverSocket = aSocket(selectorManager).tcp().bind(config.host, config.port)
+        val serverSocket = aSocket(selectorManager).tcp().bind(host, port)
         return serverSocket
     }
 
@@ -80,24 +88,24 @@ class GameStage(
                         inputChannel = socket.openReadChannel(),
                         outputChannel = socket.openWriteChannel(autoFlush = true),
                         remoteAddress = socket.remoteAddress.toString(),
-                        onSend = { serverContext.playerLifecycleHandler.onSend(serverContext, it) },
+                        onSend = { playerLifecycleHandler.onSend(serverContext, it) },
                         connectionScope = connectionScope
                     )
                     activateConnection(connection)
                 }
             } catch (_: CancellationException) {
-                Fancam.info(Tags.Socket) { "Game stage coroutine cancelled (shutdown)" }
+                Fancam.info(Tags.Socket) { "Game stage coroutine cancellation (shutdown)" }
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Socket) { "Scandal on game stage..." }
             } finally {
-                shutdown()
+                serverSocket.close()
             }
         }
     }
 
-    fun activateConnection(connection: Connection) {
+    suspend fun activateConnection(connection: Connection) {
         Fancam.info(Tags.Socket) { "New $connection" }
-        serverContext.playerLifecycleHandler.onConnect(serverContext, connection)
+        playerLifecycleHandler.onConnect(serverContext, connection)
         processConnection(connection)
     }
 
@@ -111,8 +119,7 @@ class GameStage(
                     val (bytesRead, data) = connection.read()
                     if (bytesRead <= 0) break@loop
 
-                    serverContext.playerLifecycleHandler.onReceive(serverContext, connection)
-                    serverContext.subunits.presence.updateLastActivity(connection.playerId)
+                    playerLifecycleHandler.onReceive(serverContext, connection)
 
                     // start handle
                     var fanchantType = "[Undetermined]"
@@ -138,15 +145,7 @@ class GameStage(
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Socket) { "Scandal in $connection" }
             } finally {
-                serverContext.playerLifecycleHandler.onDisconnect(serverContext, connection)
-
-                // Only perform cleanup if playerId is set (client was authenticated)
-                if (connection.playerId != "[Undetermined]") {
-                    serverContext.subunits.presence.markOffline(connection.playerId)
-                    serverContext.subunits.account.updateLastActivity(connection.playerId, TimeCenter.system.now())
-                    serverContext.contextRegistry.removeContext(connection.playerId)
-                }
-
+                playerLifecycleHandler.onDisconnect(serverContext, connection)
                 connection.shutdown()
             }
         }
@@ -185,7 +184,7 @@ class GameStage(
         }
 
         val matched = mutableListOf<Pair<String, Fanchant>>()
-        val possibleGuides = serverContext.fanchantGuideRegistry.identify(data)
+        val possibleGuides = fanchantGuideRegistry.identify(data)
 
         // Find possible guide for this fanchant
         for (guide in possibleGuides) {
@@ -228,7 +227,7 @@ class GameStage(
         }
 
         // Dispatch fanchant to handler
-        val handler = socketDispatcher.findHandler(fanchant)
+        val handler = fanchantCoordinator.findHandler(fanchant)
         val context = DefaultHandlerContext(
             connection = connection,
             fanchant = fanchant
@@ -252,9 +251,31 @@ class GameStage(
 
     override suspend fun shutdown() {
         running = false
-        serverContext.subunits.presence.disband(ServerScope)
-        serverContext.subunits.session.disband(ServerScope)
-        serverContext.stageActDirector.shutdown()
-        gameStageScope.cancel()
+    }
+}
+
+/**
+ * DSL context for registering:
+ * - [PlayerLifecycleHandler.LifecycleHook] to [PlayerLifecycleHandler]
+ * - [FanchantGuide] to [FanchantGuideRegistry]
+ * - [FanchantHandler] to [FanchantCoordinator]
+ *
+ * during game stage initialization.
+ */
+class GameStageInitContext(
+    private val lifecycleHandler: PlayerLifecycleHandler,
+    private val fanchantCoordinator: FanchantCoordinator,
+    private val fanchantGuideRegistry: FanchantGuideRegistry
+) {
+    fun hook(lifecycle: PlayerLifecycle, name: String, hook: suspend (ServerContext, Connection) -> Unit) {
+        lifecycleHandler.register(lifecycle, name, hook)
+    }
+
+    fun guide(guide: FanchantGuide<*>) {
+        fanchantGuideRegistry.register(guide)
+    }
+
+    fun handler(handler: FanchantHandler<*>) {
+        fanchantCoordinator.register(handler)
     }
 }

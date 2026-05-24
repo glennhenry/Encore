@@ -18,11 +18,8 @@ import encore.definition.GameReference
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.fancam.impl.OfficialFancam
-import encore.network.fanchant.guide.FanchantGuide
-import encore.network.fanchant.guide.FanchantGuideRegistry
-import encore.network.lifecycle.PlayerLifecycleHandler
+import encore.network.lifecycle.PlayerLifecycle
 import encore.network.stage.GameStage
-import encore.network.stage.GameStageConfig
 import encore.network.stage.Stage
 import encore.presence.PlayerPresenceSubunit
 import encore.route.RouteHandler
@@ -34,15 +31,15 @@ import encore.route.interceptResponse
 import encore.route.stringifyHttpRequest
 import encore.serialization.JSON
 import encore.session.SessionSubunit
-import encore.time.source.SystemTimeSource
 import encore.time.TimeCenter
 import encore.time.Timekeeper
+import encore.time.source.SystemTimeSource
 import encore.utils.identifier.Ids
 import encore.venue.Venue
 import encore.websocket.WebSocketManager
 import encore.websocket.handler.WsCommandHandler
-import game.Globals
 import game.GameIdentity
+import game.Globals
 import game.RealContextFactory
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -186,8 +183,6 @@ suspend fun Application.module() {
     val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbNameProd), MongoCollectionName)
     val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
     val contextRegistry = ContextRegistry(RealContextFactory(dataStore))
-    val playerLifecycleHandler = PlayerLifecycleHandler()
-    val fanchantGuideRegistry = FanchantGuideRegistry()
     val stageActDirector = StageActDirector(TimeCenter.system, ActIdStore)
     val commandDispatcher = CommandDispatcher()
     val webSocketManager = WebSocketManager()
@@ -208,8 +203,6 @@ suspend fun Application.module() {
     val serverContext = ServerContext(
         dataStore = dataStore,
         contextRegistry = contextRegistry,
-        playerLifecycleHandler = playerLifecycleHandler,
-        fanchantGuideRegistry = fanchantGuideRegistry,
         stageActDirector = stageActDirector,
         commandDispatcher = commandDispatcher,
         webSocketManager = webSocketManager,
@@ -246,27 +239,34 @@ suspend fun Application.module() {
     configureSecurity(security)
 
     /* 11. Initialize servers */
-    // build server configs
-    val gameStageConfig = GameStageConfig(
-        host = Venue.encore.server.host,
-        port = Venue.encore.server.socketPort
-    )
-
+    val serverHost = Venue.encore.server.host
+    val gameStagePort = Venue.encore.server.socketPort
     val apiPort = Venue.encore.server.port
+
     Fancam.info(Tags.Startup) { "Server successfully started." }
-    Fancam.info(Tags.Startup) { "File/API server available at ${gameStageConfig.host}:$apiPort." }
-    Fancam.info(Tags.Startup) { "Devtools available at ${gameStageConfig.host}:$apiPort/backstage." }
+    Fancam.info(Tags.Startup) { "File/API server available at (${serverHost}:$apiPort)." }
+    Fancam.info(Tags.Startup) { "Devtools available at ${serverHost}:$apiPort/backstage." }
 
     if (File("docs_build/index.html").exists()) {
-        Fancam.info(Tags.Startup) { "Docs website available on ${gameStageConfig.host}:$apiPort." }
+        Fancam.info(Tags.Startup) { "Docs website available on ${serverHost}:$apiPort." }
     } else {
         Fancam.info(Tags.Startup) { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
     }
 
-    val gameStage = GameStage(gameStageConfig) { socketDispatcher, serverContext ->
-        val possibleFormats = listOf<FanchantGuide<*>>()
-        possibleFormats.forEach {
-            serverContext.fanchantGuideRegistry.register(it)
+    val gameStage = GameStage(host = serverHost, port = gameStagePort) {
+        // Register hook, guide, and handlers...
+
+        hook(PlayerLifecycle.OnReceive, "Update activity") { serverContext, connection ->
+            serverContext.subunits.presence.updateLastActivity(connection.playerId)
+        }
+
+        hook(PlayerLifecycle.OnDisconnect, "Player cleanup") { serverContext, connection ->
+            // Only perform cleanup if playerId is set (player was authenticated)
+            if (connection.playerId != "[Undetermined]") {
+                serverContext.subunits.presence.markOffline(connection.playerId)
+                serverContext.subunits.account.updateLastActivity(connection.playerId, TimeCenter.system.now())
+                serverContext.contextRegistry.removeContext(connection.playerId)
+            }
         }
     }
 

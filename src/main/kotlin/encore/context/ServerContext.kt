@@ -26,13 +26,11 @@ import kotlin.coroutines.EmptyCoroutineContext
 /**
  * Represents the **global server-side context**.
  *
- * `ServerContext` includes various server-side components.
- * It acts as a dependency container which is distributed across every server code.
+ * `ServerContext` includes various server-side components needed on the server.
+ * It acts as a dependency container which is distributed across the server code.
  *
  * @property dataStore [DataStore] instance of the server.
  * @property contextRegistry Tracks and manages [PlayerContext].
- * @property playerLifecycleHandler Handles players lifecycle events.
- * @property fanchantGuideRegistry Track registered network messages.
  * @property stageActDirector Provide API to start and stop stage acts.
  * @property commandDispatcher Tracks and executes server commands.
  * @property webSocketManager Manages client websocket connections.
@@ -41,8 +39,6 @@ import kotlin.coroutines.EmptyCoroutineContext
 data class ServerContext(
     val dataStore: DataStore,
     val contextRegistry: ContextRegistry,
-    val playerLifecycleHandler: PlayerLifecycleHandler,
-    val fanchantGuideRegistry: FanchantGuideRegistry,
     val stageActDirector: StageActDirector,
     val commandDispatcher: CommandDispatcher,
     val webSocketManager: WebSocketManager,
@@ -73,8 +69,6 @@ data class ServerContext(
             return ServerContext(
                 dataStore = dataStore,
                 contextRegistry = ContextRegistry(contextFactory),
-                playerLifecycleHandler = PlayerLifecycleHandler(),
-                fanchantGuideRegistry = FanchantGuideRegistry(),
                 stageActDirector = StageActDirector(timekeeper, ActIdStore),
                 commandDispatcher = CommandDispatcher(),
                 webSocketManager = WebSocketManager(),
