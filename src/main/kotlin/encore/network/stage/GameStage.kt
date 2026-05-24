@@ -44,7 +44,6 @@ class GameStage(
     private val socketDispatcher = FanchantCoordinator()
 
     private var running = false
-    override fun isRunning(): Boolean = running
 
     override suspend fun initialize(scope: CoroutineScope, context: ServerContext) {
         this.gameStageScope = scope

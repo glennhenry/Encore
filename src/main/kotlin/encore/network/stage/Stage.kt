@@ -21,6 +21,4 @@ interface Stage {
      * Signal the server to stop serving connections and do the necessary cleanup.
      */
     suspend fun shutdown()
-
-    fun isRunning(): Boolean
 }
