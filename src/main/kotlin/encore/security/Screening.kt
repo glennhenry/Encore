@@ -81,7 +81,7 @@ class Screening(
             predicate()
         } catch (e: Throwable) {
             Fancam.error(e, Tags.Screening) {
-                "Screening '$title' error at $stageDescription (target=$stageTarget): ${e.message}"
+                "Screening '$title' scandal at $stageDescription (target=$stageTarget): ${e.message}"
             }
             throw e
         }
@@ -115,7 +115,7 @@ class Screening(
             predicate()
         } catch (e: Throwable) {
             Fancam.error(e, Tags.Screening) {
-                "Screening '$title' error at $stageDescription (target=$stageTarget): ${e.message}"
+                "Screening '$title' scandal at $stageDescription (target=$stageTarget): ${e.message}"
             }
             throw e
         }

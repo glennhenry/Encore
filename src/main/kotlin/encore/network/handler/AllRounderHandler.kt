@@ -19,7 +19,7 @@ class AllRounderHandler : FanchantHandler<AllRounderFanchant> {
     override val fanchantType: FanchantType<AllRounderFanchant> = AllRounderFanchantType
 
     override suspend fun handle(ctx: HandlerContext<AllRounderFanchant>) = with(ctx) {
-        Fancam.warn(Tags.Socket) { "No handler registered/implemented for type=${fanchant.type.id}" }
+        Fancam.warn(Tags.Socket) { "No handler for fanchant of type ${fanchant.type.id}" }
 
         // directly respond here...
     }

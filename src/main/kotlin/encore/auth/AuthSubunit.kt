@@ -39,11 +39,11 @@ class AuthSubunit(
     suspend fun register(username: String, password: String): Outcome<UserSession> {
         try {
             val playerId = creationSubunit.createPlayer(username, password)
-            Fancam.trace(Tags.Auth) { "Registration success for '$username'" }
+            Fancam.trace(Tags.Auth) { "Registered '$username' successfully" }
             val session = sessionSubunit.create(playerId)
             return Outcome.Ok(session)
         } catch (e: Throwable) {
-            Fancam.error(e, Tags.Auth) { "Registration failed for '$username'" }
+            Fancam.error(e, Tags.Auth) { "Failed to register '$username'" }
             return Outcome.Fail
         }
     }
@@ -67,8 +67,8 @@ class AuthSubunit(
         return outcome.fold(
             onOk = { credentials ->
                 if (credentials == null) {
-                    Fancam.warn(Tags.Auth) { "Login failed: account not found for '$username'" }
-                    return Outcome.Ok(LoginResult.AccountNotFound("Account not found for '$username'"))
+                    Fancam.trace(Tags.Auth) { "Login failed: account with username '$username' is not found" }
+                    return Outcome.Ok(LoginResult.AccountNotFound("Account with username '$username' is not found"))
                 }
 
                 if (verifyPassword(password, credentials.hashedPassword)) {

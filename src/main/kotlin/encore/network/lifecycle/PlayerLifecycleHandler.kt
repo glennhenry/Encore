@@ -67,7 +67,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onConnect '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Lifecycle) { "onConnect '$name' error for '${connection.identity}'" }
+                Fancam.error(e, Tags.Lifecycle) { "onConnect '$name' scandal for '${connection.identity}'" }
             }
         }
     }
@@ -82,7 +82,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onDisconnect '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Lifecycle) { "onDisconnect '$name' error for '${connection.identity}'" }
+                Fancam.error(e, Tags.Lifecycle) { "onDisconnect '$name' scandal for '${connection.identity}'" }
             }
         }
     }
@@ -97,7 +97,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onSend '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Lifecycle) { "onSend '$name' error for '${connection.identity}'" }
+                Fancam.error(e, Tags.Lifecycle) { "onSend '$name' scandal for '${connection.identity}'" }
             }
         }
     }
@@ -112,7 +112,7 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
                 hook(serverContext, connection)
                 if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onReceive '$name' executed" }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Lifecycle) { "onReceive '$name' error for '${connection.identity}'" }
+                Fancam.error(e, Tags.Lifecycle) { "onReceive '$name' scandal for '${connection.identity}'" }
             }
         }
     }

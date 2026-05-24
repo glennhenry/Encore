@@ -87,7 +87,7 @@ class DefaultConnection(
             connectionScope.coroutineContext.job.join()
         } catch (_: CancellationException) {
         } catch (e: Exception) {
-            Fancam.warn(Tags.Socket) { "Exception during connection shutdown: ${e.message}" }
+            Fancam.warn(Tags.Socket) { "Scandal during connection shutdown: ${e.message}" }
         }
     }
 

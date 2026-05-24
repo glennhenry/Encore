@@ -70,7 +70,7 @@ class WebSocketManager {
      */
     fun registerHandler(wsHandler: WebSocketHandler) {
         if (handlers[wsHandler.type] != null) {
-            Fancam.warn(Tags.Websocket) { "WebSocketHandler for '${wsHandler.type}' is already registered (skipped)." }
+            Fancam.warn(Tags.Websocket) { "WebSocketHandler for '${wsHandler.type}' is already registered, skipping." }
         } else {
             handlers[wsHandler.type] = wsHandler
         }

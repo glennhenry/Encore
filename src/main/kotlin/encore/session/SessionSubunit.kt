@@ -1,5 +1,7 @@
 package encore.session
 
+import encore.fancam.Fancam
+import encore.fancam.Tags
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.time.source.MutableTimeSource
@@ -134,9 +136,12 @@ class SessionSubunit(
      */
     private fun cleanupExpiredSessions() {
         val now = timekeeper.now()
+        val oldSize = sessions.size
         sessions.entries.removeIf { (_, session) ->
             now - session.issuedAt > session.lifetime
         }
+        val newSize = sessions.size
+        Fancam.trace(Tags.Session) { "Scheduled sessions cleanup (${newSize - oldSize} sessions removed)" }
     }
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)

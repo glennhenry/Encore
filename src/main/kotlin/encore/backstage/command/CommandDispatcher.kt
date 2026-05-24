@@ -112,10 +112,10 @@ class CommandDispatcher {
             parser.parse(raw)
         } catch (e: IllegalArgumentException) {
             // parse error from parser which is not severe
-            return CommandResult.Error("Parsing error: ${e.message}")
+            return CommandResult.Error("Parsing scandal: ${e.message}")
         } catch (e: Exception) {
-            Fancam.error(e, Tags.Command) { "Unexpected parsing error on '$raw'" }
-            return CommandResult.Error("Parsing error: ${e.message}")
+            Fancam.error(e, Tags.Command) { "Unexpected parsing scandal on '$raw'" }
+            return CommandResult.Error("Parsing scandal: ${e.message}")
         }
 
         return handleCommand(request)
@@ -136,11 +136,11 @@ class CommandDispatcher {
 
         try {
             val result = command.execute(serverContext, request.arguments)
-            Fancam.info(Tags.Command) { "Done executing command '${request.commandId}' with result=$result" }
+            Fancam.info(Tags.Command) { "Executed command '${request.commandId}' with result ($result)" }
             return result
         } catch (e: Exception) {
-            Fancam.error(e, Tags.Command) { "Error while executing the command '${request.commandId}'" }
-            return CommandResult.Error("Execution error: ${e.message}")
+            Fancam.error(e, Tags.Command) { "Scandal while executing the command '${request.commandId}'" }
+            return CommandResult.Error("Execution scandal: ${e.message}")
         }
     }
 

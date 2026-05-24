@@ -73,7 +73,7 @@ object Venue {
             Fancam.warn(Tags.Venue) { "Venue.prepare() called after initialization. Ignoring." }
             return
         }
-        Fancam.info(Tags.Venue) { "Loading venue configuration" }
+        Fancam.info(Tags.Venue) { "Loading venue.xml configuration" }
 
         val venueFile = File("venue.xml")
         val venueSecretFile = File("venue.secret.xml")

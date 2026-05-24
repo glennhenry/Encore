@@ -54,12 +54,12 @@ class GameStage(
 
     override suspend fun start() {
         if (running) {
-            Fancam.warn(Tags.Socket) { "Game server is already running" }
+            Fancam.warn(Tags.Socket) { "Game stage is already running" }
             return
         }
         running = true
 
-        Fancam.info(Tags.Socket) { "Socket server listening on ${config.host}:${config.port}" }
+        Fancam.info(Tags.Socket) { "Game stage is listening on ${config.host}:${config.port}" }
 
         val serverSocket = bind()
         listenForConnections(serverSocket)
@@ -87,9 +87,9 @@ class GameStage(
                     activateConnection(connection)
                 }
             } catch (_: CancellationException) {
-                Fancam.info(Tags.Socket) { "Game server coroutine cancelled (shutdown)" }
+                Fancam.info(Tags.Socket) { "Game stage coroutine cancelled (shutdown)" }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Socket) { "ERROR on server" }
+                Fancam.error(e, Tags.Socket) { "Scandal on game stage..." }
             } finally {
                 shutdown()
             }
@@ -133,13 +133,12 @@ class GameStage(
                     }
                 }
             } catch (e: CancellationException) {
-                Fancam.trace(Tags.Socket) { "Coroutine cancellation for $connection: ${e.message}" }
+                Fancam.trace(Tags.Socket) { "Coroutine cancelled for $connection: ${e.message}" }
             } catch (e: ClosedByteChannelException) {
-                Fancam.info(Tags.Socket) { "Connection closed for $connection: ${e.message}" }
+                Fancam.trace(Tags.Socket) { "Connection closed for $connection: ${e.message}" }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Socket) { "Exception in socket $connection" }
+                Fancam.error(e, Tags.Socket) { "Scandal in $connection" }
             } finally {
-                Fancam.info(Tags.Socket) { "Cleaning up for $connection" }
                 serverContext.playerLifecycleHandler.onDisconnect(serverContext, connection)
 
                 // Only perform cleanup if playerId is set (client was authenticated)
@@ -209,7 +208,7 @@ class GameStage(
                     matched += guide.className() to fanchant
                 }
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Socket) { "Decode error in fanchant guide ${guide.className()}" }
+                Fancam.error(e, Tags.Socket) { "Decode scandal in fanchant guide ${guide.className()}" }
             }
         }
 

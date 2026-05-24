@@ -46,7 +46,7 @@ class FanchantGuideRegistry {
             } catch (e: Exception) {
                 Fancam.warn(Tags.Fanchant) {
                     val peek = data.copyOfRange(0, minOf(20, data.size))
-                    "${format.className()} verify failed; peek=${peek.contentToString()}; error=$e"
+                    "${format.className()} verify scandal; peek=${peek.contentToString()}; scandal=${e.message}"
                 }
             }
         }

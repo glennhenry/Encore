@@ -85,7 +85,7 @@ suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthG
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)
         val uri = call.request.uri
-        Fancam.error(e, Tags.Api) { "Error on auth verify of ${className()} at $method $uri" }
+        Fancam.error(e, Tags.Api) { "Scandal on auth verify of ${className()} at $method $uri" }
         return
     }
 
@@ -114,7 +114,7 @@ suspend fun RouteHandler.guard(call: ApplicationCall, auth: AuthGuard, block: su
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)
         val uri = call.request.uri
-        Fancam.error(e, Tags.Api) { "Error on auth verify of ${className()} at $method $uri" }
+        Fancam.error(e, Tags.Api) { "Scandal on auth verify of ${className()} at $method $uri" }
         return
     }
 

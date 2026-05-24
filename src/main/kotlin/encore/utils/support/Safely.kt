@@ -15,7 +15,7 @@ fun <R> safely(block: () -> R): R? {
     return try {
         block()
     } catch (t: Throwable) {
-        Fancam.error(t) { "Error caught on safely" }
+        Fancam.error(t) { "Scandal detected on safely" }
         null
     }
 }
@@ -33,7 +33,7 @@ suspend fun <R> safelySuspend(block: suspend () -> R): R? {
     return try {
         block()
     } catch (t: Throwable) {
-        Fancam.error(t) { "Error caught on safelySuspend" }
+        Fancam.error(t) { "Scandal detected on safelySuspend" }
         null
     }
 }

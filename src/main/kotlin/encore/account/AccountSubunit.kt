@@ -33,7 +33,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
         return accountRepository.usernameExists(username)
             .onFailure {
                 Fancam.error(it, Tags.Account) {
-                    "Username check failed: internal repository error for '$username'"
+                    "Username check failed: repository scandal for '$username'"
                 }
             }
             .toOutcome { exists -> return Outcome.Ok(exists) }
@@ -48,7 +48,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
         return accountRepository.emailExists(email)
             .onFailure {
                 Fancam.error(it, Tags.Account) {
-                    "Email check failed: internal repository error for '$email'"
+                    "Email check failed: repository scandal for '$email'"
                 }
             }
             .toOutcome { exists -> return Outcome.Ok(exists) }
@@ -63,7 +63,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
         return accountRepository.getCredentials(username)
             .onFailure {
                 Fancam.error(it, Tags.Account) {
-                    "getCredentials failed: internal repository error for '$username'"
+                    "getCredentials failed: repository scandal for '$username'"
                 }
                 return Outcome.Fail
             }
@@ -80,7 +80,7 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
         return accountRepository.updateLastActivity(playerId, lastActivity)
             .onFailure {
                 Fancam.error(it, Tags.Account) {
-                    "updateLastActivity failed: internal repository error for '$playerId', lastActivity=$lastActivity"
+                    "updateLastActivity failed: repository scandal for '$playerId', lastActivity=$lastActivity"
                 }
             }
             .toReport()

@@ -54,7 +54,7 @@ interface AccountRepository {
     suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?>
 
     /**
-     * Returns the [Credentials] of the provided [username].
+     * Returns the [Credentials] of the provided [username], if the account exists.
      */
     suspend fun getCredentials(username: String): Result<Credentials?>
 

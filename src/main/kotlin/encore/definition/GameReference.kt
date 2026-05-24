@@ -71,13 +71,13 @@ object GameReference {
             val definitions = loader.produce(source)
             val finish2 = (TimeCenter.system.now() - start2).milliseconds
             Fancam.trace(Tags.Reference) {
-                "Loaded '${source.className()}' in $finish2, produced ${definitions.size} definition entries."
+                "Loaded '${source.className()}' in ${finish2}ms, produced ${definitions.size} definition entries."
             }
 
             definitions.forEach { registry[it::class] = it }
         }
 
-        Fancam.info(Tags.Reference) { "GameReference initialization finished in ${(TimeCenter.system.now() - start1).milliseconds}" }
+        Fancam.info(Tags.Reference) { "GameReference initialized in ${(TimeCenter.system.now() - start1).milliseconds}" }
         initializeState = 2
     }
 

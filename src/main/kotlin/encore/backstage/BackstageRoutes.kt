@@ -207,7 +207,7 @@ class BackstageRoutes(
                 }
             } catch (_: CancellationException) {
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Backstage) { "Error on /backstage WebSocket for clientId=$token" }
+                Fancam.error(e, Tags.Backstage) { "Scandal on /backstage WebSocket for clientId=$token" }
             } finally {
                 serverContext.webSocketManager.removeClient(token)
                 Fancam.trace(Tags.Backstage) { "Client $token is disconnected from websocket" }

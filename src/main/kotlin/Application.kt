@@ -130,7 +130,7 @@ suspend fun Application.module() {
     /* 5. Install status pages */
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            Fancam.error(cause, Tags.Api) { "Internal server error: ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
+            Fancam.error(cause, Tags.Api) { "Internal server scandal: ${call.request.httpMethod} ${call.request.uri}: ${cause.message}" }
 
             val message = if (this@module.developmentMode) {
                 cause.stackTrace.joinToString("\n")

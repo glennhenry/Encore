@@ -47,17 +47,17 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
         val elapsed = measureTime {
             initJob.await()
         }
-        Fancam.info(Tags.Datastore) { "MongoDB completed initialization (${elapsed}ms)" }
+        Fancam.info(Tags.Datastore) { "MongoDB initialized in ${elapsed}ms" }
     }
 
     private suspend fun setupCollections() {
         try {
             val count = accounts.estimatedDocumentCount()
-            Fancam.info(Tags.Datastore) { "MongoDB contains $count accounts." }
+            Fancam.info(Tags.Datastore) { "MongoDB contains $count accounts" }
             prepareServerObjects()
             setupIndexes()
         } catch (e: Exception) {
-            Fancam.error(e, Tags.Datastore) { "MongoDB failed during initialization" }
+            Fancam.error(e, Tags.Datastore) { "MongoDB scandal during initialization" }
         }
     }
 

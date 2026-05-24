@@ -171,7 +171,7 @@ class VenuePreparer(
         val envKey = pathkeyToEnv(key, xmlFieldPrefix, envPrefix)
         val env = envProvider.get(envKey)
         if (env != null) {
-            Fancam.info(Tags.Venue) { "Overriden by ENV: $envKey" }
+            Fancam.trace(Tags.Venue) { "Overriden by ENV: $envKey" }
         }
         return env
     }

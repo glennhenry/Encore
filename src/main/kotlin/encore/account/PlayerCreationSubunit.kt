@@ -60,7 +60,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
         Fancam.error(tag = Tags.Creation) { "Account creation failed for $username" }
 
         throw result.exceptionOrNull()
-            ?: IllegalStateException("Account creation failed with unknown error (exception was null)")
+            ?: IllegalStateException("Account creation failed with unknown scandal (exception was null)")
     }
 
     /**
@@ -96,7 +96,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
             Fancam.error(tag = Tags.Creation) { "Admin account creation failed" }
 
             throw result.exceptionOrNull()
-                ?: IllegalStateException("Admin account creation failed with unknown error (exception was null)")
+                ?: IllegalStateException("Admin account creation failed with unknown scandal (exception was null)")
         }
     }
 
