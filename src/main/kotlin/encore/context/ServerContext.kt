@@ -12,8 +12,6 @@ import encore.backstage.command.CommandDispatcher
 import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerId
-import encore.network.lifecycle.PlayerLifecycleHandler
-import encore.network.fanchant.guide.FanchantGuideRegistry
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
@@ -31,16 +29,16 @@ import kotlin.coroutines.EmptyCoroutineContext
  *
  * @property dataStore [DataStore] instance of the server.
  * @property contextRegistry Tracks and manages [PlayerContext].
- * @property stageActDirector Provide API to start and stop stage acts.
  * @property commandDispatcher Tracks and executes server commands.
+ * @property stageActDirector Provide API to start and stop stage acts.
  * @property webSocketManager Manages client websocket connections.
  * @property subunits Container for server subunit instances.
  */
 data class ServerContext(
     val dataStore: DataStore,
     val contextRegistry: ContextRegistry,
-    val stageActDirector: StageActDirector,
     val commandDispatcher: CommandDispatcher,
+    val stageActDirector: StageActDirector,
     val webSocketManager: WebSocketManager,
     val subunits: ServerSubunits
 ) {
@@ -69,8 +67,8 @@ data class ServerContext(
             return ServerContext(
                 dataStore = dataStore,
                 contextRegistry = ContextRegistry(contextFactory),
-                stageActDirector = StageActDirector(timekeeper, ActIdStore),
                 commandDispatcher = CommandDispatcher(),
+                stageActDirector = StageActDirector(timekeeper, ActIdStore),
                 webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(
                     account = account,

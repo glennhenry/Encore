@@ -1,6 +1,6 @@
 package encoreTest
 
-import errorHtml
+import bootstrap.errorHtml
 
 /**
  * Untested things on server (mostly on routing).

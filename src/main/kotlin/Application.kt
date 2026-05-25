@@ -1,71 +1,47 @@
-import com.mongodb.kotlin.client.coroutine.MongoClient
+import bootstrap.*
 import encore.EncoreIdentity
-import encore.account.AccountSubunit
-import encore.account.MongoAccountRepository
-import encore.account.PlayerCreationSubunit
-import encore.acts.ActIdStore
-import encore.acts.StageActDirector
-import encore.auth.AuthSubunit
 import encore.backstage.BackstageRoutes
-import encore.backstage.command.CommandDispatcher
 import encore.backstage.command.ExampleCommand
-import encore.context.ContextRegistry
 import encore.context.ServerContext
-import encore.context.ServerSubunits
 import encore.datastore.MongoCollectionName
-import encore.datastore.MongoDataStore
 import encore.definition.GameReference
-import encore.fancam.Fancam
-import encore.fancam.Tags
-import encore.fancam.impl.OfficialFancam
 import encore.network.lifecycle.PlayerLifecycle
 import encore.network.stage.GameStage
+import encore.network.stage.GameStageInitContext
 import encore.network.stage.Stage
-import encore.presence.PlayerPresenceSubunit
-import encore.route.RouteHandler
-import encore.route.colorizeHttpMethod
 import encore.route.guard.DefaultSecurity
-import encore.route.guard.GuardResult
-import encore.route.guard.SecurityGuard
-import encore.route.interceptResponse
-import encore.route.stringifyHttpRequest
-import encore.serialization.JSON
-import encore.session.SessionSubunit
 import encore.time.TimeCenter
 import encore.time.Timekeeper
 import encore.time.source.SystemTimeSource
-import encore.utils.identifier.Ids
 import encore.venue.Venue
-import encore.websocket.WebSocketManager
 import encore.websocket.handler.WsCommandHandler
 import game.GameIdentity
 import game.Globals
-import game.RealContextFactory
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import game.fileRoutes
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
-import io.ktor.utils.io.CancellationException
-import kotlinx.coroutines.*
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.modules.SerializersModule
-import org.bson.Document
-import java.io.File
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
+
+fun main() {
+    Venue.prepare()
+
+    // override Ktor dev mode with the framework custom config
+    System.setProperty("io.ktor.development", Venue.encore.devMode.toString())
+
+    embeddedServer(
+        factory = Netty,
+        host = Venue.encore.server.host,
+        port = Venue.encore.server.port,
+        watchPaths = listOf("classes")
+    ) { configureApplication() }.start(wait = true)
+}
 
 val MongoCollectionName = MongoCollectionName(
     playerAccount = "player_account",
@@ -76,320 +52,136 @@ val MongoCollectionName = MongoCollectionName(
 
 val SystemTimezone: ZoneId = ZoneId.systemDefault()
 
-fun main() {
-    Venue.prepare()
+/**
+ * Main configuration and wiring code for the application.
+ */
+suspend fun Application.configureApplication() {
+    // configure security
+    val bannedAddresses = mutableSetOf<String>()
+    val security = DefaultSecurity(bannedAddresses, TimeCenter.system)
 
-    // override Ktor dev mode with framework custom config
-    System.setProperty("io.ktor.development", Venue.encore.devMode.toString())
+    // setup the framework
+    val (mongoc, db) = installEncore(
+        module = SerializersModule { },
+        security = security
+    )
 
-    embeddedServer(
-        factory = Netty,
-        host = Venue.encore.server.host,
-        port = Venue.encore.server.port,
-        watchPaths = listOf("classes")
-    ) {
-        module()
-    }.start(wait = true)
-}
-
-suspend fun Application.module() {
-    /* 1. Setup serialization */
-    val module = SerializersModule {}
-    val json = Json {
-        serializersModule = module
-        classDiscriminator = "_t"
-        prettyPrint = true
-        isLenient = true
-        ignoreUnknownKeys = true
-        encodeDefaults = true
-    }
-    @OptIn(ExperimentalSerializationApi::class)
-    install(ContentNegotiation) {
-        json(json)
-    }
-    JSON.initialize(json)
-    // Protobuf.initialize(ProtoBuf)
-
-    /* 2. Setup logger */
-    Fancam.initialize(OfficialFancam(Venue.encore.fancam))
-
-    /* 3. Install CORS */
-    install(CORS) {
-        anyHost() // change this on production
-        allowHeader(HttpHeaders.ContentType)
-        allowHeaders { true }
-        allowMethod(HttpMethod.Get)
-        allowMethod(HttpMethod.Post)
-        allowMethod(HttpMethod.Put)
-        allowMethod(HttpMethod.Delete)
-        allowMethod(HttpMethod.Options)
-    }
-
-    /* 5. Install status pages */
-    install(StatusPages) {
-        exception<Throwable> { call, cause ->
-            val method = colorizeHttpMethod(call.request.httpMethod.value)
-            val uri = call.request.uri
-
-            Fancam.error(cause, Tags.Api) {
-                "Internal server scandal on $method $uri"
-            }
-
-            val message = if (this@module.developmentMode) {
-                cause.stackTrace.joinToString("\n")
-            } else {
-                "Stage was sabotaged... T_T"
-            }
-
-            call.respondText(
-                text = errorHtml(500, "<pre>${message}</pre>"),
-                contentType = ContentType.Text.Html,
-                status = HttpStatusCode.InternalServerError
-            )
-        }
-
-        unhandled { call ->
-            Fancam.warn(Tags.Api) { call.stringifyHttpRequest(unhandled = true) }
-
-            call.respondText(
-                text = errorHtml(404, "Not found in the system."),
-                contentType = ContentType.Text.Html,
-                status = HttpStatusCode.NotFound
-            )
-        }
-    }
-
-    /* 6. Configure Database */
-    val mongoc = MongoClient.create(Venue.encore.database.dbUrl)
-    val db = mongoc.getDatabase("admin")
-    val commandResult = db.runCommand(Document("ping", 1))
-    Fancam.info(Tags.Startup) { "MongoDB connection successful: $commandResult" }
-
-    /* 7. Install websockets */
-    install(WebSockets) {
-        pingPeriod = 15.seconds
-        timeout = 15.seconds
-        masking = true
-    }
-
+    // creates a coroutine scope for the app
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    // install system time
     TimeCenter.update(
         system = Timekeeper(SystemTimeSource()),
         game = Timekeeper(SystemTimeSource())
     )
 
-    /* 8. Setup ServerContext */
-    val dataStore = MongoDataStore(mongoc.getDatabase(Venue.encore.database.dbName), MongoCollectionName)
-    val accountRepository = MongoAccountRepository(db.getCollection(MongoCollectionName.playerAccount))
-    val contextRegistry = ContextRegistry(RealContextFactory(dataStore))
-    val stageActDirector = StageActDirector(TimeCenter.system, ActIdStore)
-    val commandDispatcher = CommandDispatcher()
-    val webSocketManager = WebSocketManager()
-
-    val accountSubunit = AccountSubunit(accountRepository)
-    val playerPresenceSubunit = PlayerPresenceSubunit()
-    val sessionSubunit = SessionSubunit(appScope, TimeCenter.system)
-    val playerCreationSubunit = PlayerCreationSubunit(dataStore)
-    val authSubunit = AuthSubunit(accountSubunit, playerCreationSubunit, sessionSubunit)
-
-    val subunits = ServerSubunits(
-        account = accountSubunit,
-        presence = playerPresenceSubunit,
-        auth = authSubunit,
-        session = sessionSubunit,
-        creation = playerCreationSubunit
-    )
-    val serverContext = ServerContext(
-        dataStore = dataStore,
-        contextRegistry = contextRegistry,
-        stageActDirector = stageActDirector,
-        commandDispatcher = commandDispatcher,
-        webSocketManager = webSocketManager,
-        subunits = subunits
+    // create server context
+    val serverContext = createServerContext(
+        appScope = appScope,
+        mongoClient = mongoc,
+        mongoDatabase = db
     )
 
-    webSocketManager.registerHandler(WsCommandHandler(serverContext))
+    // create admin account
+    if (Venue.encore.adminEnabled) {
+        serverContext.subunits.creation.createAdmin(Globals, alwaysRecreate = false)
+    }
 
-    // initialize components with circular dependency
-    // possible solution for dependency: pass studiocontext on runtime action
-    // add ServerContext to parameter of ws handle or command dispatch handle
-    commandDispatcher.initialize(serverContext)
+    // register handlers for WebSocket
+    websocketHandlers(serverContext)
 
-    commandDispatcher.register(ExampleCommand())
+    // register commands
+    commandHandlers(serverContext)
 
-    playerCreationSubunit.createAdmin(Globals, false)
+    // initialize GameReference and register definitions
+    gameReference()
 
-    /* 9. Initialize GameDefinition */
-    GameReference.initialize {}
-
-    // represent ephemeral token storage generated to enter /backstage
+    // configure routing
+    // ephemeral token storage for /backstage entry
     val backstageToken = ConcurrentHashMap<String, Long>()
 
-    /* 10. Register routes */
+    // install routes
     routing {
         fileRoutes()
         with(BackstageRoutes(serverContext, backstageToken)) { install() }
     }
 
-    interceptResponse()
+    // log startup
+    logStartupInformation()
 
-    val bannedAddresses = mutableSetOf<String>()
-    val security = DefaultSecurity(bannedAddresses, TimeCenter.system)
-    configureSecurity(security)
-
-    /* 11. Initialize servers */
-    val serverHost = Venue.encore.server.host
-    val gameStagePort = Venue.encore.server.socketPort
-    val apiPort = Venue.encore.server.port
-
-    Fancam.info(Tags.Startup) { "Server successfully started." }
-    Fancam.info(Tags.Startup) { "File/API server available at (${serverHost}:$apiPort)." }
-    Fancam.info(Tags.Startup) { "Devtools available at ${serverHost}:$apiPort/backstage." }
-
-    if (File("docs_build/index.html").exists()) {
-        Fancam.info(Tags.Startup) { "Docs website available on ${serverHost}:$apiPort." }
-    } else {
-        Fancam.info(Tags.Startup) { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
-    }
-
-    val gameStage = GameStage(host = serverHost, port = gameStagePort) {
-        // Register hook, guide, and handlers...
-
-        hook(PlayerLifecycle.OnReceive, "Update activity") { serverContext, connection ->
-            serverContext.subunits.presence.updateLastActivity(connection.playerId)
-        }
-
-        hook(PlayerLifecycle.OnDisconnect, "Player cleanup") { serverContext, connection ->
-            // Only perform cleanup if playerId is set (player was authenticated)
-            if (connection.playerId != "[Undetermined]") {
-                serverContext.subunits.presence.markOffline(connection.playerId)
-                serverContext.subunits.account.updateLastActivity(connection.playerId, TimeCenter.system.now())
-                serverContext.contextRegistry.removeContext(connection.playerId)
-            }
-        }
+    // initialize game server
+    val gameStage = GameStage(
+        host = Venue.encore.server.host,
+        port = Venue.encore.server.socketPort
+    ) {
+        lifecycleHooks()
+        fanchantGuides()
+        handlers()
     }
 
     val servers = buildList<Stage> {
         add(gameStage)
     }
 
+    // initialize and start all the serverr
     servers.forEach { server ->
         server.initialize(appScope, serverContext)
         server.start()
     }
 
-    launch(Dispatchers.IO) {
-        while (isActive) {
-            val cmd = withContext(Dispatchers.IO) { readlnOrNull() } ?: break
-            val clean = cmd.trim().lowercase()
-            if (clean.isNotBlank()) {
-                when (clean) {
-                    "token" -> {
-                        val token = Ids.uuid()
-                        println(token)
-                        backstageToken[token] = TimeCenter.system.now()
-                        val toRemove = mutableListOf<String>()
-                        backstageToken.forEach { (token, millis) ->
-                            if (TimeCenter.system.hasElapsedBy(millis, 1.minutes)) {
-                                toRemove.add(token)
-                            }
-                        }
-                        toRemove.forEach {
-                            backstageToken.remove(it)
-                        }
-                    }
+    // starts accepting terminal input
+    acceptsTerminalInput(appScope, backstageToken)
 
-                    else -> {}
-                }
-            }
-        }
-    }
-
+    // prints encore banner
     println(EncoreIdentity.banner(GameIdentity))
 
-    Runtime.getRuntime().addShutdownHook(Thread {
-        runBlocking {
-            try {
-                servers.forEach { server ->
-                    server.shutdown()
-                }
-                appScope.cancel("Application closed")
-                appScope.coroutineContext.job.cancel()
-            } catch (_: CancellationException) {
-            }
-        }
-        Fancam.info(Tags.Shutdown) { "Server shutdown complete." }
-    })
+    // install shutdown hook
+    shutdownHook(appScope, servers)
 }
 
-fun Application.configureSecurity(security: SecurityGuard) {
-    intercept(ApplicationCallPipeline.Plugins) {
-        when (val result = security.verify(call)) {
-            is GuardResult.Welcome -> proceed()
-            is GuardResult.GetOut -> {
-                Fancam.debug(Tags.Api) { call.stringifyHttpRequest(unhandled = false) }
-
-                call.respondText(
-                    text = errorHtml(403, result.why),
-                    contentType = ContentType.Text.Html,
-                    status = HttpStatusCode.Forbidden
-                )
-
-                val remote = call.request.origin.remoteHost
-                Fancam.info(Tags.Api) { "Security refused $remote due to: ${result.why}" }
-
-                finish()
-            }
-        }
+fun websocketHandlers(serverContext: ServerContext) {
+    with(serverContext.webSocketManager) {
+        registerHandler(WsCommandHandler(serverContext))
     }
 }
 
-/**
- * Serve file-related endpoints.
- *
- * This mostly serving static files:
- * - Game and website assets in the `assets` folder.
- * - Docs website on production in the `docs_build` folder.
- *
- * Since this is simple, it doesn't use the [RouteHandler]
- */
-fun Route.fileRoutes() {
-    get("/") {
-        call.respondFile(File("assets/site/index.html"))
+fun commandHandlers(serverContext: ServerContext) {
+    with(serverContext.commandDispatcher) {
+        register(ExampleCommand())
     }
-    staticFiles("site", File("assets/site"))
+}
 
-    val docsDir = File("docs_build")
-    if (File(docsDir, "index.html").exists()) {
-        staticFiles("docs", docsDir)
-    } else {
-        get("/docs") {
-            call.respond(
-                HttpStatusCode.NotFound,
-                "Docs website not available. Please start it with a separate vite server. " +
-                        "If in prod, build the documentation website to access it."
-            )
+fun gameReference() {
+    GameReference.initialize {
+        // add()
+    }
+}
+
+fun GameStageInitContext.lifecycleHooks() {
+    // register player lifecycle hooks...
+
+    hook(PlayerLifecycle.OnReceive, "Update activity") { serverContext, connection ->
+        serverContext.subunits.presence.updateLastActivity(connection.playerId)
+    }
+
+    hook(PlayerLifecycle.OnDisconnect, "Player cleanup") { serverContext, connection ->
+        // Only perform cleanup if playerId is set (player was authenticated)
+        if (connection.playerId != "[Undetermined]") {
+            serverContext.subunits.presence.markOffline(connection.playerId)
+            serverContext.subunits.account.updateLastActivity(connection.playerId, TimeCenter.system.now())
+            serverContext.contextRegistry.removeContext(connection.playerId)
         }
     }
 }
 
-/**
- * Simple HTML template of an error page.
- *
- * @param code HTTP response status code.
- * @param message Context message to display.
- */
-fun errorHtml(code: Int, message: String): String {
-    return "<!doctypehtml>" +
-            "<html lang=en>" +
-            "<meta charset=UTF-8>" +
-            "<title>Uh-oh... contract ended</title>" +
-            "<style>" +
-            "body{font-family:system-ui,-apple-system,sans-serif;background-color:#f5f5f5}" +
-            "h1{font-size:1.2rem}</style>" +
-            "<div class=container>" +
-            "<h1>Error: $code</h1>" +
-            "<p>$message" +
-            "</div>"
+fun GameStageInitContext.fanchantGuides() {
+    // register fanchant guides...
+
+    // guide()
+}
+
+fun GameStageInitContext.handlers() {
+    // register handlers
+
+    // handler()
 }
