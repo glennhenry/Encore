@@ -1,7 +1,6 @@
 package encore.network.handler
 
 import encore.datastore.collection.PlayerId
-import encore.network.transport.Connection
 import encore.network.fanchant.Fanchant
 import encore.network.transport.ConnectionIdentity
 
