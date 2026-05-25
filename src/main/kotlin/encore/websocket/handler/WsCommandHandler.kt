@@ -21,7 +21,7 @@ class WsCommandHandler(private val serverContext: ServerContext) : WebSocketHand
         session: DefaultWebSocketServerSession
     ) {
         val rawCmd = JSON.json.decodeFromJsonElement<String>(message.payload)
-        val result = serverContext.commandDispatcher.handleRawCommand(rawCmd)
+        val result = serverContext.commandDispatcher.handleRawCommand(rawCmd, serverContext)
 
         session.respond(
             type = WebSocketMessageType.CMD_OUTPUT,

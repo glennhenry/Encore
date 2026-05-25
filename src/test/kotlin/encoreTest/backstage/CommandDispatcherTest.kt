@@ -35,7 +35,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register normal success`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         dispatcher.register(createCommand("cmd1"))
         dispatcher.register(createCommand("cmd2"))
@@ -46,7 +45,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register normal with variant success`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         dispatcher.register(createCommand("cmd1", generateVariants()))
         dispatcher.register(createCommand("cmd2", generateVariants()))
@@ -57,7 +55,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register duplicate commandId success but warned`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val cmd2a = generateVariant(2)
         val cmd2b = generateVariant(3)
@@ -77,7 +74,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register duplicate variant failed 1 and throws`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val first = CommandVariant(
             listOf(
@@ -104,7 +100,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register duplicate variant failed 2 and throws`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2), generateVariant(2))
 
@@ -116,7 +111,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register commandId blank 1 throws`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2))
 
@@ -128,7 +122,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register commandId blank 2 throws`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2))
 
@@ -140,7 +133,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register commandId has invalid character 1 throws`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2))
 
@@ -152,7 +144,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register commandId has invalid character 2 throws`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2))
 
@@ -164,7 +155,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register commandId has acceptable character does not throws`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2))
 
@@ -174,7 +164,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register commandId has whitespace character success`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2))
 
@@ -185,7 +174,6 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher register commandId duplicate name but different cases success`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
         val variants = listOf(generateVariant(2))
 
@@ -199,149 +187,129 @@ class CommandDispatcherTest {
     @Test
     fun `testCommandDispatcher handleCommand unregistered command returns command not found`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
 
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "cmd",
-                    buildArgCollection {})
-            ) is CommandResult.CommandNotFound
-        )
+        val request = CommandRequest("cmd", buildArgCollection {})
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.CommandNotFound)
     }
 
     @Test
     fun `testCommandDispatcher handleCommand normally 1 returns executed`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
-
         dispatcher.register(ExampleGiveCommand())
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "give",
-                    buildArgCollection {
-                        add("playerAbc")
-                        add("water")
-                    })
-            ) is CommandResult.Executed
+
+        val request = CommandRequest(
+            "give",
+            buildArgCollection {
+                add("playerAbc")
+                add("water")
+            }
         )
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.Executed)
     }
 
     @Test
     fun `testCommandDispatcher handleCommand normally 2 returns executed`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
-
         dispatcher.register(ExampleGiveCommand())
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "give",
-                    buildArgCollection {
-                        add("playerAbc")
-                        add("water")
-                        add("100")
-                    })
-            ) is CommandResult.Executed
+
+        val request = CommandRequest(
+            "give",
+            buildArgCollection {
+                add("playerAbc")
+                add("water")
+                add("100")
+            }
         )
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.Executed)
     }
 
     @Test
     fun `testCommandDispatcher handleCommand insufficient arguments returns not enough argument`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
-
         dispatcher.register(ExampleGiveCommand())
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "give",
-                    buildArgCollection {
-                        add("playerABC")
-                    })
-            ) is CommandResult.NotEnoughArgument
+
+        val request = CommandRequest(
+            "give",
+            buildArgCollection {
+                add("playerABC")
+            }
         )
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.NotEnoughArgument)
     }
 
     @Test
     fun `testCommandDispatcher handleCommand argument type mismatch returns invalid argument type`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
-
         dispatcher.register(ExampleGiveCommand())
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "give",
-                    buildArgCollection {
-                        add("playerABC")
-                        add("water")
-                        add("notNumber")
-                    })
-            ) is CommandResult.InvalidArgumentType
+
+        val request = CommandRequest(
+            "give",
+            buildArgCollection {
+                add("playerABC")
+                add("water")
+                add("notNumber")
+            }
         )
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.InvalidArgumentType)
     }
 
     @Test
     fun `testCommandDispatcher handleCommand simulates uncaught exception returns command error`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
-
         dispatcher.register(ExampleGiveCommand())
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "give",
-                    buildArgCollection {
-                        add("playerABC")
-                        add("water")
-                        add("2")
-                    })
-            ) is CommandResult.Error
+
+        val request = CommandRequest(
+            "give",
+            buildArgCollection {
+                add("playerABC")
+                add("water")
+                add("2")
+            }
         )
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.Error)
     }
 
     @Test
     fun `testCommandDispatcher handleCommand simulates failure returns execution failure`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
-
         dispatcher.register(ExampleGiveCommand())
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "give",
-                    buildArgCollection {
-                        add("playerABC")
-                        add("water")
-                        add("3")
-                    })
-            ) is CommandResult.ExecutionFailure
+
+        val request = CommandRequest(
+            "give",
+            buildArgCollection {
+                add("playerABC")
+                add("water")
+                add("3")
+            }
         )
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.ExecutionFailure)
     }
 
     @Test
     fun `testCommandDispatcher handleCommand too many arguments still success returns executed`() {
         val dispatcher = CommandDispatcher()
-        dispatcher.initialize(context)
-        dispatcher.initialize(context)
-
         dispatcher.register(ExampleGiveCommand())
-        assertTrue(
-            dispatcher.handleCommand(
-                CommandRequest(
-                    "give",
-                    buildArgCollection {
-                        add("playerABC")
-                        add("water")
-                        add("4")
-                        add("4")
-                        add("a")
-                        add("b")
-                    })
-            ) is CommandResult.Executed
+
+        val request = CommandRequest(
+            "give",
+            buildArgCollection {
+                add("playerABC")
+                add("water")
+                add("4")
+                add("4")
+                add("a")
+                add("b")
+            }
         )
+        val result = dispatcher.handleCommand(request, context)
+        assertTrue(result is CommandResult.Executed)
     }
 
     private val charPool = ('a'..'z') + ('A'..'Z')

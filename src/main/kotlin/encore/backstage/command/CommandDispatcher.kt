@@ -24,24 +24,6 @@ import encore.fancam.Tags
  * See example in `test.backstage.CommandDispatcherTest`.
  */
 class CommandDispatcher {
-    private var _serverContext: ServerContext? = null
-    private val serverContext: ServerContext
-        get() = _serverContext
-            ?: error("Dependency error: CommandDispatcher hasn't received ServerContext. Call initialize() first.")
-
-    /**
-     * Initialize dependency for [CommandDispatcher].
-     *
-     * @param context [ServerContext] instance.
-     */
-    fun initialize(context: ServerContext) {
-        if (_serverContext != null) {
-            Fancam.warn(Tags.Command) { "CommandDispatcher.initialize() called after initialization. Ignoring." }
-            return
-        }
-        this._serverContext = context
-    }
-
     private val commands = mutableMapOf<String, Command>()
     private val parser = CommandParser()
 
@@ -107,7 +89,7 @@ class CommandDispatcher {
      *
      * @return [CommandResult] that represents the outcome.
      */
-    fun handleRawCommand(raw: String): CommandResult {
+    fun handleRawCommand(raw: String, serverContext: ServerContext): CommandResult {
         val request = try {
             parser.parse(raw)
         } catch (e: IllegalArgumentException) {
@@ -118,7 +100,7 @@ class CommandDispatcher {
             return CommandResult.Error("Parsing scandal: ${e.message}")
         }
 
-        return handleCommand(request)
+        return handleCommand(request, serverContext)
     }
 
     /**
@@ -129,7 +111,7 @@ class CommandDispatcher {
      *
      * @return [CommandResult] that represents the outcome.
      */
-    fun handleCommand(request: CommandRequest): CommandResult {
+    fun handleCommand(request: CommandRequest, serverContext: ServerContext): CommandResult {
         val command = commands[request.commandId] ?: return CommandResult.CommandNotFound(request.commandId)
 
         Fancam.info(Tags.Command) { "Received command '${request.commandId} ${request.arguments}'" }
