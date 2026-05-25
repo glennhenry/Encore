@@ -10,6 +10,8 @@ import encore.network.stage.GameStage
 import encore.network.stage.GameStageInitContext
 import encore.network.stage.Stage
 import encore.route.guard.DefaultSecurity
+import encore.subunit.scope.PlayerScope
+import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
 import encore.time.Timekeeper
 import encore.time.source.SystemTimeSource
@@ -68,6 +70,7 @@ suspend fun Application.configureApplication() {
 
     // creates a coroutine scope for the app
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val serverSubunitScope = ServerScope
 
     // install system time
     TimeCenter.update(
@@ -78,6 +81,7 @@ suspend fun Application.configureApplication() {
     // create server context
     val serverContext = createServerContext(
         appScope = appScope,
+        serverSubunitScope = serverSubunitScope,
         mongoClient = mongoc,
         mongoDatabase = db
     )
@@ -136,7 +140,7 @@ suspend fun Application.configureApplication() {
     println(EncoreIdentity.banner(GameIdentity))
 
     // install shutdown hook
-    shutdownHook(appScope, servers)
+    shutdownHook(appScope, serverSubunitScope, serverContext.subunits, servers)
 }
 
 fun websocketHandlers(serverContext: ServerContext) {
@@ -166,10 +170,15 @@ fun GameStageInitContext.lifecycleHooks() {
 
     hook(PlayerLifecycle.OnDisconnect, "Player cleanup") { serverContext, connection ->
         // Only perform cleanup if playerId is set (player was authenticated)
-        if (connection.playerId != "[Undetermined]") {
-            serverContext.subunits.presence.markOffline(connection.playerId)
-            serverContext.subunits.account.updateLastActivity(connection.playerId, TimeCenter.system.now())
-            serverContext.contextRegistry.removeContext(connection.playerId)
+        val pid = connection.playerId
+        if (pid != "[Undetermined]") {
+            serverContext.subunits.presence.markOffline(pid)
+            serverContext.subunits.account.updateLastActivity(pid, TimeCenter.system.now())
+            serverContext.contextRegistry.getContext(pid)
+                ?.subunits
+                ?.all()
+                ?.forEach { it.disband(PlayerScope(pid)) }
+            serverContext.contextRegistry.removeContext(pid)
         }
     }
 }

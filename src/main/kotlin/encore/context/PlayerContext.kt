@@ -40,4 +40,11 @@ data class PlayerContext(
  */
 data class PlayerSubunits(
     val example: String = "REPLACE"
-)
+) {
+    /**
+     * Return all player subunit instances.
+     */
+    fun all(): Set<Subunit<PlayerScope>> {
+        return setOf()
+    }
+}

@@ -1,8 +1,11 @@
 package bootstrap
 
+import encore.context.ServerSubunits
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.network.stage.Stage
+import encore.subunit.scope.ServerScope
+import encore.subunit.Subunit
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -12,13 +15,20 @@ import kotlin.collections.forEach
 
 /**
  * Install a hook for the application shutdown which will:
+ * - Disband every server [Subunit]
  * - Shutdown every [servers]
  * - Cancels the application coroutine [appScope]
  */
-fun shutdownHook(appScope: CoroutineScope, servers: List<Stage>) {
+fun shutdownHook(
+    appScope: CoroutineScope,
+    serverSubunitScope: ServerScope,
+    subunits: ServerSubunits,
+    servers: List<Stage>
+) {
     Runtime.getRuntime().addShutdownHook(Thread {
         runBlocking {
             try {
+                subunits.all().forEach { it.disband(serverSubunitScope) }
                 servers.forEach { server ->
                     server.shutdown()
                 }

@@ -120,4 +120,11 @@ data class ServerSubunits(
     val creation: PlayerCreationSubunit,
     val presence: PlayerPresenceSubunit,
     val session: SessionSubunit,
-)
+) {
+    /**
+     * Return all server subunit instances.
+     */
+    fun all(): Set<Subunit<ServerScope>> {
+        return setOf(account, auth, creation, presence, session)
+    }
+}

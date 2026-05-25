@@ -16,6 +16,7 @@ import encore.context.ServerSubunits
 import encore.datastore.MongoDataStore
 import encore.presence.PlayerPresenceSubunit
 import encore.session.SessionSubunit
+import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
 import encore.venue.Venue
 import encore.websocket.WebSocketManager
@@ -25,10 +26,11 @@ import kotlinx.coroutines.CoroutineScope
 /**
  * Create and return a [ServerContext] instance.
  */
-fun createServerContext(
+suspend fun createServerContext(
+    appScope: CoroutineScope,
+    serverSubunitScope: ServerScope,
     mongoClient: MongoClient,
-    mongoDatabase: MongoDatabase,
-    appScope: CoroutineScope
+    mongoDatabase: MongoDatabase
 ): ServerContext {
     // setup ServerContext
     val dataStore = MongoDataStore(
@@ -61,6 +63,10 @@ fun createServerContext(
         session = sessionSubunit,
         creation = playerCreationSubunit
     )
+
+    // debut all subunits
+    subunits.all().forEach { it.debut(serverSubunitScope) }
+
     val serverContext = ServerContext(
         dataStore = dataStore,
         contextRegistry = contextRegistry,

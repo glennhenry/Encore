@@ -6,6 +6,7 @@ import encore.context.PlayerSubunits
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerId
 import encore.network.transport.Connection
+import encore.subunit.scope.PlayerScope
 
 /**
  * Real implementation of [ContextFactory].
@@ -22,7 +23,9 @@ class RealContextFactory(private val dataStore: DataStore) : ContextFactory {
         val account = requireNotNull(dataStore.getPlayerAccount(playerId)) {
             "Account not exist on context creation for $playerId"
         }
+
         val subunits = PlayerSubunits(example = "REPLACE")
+        subunits.all().forEach { it.debut(PlayerScope(playerId)) }
 
         return PlayerContext(
             playerId = playerId,
