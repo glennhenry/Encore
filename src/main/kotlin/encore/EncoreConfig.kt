@@ -4,6 +4,7 @@ import encore.annotation.runtime.VenueKey
 import encore.fancam.events.Level
 import game.config.CustomConfig
 import game.config.SecretConfig
+import game.Globals
 
 /**
  * Definition of config required by the framework.
@@ -34,7 +35,11 @@ data class EncoreConfig(
     /**
      * Whether to enable admin account, which is used for quick and privileged
      * testing in the game, usually can be used by anyone.
-     * Credentials are set in code.
+     *
+     * Having this disabled won't delete admin account, it will just disable
+     * any authentication of admin.
+     *
+     * Credentials are set in code: [Globals].
      */
     @VenueKey("admin._enabled")
     val adminEnabled: Boolean = true,

@@ -1,6 +1,7 @@
 package encore.auth
 
 import com.toxicbakery.bcrypt.Bcrypt
+import encore.EncoreConfig
 import encore.account.AccountSubunit
 import encore.account.PlayerCreationSubunit
 import encore.fancam.Fancam
@@ -11,6 +12,7 @@ import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.utils.types.Outcome
 import encore.utils.types.fold
+import encore.venue.Venue
 import game.Globals
 import kotlin.io.encoding.Base64
 
@@ -30,7 +32,9 @@ class AuthSubunit(
     /**
      * Register an account with [username] and [password].
      *
-     * This would also create a session by calling [SessionSubunit.create].
+     * This will also create a session by calling [SessionSubunit.create].
+     * It doesn't check username authenticity as it should be done beforehand
+     * with [isUsernameAvailable].
      *
      * Returns:
      * - [Outcome.Fail] if there is an internal repository error.
@@ -53,6 +57,8 @@ class AuthSubunit(
      *
      * On successful login, this would produce a [UserSession]
      * obtained from calling [SessionSubunit.create].
+     *
+     * Login of admin should be directed to [loginAsAdmin] instead.
      *
      * Returns:
      * - [Outcome.Fail] if there is an internal repository error.
@@ -88,13 +94,15 @@ class AuthSubunit(
     }
 
     /**
-     * Login as admin (always succeed).
+     * Login as admin, which creates a reserved admin session.
      *
-     * This would also create a reserved admin session.
+     * When [EncoreConfig.adminEnabled] is `false`, this will fail returning a `null`.
      *
-     * @return [UserSession] with fixed token of [Globals.ADMIN_TOKEN].
+     * @return [UserSession] with fixed token of [Globals.ADMIN_TOKEN], or `null`
+     *                       if admin is not enabled.
      */
-    fun loginAsAdmin(): UserSession {
+    fun loginAsAdmin(): UserSession? {
+        if (!Venue.encore.adminEnabled) return null
         return sessionSubunit.create(Globals.ADMIN_PLAYER_ID)
     }
 
@@ -107,11 +115,16 @@ class AuthSubunit(
      *
      * Returns:
      * - [Outcome.Fail] if there is an internal repository error.
+     * - [Outcome.Ok]` = false` if username is equal to [Globals.ADMIN_RESERVED_NAME].
      * - [Outcome.Ok]` = false` if it is already taken.
      * - [Outcome.Ok]` = false` if it contains some prohibited words.
      * - Otherwise [Outcome.Ok]` = true`.
      */
     suspend fun isUsernameAvailable(username: String): Outcome<Boolean> {
+        if (username == Globals.ADMIN_RESERVED_NAME) {
+            return Outcome.Ok(false)
+        }
+
         val outcome = accountSubunit.usernameExists(username)
         return outcome.fold(
             onOk = { exists ->
@@ -145,6 +158,7 @@ class AuthSubunit(
      *
      * Returns:
      * - [Outcome.Fail] if there is an internal repository error.
+     * - [Outcome.Ok]` = false` if username is equal to [Globals.ADMIN_RESERVED_NAME].
      * - [Outcome.Ok]` = false` if it is already taken.
      * - [Outcome.Ok]` = false` if it contains some prohibited words.
      * - Otherwise [Outcome.Ok]` = true`.
@@ -152,6 +166,10 @@ class AuthSubunit(
      * Note: depending on the context, duplicate email may be allowed.
      */
     suspend fun isEmailAvailable(email: String): Outcome<Boolean> {
+        if (email == Globals.ADMIN_EMAIL) {
+            return Outcome.Ok(false)
+        }
+
         val outcome = accountSubunit.emailExists(email)
         return outcome.fold(
             onOk = { exists ->
