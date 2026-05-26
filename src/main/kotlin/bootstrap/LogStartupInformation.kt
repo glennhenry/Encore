@@ -12,9 +12,9 @@ fun logStartupInformation() {
     val serverHost = Venue.encore.server.host
     val apiPort = Venue.encore.server.port
 
-    Fancam.info(Tags.Startup) { "Server components initialized." }
-    Fancam.info(Tags.Startup) { "File/API at (${serverHost}:$apiPort)." }
-    Fancam.info(Tags.Startup) { "Devtools at (${serverHost}:$apiPort/backstage)." }
+    Fancam.info(Tags.Startup) { "Server and framework components initialized." }
+    Fancam.info(Tags.Startup) { "File/API served at (${serverHost}:$apiPort)." }
+    Fancam.info(Tags.Startup) { "Devtools served at (${serverHost}:$apiPort/backstage)." }
 
     if (File("docs_build/index.html").exists()) {
         Fancam.info(Tags.Startup) { "Docs website available on ${serverHost}:$apiPort." }

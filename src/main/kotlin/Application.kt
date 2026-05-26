@@ -5,6 +5,7 @@ import encore.backstage.command.ExampleCommand
 import encore.context.ServerContext
 import encore.datastore.MongoCollectionName
 import encore.definition.GameReference
+import encore.fancam.Fancam
 import encore.network.lifecycle.PlayerLifecycle
 import encore.network.stage.GameStage
 import encore.network.stage.GameStageInitContext
@@ -58,6 +59,12 @@ val SystemTimezone: ZoneId = ZoneId.systemDefault()
  * Main configuration and wiring code for the application.
  */
 suspend fun Application.configureApplication() {
+    // install system time
+    TimeCenter.update(
+        system = Timekeeper(SystemTimeSource()),
+        game = Timekeeper(SystemTimeSource())
+    )
+
     // configure security
     val bannedAddresses = mutableSetOf<String>()
     val security = DefaultSecurity(bannedAddresses, TimeCenter.system)
@@ -71,12 +78,6 @@ suspend fun Application.configureApplication() {
     // creates a coroutine scope for the app
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     val serverSubunitScope = ServerScope
-
-    // install system time
-    TimeCenter.update(
-        system = Timekeeper(SystemTimeSource()),
-        game = Timekeeper(SystemTimeSource())
-    )
 
     // create server context
     val serverContext = createServerContext(
