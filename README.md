@@ -1,28 +1,67 @@
-# Change me
+# Encore
 
-Kotlin Ktor game server template with ready to write docs website.
+<img src="game.png" alt="gameplay image" width=200/>
+
+## About
+
+**Encore** is a Kotlin-based game server template built for rapid game server prototyping. Powered by Ktor and MongoDB in a mostly DIY approach, it aims to be simple and explicit, allowing a frictionless adapation to game server implementation.
+
+The framework is primarily created for private server development. It includes ready-to-use, generic server components and interfaces designed around common challenges encountered during private server implementation.
+
+An empty documentation site is also available to write reverse engineering findings.
+
+Encore [version info](https://github.com/glennhenry/Encore/blob/main/src/main/kotlin/encore/EncoreIdentity.kt): `1.0.0 (Debut - rookie)`
 
 ```
+readme template
+
+...gameplay image...
+
 Server emulator for X, developed by X, closed on X.
 
-*This project tries to reconstruct the server-side behavior. Client files and assets are not included; you must supply your own data. This project is not official and is not associated with the original creators.*
+*This project tries to reconstruct the game server-side behavior. Client files and assets are not included. This project is not official and is not associated with the original creators.*
+
+Made with [Encore](https://github.com/glennhenry/Encore).
 ```
 
 ## Editlist
 
 Server files to edit:
-- ...
+
+- `venue.xml`, `venue.secret.xml` app configuration
+  - `src/main/kotlin/game/config/CustomConfig.kt` define custom configs
+  - `src/main/kotlin/game/config/SecretConfig.kt` define secret configs
+- `src/main/kotlin/Application.kt` main app configuration including handlers, servers, messaging, etc.
+- `settings.gradle.kts` change project name
+- `build.gradle.kts` change artifact name
+- `src/main/kotlin/game/GameIdentity.kt` app name for flavour
+- `src/test/kotlin/InitMongo.kt` change DB name
+- `assets/` to contains game assets and create subrepo for tracking
+  - `index.html` update with game's SWF
+  - `favicon.ico` update with game's favicon
 
 Docs files to edit:
+
 - `docs/package.json` + `npm install`
 - `docs/astro.config.mjs`
 - `docs/src/components/Giscus.astro`
 - `docs/src/content/docs/intro.md`
 - `docs/src/content/docs/flow.md`
-- `docs/src/assets/` (for image in `intro.md`)
-- `docs/public/favicon.ico` (for docs' favicon)
+- `docs/src/assets/` for image in `intro.md`
+- `docs/public/favicon.ico` for docs' favicon
+- This `README.md` + `game.png`
+
+5 total images (replace 4):
+
+- [NO CHANGE] `backstage/favicon.ico` (devtools default icon)
+- [CHANGE] `assets/site/favicon.ico` (game icon) for gameplay website
+- [CHANGE] `docs/public/favicon.ico` (game icon) for docs website
+- [CHANGE] `docs/src/assets/<GameName>.png` (game promo image) for docs intro
+- [CHANGE] `game.png` (gameplay image) for readme preview
 
 # Server Manual
+
+This guide assumes default settings set from the `venue.xml` file.
 
 ## Requirements
 
@@ -32,7 +71,7 @@ Docs files to edit:
 
 ## Setup
 
-To run the server, ensure MongoDB is running on (default `mongodb://localhost:27017`). Then, run the following command:
+To run the server, ensure MongoDB is running on `mongodb://localhost:27017`. Then, run the following command:
 
 ```bash
 .\gradlew run
@@ -41,11 +80,11 @@ To run the server, ensure MongoDB is running on (default `mongodb://localhost:27
 - File and API server runs on `127.0.0.1:8080`
 - Socket server runs on `127.0.0.1:7777`
 
-You can also run the server from IntelliJ IDE run plugin.
+You can also run the server from IntelliJ IDE run plugin on `Application.kt`.
 
 ## Build
 
-To build the server, simply run the `build.bat/sh` script. Output will be in `deploy/`. Run the deployment server using `java -jar changeme.jar`.
+To build the server, simply run the `build.bat/sh` script. Output will be in `deploy/`. Run the deployment server using `java -jar encore.jar`.
 
 For manual build:
 
@@ -53,37 +92,27 @@ For manual build:
 .\gradlew shadowJar
 ```
 
-Optionally, you can build the documentation website:
-
-```bash
-cd docs
-npm install
-npm run build
-```
-
-Then, move the `dist` directory to `deploy/`.
-
 Server will be available on the same port as development mode. The documentation website, if built, will be available on `127.0.0.1:8080/docs`.
 
 ## Configuration
 
-Various server settings can be set from `src/main/resources/application.yaml`.
+Various server settings can be configured from `venue.xml`. Secret version of the variables can be set from `venue.secret.xml`.
 
-Some configuration can be set via environment variables, those typically have `$` within the config.
-
-For example, in PowerShell (Windows):
+Every variables can be overriden from OS environment variables. For example, in PowerShell (Windows):
 
 ```ps1
-$env:DEV_MODE = "false"
-$env:ADMIN = "true"
-java -jar changeme.jar
+$env:ENCORE_DEV_MODE = "false"
+$env:ENCORE_SERVER_PORT = "1234"
+java -jar encore.jar
 ```
+
+More information in [Venue.kt](https://github.com/glennhenry/Encore/blob/main/src/main/kotlin/encore/venue/Venue.kt)
 
 ## Docs
 
 Empty documentation template ([built with Starlight](https://starlight.astro.build/), based on [sl-obsidian-starter](https://github.com/glennhenry/sl-obsidian-starter)) is available on `docs/`
 
-To run the website locally:
+To run the website locally on development mode:
 
 ```bash
 cd docs
@@ -91,7 +120,7 @@ npm install
 npm run dev
 ```
 
-Docs running on `http://localhost:4321/docs`
+Docs runs on `http://localhost:4321/docs`.
 
 For more info on setup and configuration, please see
 the [official Starlight documentation](https://starlight.astro.build/getting-started/).
@@ -108,105 +137,75 @@ description: example
 ---
 ```
 
-2. Replace the title appropriately. The description is optional; you can set it to be the same as the title. Any images
-   or videos should be placed in `src/assets/`.
-3. The slug is produced from the directory structure. For instance, this page is named `example.md` and is under the
-   `folderB` within the `folderA`.
+2. Replace the title appropriately. The description is optional; you can set it to be the same as the title. Any images or videos should be placed in `src/assets/`.
+3. The slug is produced from the directory structure. For instance, this page is named `example.md` and is under the `folderB` within the `folderA`.
 4. Next, add the page to the sidebar.
    1. Begin by editing the `astro.config.mjs`.
    2. Follow the existing sidebar link
       format. [More details on official documentation](https://starlight.astro.build/guides/sidebar/).
-
-## DevTools
-
-An external web-based developer toolkit that provides a user interface for monitoring and interacting with the server.
-
-See `DevTools.md` for details.
 
 ## Structure
 
 <details>
 <summary>Open</summary>
 
-```
+```text
 .
 ├── src/main/kotlin/
-│   ├── annotation/             # Custom annotations
-│   ├── api/                    # REST API endpoints
-│   │   ├── models/             # API request/response models
-│   │   └── routes/             # API routes
-│   ├── context/                # States model (server, player) and tracker
-│   ├── core/                   # Core game logic (domain repository and service)
-│   │   ├── data/               # Global game data, game definitions, and parser
-│   │   └── model/              # Game data models
-│   ├── data/                   # Database implementation
-│   │   └── collection/         # Database collection models
-│   ├── devtools/               # Developer toolkits
-│   │   └── command/            # Server command system
-│   │       ├── core/           # Core implementation
-│   │       └── impl/           # Command implementation
-│   ├── security                # Security functionality
-│   │   └── validation/         # Validation system
-│   ├── server/                 # Game servers and implementation
-│   │   ├── core/               # Core server components
-│   │   ├── handler/            # Message handlers
-│   │   ├── messaging/          # Server messaging components
-│   │   │   ├── codec/          # Message codec components
-│   │   │   └── format/         # Message format definitions
-│   │   └── tasks/              # Server task system
-│   │       └── impl/           # Server task implementation
-│   ├── user/                   # User management
-│   │   ├── auth/               # Authentication and session system
-│   │   └── model/              # User models
-│   ├── utils/                  # Utility package
-│   │   ├── constants/          # Global constants
-│   │   ├── functions/          # Utility functions
-│   │   └── logging/            # Logger system
-│   └── Application.kt          # Application entry point
-├── src/main/resources/
-│   ├── application.yaml        # Server configuration
-│   └── logback.xml             # Logging configuration (not much used)
-├── src/main/test/              # Code tests
-├── static/                     # Game assets
-├── docs/                       # Documentation
-│   └── src/content/docs/       # Markdown documentation
-├── deploy/                     # Build output
-├── .logs/                      # Logs file
-├── .telemetry/                 # Telemetry file
-└── dev.bat/dev.sh              # Script to run development server
-└── build.bat/build.sh          # Script to build the server
-└── autorun.bat/autorun.sh      # Script to run deployment server (in deploy)
+│   ├── bootstrap/                  # Framework startup and bootstrap components
+│   ├── encore/                     # Core framework source
+│   │   ├── account/                # Account management system
+│   │   ├── acts/                   # Scheduled task system
+│   │   ├── annotation/             # Custom application annotations
+│   │   ├── auth/                   # Authentication components
+│   │   ├── backstage/              # Developer tooling utilities
+│   │   ├── context/                # Dependency container and player state management
+│   │   ├── datastore/              # Persistence and database components
+│   │   ├── definition/             # Gameplay rules and data abstractions
+│   │   ├── fancam/                 # Logging system
+│   │   ├── network/                # Server networking components
+│   │   │   ├── fanchant/           # Game message abstractions
+│   │   │   ├── handler/            # Message handler abstractions
+│   │   │   ├── lifecycle/          # Connection lifecycle hooks
+│   │   │   ├── stage/              # Game server implementation
+│   │   │   └── transport/          # Network transport mechanisms
+│   │   ├── presence/               # Player activity and presence tracking
+│   │   ├── route/                  # REST API system
+│   │   ├── security/               # Security components
+│   │   ├── serialization/          # Serialization utilities
+│   │   ├── session/                # User session management
+│   │   ├── subunit/                # Service-repository layer abstractions
+│   │   ├── time/                   # Centralized time utilities
+│   │   ├── utils/                  # General utility functions
+│   │   ├── venue/                  # Configuration system
+│   │   ├── websocket/              # WebSocket communication components
+│   │   ├── EncoreConfig.kt         # Encore configuration
+│   │   └── EncoreIdentity.kt       # Encore version and flavor metadata
+│   ├── game/                       # Game server implementation source
+│   │   ├── config/                 # User-defined configuration
+│   │   ├── FileRoutes.kt           # Static file serving routes
+│   │   ├── GameIdentity.kt         # Implementation version and flavor metadata
+│   │   ├── Globals.kt              # Global application constants
+│   │   └── RealContextFactory.kt   # Player state factory
+│   └── Application.kt              # Application entry point and wiring
+│
+├── src/test/kotlin/
+│   ├── encoreTest/                 # Framework test suite
+│   ├── example/                    # Example implementation samples
+│   ├── gameTest/                   # Server implementation test suite
+│   ├── testUtils/                  # Test utilities and helpers
+│   ├── InitMongo.kt                # MongoDB test initialization
+│   └── Playground.kt               # Quick experimentation and test runner
+│
+├── .logs/                          # Runtime log files
+├── assets/                         # Game files and assets (untracked, use git subrepo)
+├── backstage/                      # Developer tool assets
+├── docs/                           # Documentation skeleton
+├── deploy/                         # Build output directory
+├── build.bat / build.sh            # Build scripts
+├── SocketSimulation.ps1            # Socket connection simulation script
+├── venue.xml                       # Framework and application configuration
+└── venue.secret.xml                # Secret configuration
 ```
 
 </details>
-
-### TODO
-
-- dev tools (from route /devtools)
-  - basic authentication with ephemeral token; token refresh from local command line
-  - advanced logger display
-  - server monitoring
-  - ability to execute command from API
-- rate limiter, flood anticipator
-
-# DevTools
-
-There are console, monitor, and command tool available.
-
-## Console
-
-TBA
-
-## Monitor
-
-TBA
-
-## Commands
-
-### Implementation
-
-All command implementations are located under the package `src/main/kotlin/devtools/cmd`.
-
-In short, dev can create command by implementing the `Command<T>` interface. They have to define `commandId`, description, required arguments, and the execution logic inside the `execute` method. They should also register the command implementation with `CommandDispatcher.register` from `ServerContext` (typically in `Application.kt`).
-
-Consult the code directly for implementation details. Help and usage details are available in the DevTools itself.
