@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <venue>
+    <!-- This file contains the application configuration.
+         This includes the framework config and the application custom config.
+         The structure is based on the definition in the file `EncoreConfig` and `CustomConfig` 
+         Use `venue.secret.xml` for sensitive data -->
+
     <!-- Encore config -->
     <encore>
         <devMode>true</devMode>
@@ -30,7 +35,7 @@
         </fancam>
     </encore>
 
-    <!-- Custom config, follow your definition in code -->
+    <!-- Custom config, follow `CustomConfig` definition in code -->
     <custom>
 
     </custom>

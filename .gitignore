@@ -1,7 +1,6 @@
 ### Custom ###
 .kotlin
 .logs/
-.telemetry/
 deploy/
 assets/
 venue.secret.xml

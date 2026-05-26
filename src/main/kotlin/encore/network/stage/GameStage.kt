@@ -69,7 +69,7 @@ class GameStage(
 
         this.serverSocket = bind()
         listenForConnections(serverSocket)
-        Fancam.info(Tags.Socket) { "Game stage is listening on $host:$port" }
+        Fancam.info(Tags.Socket) { "Game stage is listening on ($host:$port)" }
     }
 
     private suspend fun bind(): ServerSocket {
