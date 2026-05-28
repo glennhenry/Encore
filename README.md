@@ -15,7 +15,7 @@ Encore [version info](https://github.com/glennhenry/Encore/blob/main/src/main/ko
 ```
 readme template
 
-...gameplay image...
+[progress image](./progress.png)
 
 Server emulator for X, developed by X, closed on X.
 
@@ -56,8 +56,8 @@ Docs files to edit:
 - [NO CHANGE] `backstage/favicon.ico` (devtools default icon)
 - [CHANGE] `assets/site/favicon.ico` (game icon) for gameplay website
 - [CHANGE] `docs/public/favicon.ico` (game icon) for docs website
-- [CHANGE] `docs/src/assets/<GameName>.png` (game promo image) for docs intro
-- [CHANGE] `game.png` (gameplay image) for readme preview
+- [CHANGE] `docs/src/assets/<GameName>.png` (gameplay image) for docs intro
+- [CHANGE] `progress.png` (latest progress image) for readme preview
 
 # Server Manual
 
