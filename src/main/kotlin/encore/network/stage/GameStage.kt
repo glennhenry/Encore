@@ -197,7 +197,7 @@ class GameStage(
 
                     Fancam.debug(Tags.Socket) {
                         buildString {
-                            appendLine("[SOCKET DECODE]")
+                            appendLine("[SOCKET DECODE] -> success")
                             appendLine("$INDENT type   : ${fanchant.type.id}")
                             append("$INDENT guide  : ${guide.className()}")
                         }
@@ -212,7 +212,19 @@ class GameStage(
 
         // Allow only one interpretation of the fanchant, if there is multiple
         val (chosenGuide, fanchant) = matched.firstOrNull()
-            ?: (allRounderFanchantGuide to allRounderFanchant(data))
+            ?: run {
+                val guide = allRounderFanchantGuide
+                val chant = allRounderFanchant(data)
+                Fancam.debug(Tags.Socket) {
+                    buildString {
+                        appendLine("[SOCKET DECODE] -> fallback")
+                        appendLine("$INDENT type   : ${chant.type.id}")
+                        append("$INDENT guide  : ${allRounderFanchantGuide.className()}")
+                    }
+                }
+
+                guide to chant
+            }
 
         if (matched.size > 1) {
             Fancam.warn(Tags.Socket) {

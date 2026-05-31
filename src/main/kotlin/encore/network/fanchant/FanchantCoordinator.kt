@@ -65,7 +65,7 @@ class FanchantCoordinator {
                 if (handler == null) {
                     appendLine("[SOCKET DISPATCH] -> fallback")
                 } else {
-                    appendLine("[SOCKET DISPATCH]")
+                    appendLine("[SOCKET DISPATCH] -> success")
                 }
                 appendLine("$INDENT fanchant (str): $fanchant")
                 append("$INDENT handlers      : ${handler?.className() ?: allRounderHandler.className()}")
