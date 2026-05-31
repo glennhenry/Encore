@@ -85,7 +85,10 @@ class DefaultConnection(
         try {
             connectionScope.cancel(CancellationException("Connection closed"))
             connectionScope.coroutineContext.job.join()
+        } catch (_: ClosedWriteChannelException) {
+            // connection is closed during write
         } catch (_: CancellationException) {
+            // connection is closed
         } catch (e: Exception) {
             Fancam.warn(Tags.Socket) { "Scandal during connection shutdown: ${e.message}" }
         }
