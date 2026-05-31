@@ -72,7 +72,7 @@ interface RouteHandler {
  * @param block Request handling block.
  */
 suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
-    val startedAt = TimeCenter.system.now()
+    val startedAt = TimeCenter.now()
     call.attributes.put(ReqResLoggingKey, startedAt)
     Fancam.debug(Tags.Api) { call.stringifyHttpRequest(unhandled = false) }
 

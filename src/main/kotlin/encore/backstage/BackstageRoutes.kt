@@ -106,7 +106,7 @@ class BackstageRoutes(
                 }
 
                 // WALL: user has known token, but expired
-                if (tokenStorage.contains(token) && TimeCenter.system.hasElapsedBy(tokenStorage[token]!!, 1.minutes)) {
+                if (tokenStorage.contains(token) && TimeCenter.hasElapsedBy(tokenStorage[token]!!, 1.minutes)) {
                     Fancam.trace(Tags.Backstage) { "Wall to /backstage: token already expired" }
                     call.respondText(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Token expired"),
@@ -172,7 +172,7 @@ class BackstageRoutes(
         webSocket("/backstage/ws") {
             val token = if (application.developmentMode) {
                 // dev mode uses arbitrary identifier
-                "DEV-${TimeCenter.system.now()}"
+                "DEV-${TimeCenter.now()}"
             } else {
                 // websocket can't send cookie, token cookie for WS is included in the param instead
                 // also verify the token

@@ -44,7 +44,7 @@ fun Application.interceptResponse() {
     sendPipeline.intercept(ApplicationSendPipeline.After) {
         val call = context.request.call
         val startedAt = call.attributes.getOrNull(ReqResLoggingKey) ?: return@intercept
-        val elapsed = TimeCenter.system.elapsedTimeSince(startedAt)
+        val elapsed = TimeCenter.elapsedTimeSince(startedAt)
 
         Fancam.debug(Tags.Api) { call.stringifyHttpResponse(subject, elapsed) }
     }

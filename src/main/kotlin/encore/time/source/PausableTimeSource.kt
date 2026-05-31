@@ -17,7 +17,7 @@ class PausableTimeSource : TimeSource, TimeController {
     private var resumedAt = getTimeMillis()
     private var paused = false
 
-    override fun nowMillis(): Long {
+    override fun now(): Long {
         if (paused) {
             return pausedAt
         }
@@ -27,7 +27,7 @@ class PausableTimeSource : TimeSource, TimeController {
     override fun pause() {
         if (paused) return
 
-        pausedAt = nowMillis()
+        pausedAt = now()
         paused = true
     }
 

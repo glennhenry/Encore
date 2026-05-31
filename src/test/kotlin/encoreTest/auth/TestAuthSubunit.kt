@@ -14,7 +14,7 @@ import encore.datastore.MongoDataStore
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.session.SessionSubunit
-import encore.time.SystemTimekeeper
+import encore.time.source.SystemTimeSource
 import encore.utils.types.Outcome
 import encore.utils.types.okOrThrow
 import initMongo
@@ -47,7 +47,7 @@ class TestAuthSubunit {
         mongoDb.createCollection(TestMongoCollectionName.playerAccount)
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
-        val manager = SessionSubunit(scope(), SystemTimekeeper)
+        val manager = SessionSubunit(scope(), SystemTimeSource())
         val repo = MongoAccountRepository(collection)
         val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
@@ -74,7 +74,7 @@ class TestAuthSubunit {
         mongoDb.createCollection(TestMongoCollectionName.playerAccount)
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
-        val manager = SessionSubunit(scope(), SystemTimekeeper)
+        val manager = SessionSubunit(scope(), SystemTimeSource())
         val repo = MongoAccountRepository(collection)
         val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
@@ -92,7 +92,7 @@ class TestAuthSubunit {
         mongoDb.createCollection(TestMongoCollectionName.playerAccount)
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
-        val manager = SessionSubunit(scope(), SystemTimekeeper)
+        val manager = SessionSubunit(scope(), SystemTimeSource())
         val repo = MongoAccountRepository(collection)
         val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
@@ -111,7 +111,7 @@ class TestAuthSubunit {
         mongoDb.createCollection(TestMongoCollectionName.playerAccount)
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
-        val manager = SessionSubunit(scope(), SystemTimekeeper)
+        val manager = SessionSubunit(scope(), SystemTimeSource())
         val repo = MongoAccountRepository(collection)
         val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
@@ -130,7 +130,7 @@ class TestAuthSubunit {
         mongoDb.createCollection(TestMongoCollectionName.playerAccount)
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
-        val manager = SessionSubunit(scope(), SystemTimekeeper)
+        val manager = SessionSubunit(scope(), SystemTimeSource())
         val repo = MongoAccountRepository(collection)
         val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)
@@ -149,7 +149,7 @@ class TestAuthSubunit {
         mongoDb.createCollection(TestMongoCollectionName.playerAccount)
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
-        val manager = SessionSubunit(scope(), SystemTimekeeper)
+        val manager = SessionSubunit(scope(), SystemTimeSource())
         val repo = object : AccountRepository {
             override suspend fun getAccountByUsername(username: String): Result<PlayerAccount?> = TODO()
             override suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?> = TODO()
@@ -180,7 +180,7 @@ class TestAuthSubunit {
         mongoDb.createCollection(TestMongoCollectionName.playerAccount)
 
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
-        val manager = SessionSubunit(scope(), SystemTimekeeper)
+        val manager = SessionSubunit(scope(), SystemTimeSource())
         val repo = MongoAccountRepository(collection)
         val accountSubunit = AccountSubunit(repo)
         val pcs = PlayerCreationSubunit(db)

@@ -47,7 +47,7 @@ suspend fun createServerContext(
         factory = RealContextFactory(dataStore, collectionName, mongoDatabase)
     )
     val stageActDirector = StageActDirector(
-        timekeeper = TimeCenter.system,
+        timeSource = TimeCenter.source,
         actStore = ActIdStore
     )
     val commandDispatcher = CommandDispatcher()
@@ -56,7 +56,7 @@ suspend fun createServerContext(
     // setup ServerSubunits
     val accountSubunit = AccountSubunit(accountRepository)
     val playerPresenceSubunit = PlayerPresenceSubunit()
-    val sessionSubunit = SessionSubunit(appScope, TimeCenter.system)
+    val sessionSubunit = SessionSubunit(appScope, TimeCenter.source)
     val playerCreationSubunit = PlayerCreationSubunit(dataStore)
     val authSubunit = AuthSubunit(accountSubunit, playerCreationSubunit, sessionSubunit)
 

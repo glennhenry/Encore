@@ -101,7 +101,7 @@ class PlayerCreationSubunit(private val dataStore: DataStore) : Subunit<ServerSc
     }
 
     private fun defaultProfile(playerId: PlayerId): Profile {
-        val now = TimeCenter.system.now()
+        val now = TimeCenter.now()
         return Profile(
             playerId = playerId,
             createdAt = now,

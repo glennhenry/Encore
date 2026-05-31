@@ -55,7 +55,7 @@ object Ids {
      * Returns the current epoch time in milliseconds as a string.
      */
     fun time(): String {
-        return TimeCenter.system.now().toString()
+        return TimeCenter.now().toString()
     }
 
     /**

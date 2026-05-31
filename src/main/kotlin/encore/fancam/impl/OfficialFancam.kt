@@ -163,7 +163,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
         level: Level, throwable: Throwable? = null
     ): LogEvent = LogEvent(
         message = msg,
-        timestamp = TimeCenter.system.now(),
+        timestamp = TimeCenter.now(),
         level = level,
         tag = tag,
         logFull = false,

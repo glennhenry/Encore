@@ -28,10 +28,10 @@ fun acceptsTerminalInput(appScope: CoroutineScope, backstageToken: ConcurrentHas
                     "token" -> {
                         val token = Ids.uuid()
                         println(token)
-                        backstageToken[token] = TimeCenter.system.now()
+                        backstageToken[token] = TimeCenter.now()
                         val toRemove = mutableListOf<String>()
                         backstageToken.forEach { (token, millis) ->
-                            if (TimeCenter.system.hasElapsedBy(millis, 1.minutes)) {
+                            if (TimeCenter.hasElapsedBy(millis, 1.minutes)) {
                                 toRemove.add(token)
                             }
                         }

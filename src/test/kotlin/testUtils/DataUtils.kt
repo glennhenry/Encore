@@ -17,7 +17,7 @@ fun createAccount(playerId: PlayerId, username: String, password: String): Playe
 }
 
 fun createProfile(playerId: PlayerId): Profile {
-    val now = TimeCenter.system.now()
+    val now = TimeCenter.now()
     return Profile(
         playerId = playerId,
         createdAt = now,

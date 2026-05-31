@@ -15,8 +15,8 @@ import encore.datastore.collection.PlayerId
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
-import encore.time.SystemTimekeeper
-import encore.time.Timekeeper
+import encore.time.source.SystemTimeSource
+import encore.time.source.TimeSource
 import encore.websocket.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.EmptyCoroutineContext
@@ -47,7 +47,7 @@ data class ServerContext(
          * Creates a test instance of [ServerContext].
          *
          * @param parentScope `CoroutineScope` for [SessionSubunit].
-         * @param timekeeper [Timekeeper] for [StageActDirector].
+         * @param timeSource [TimeSource] for [StageActDirector].
          * @param dataStore Also used to build [PlayerCreationSubunit].
          * @param accountRepository Used to build [AccountSubunit].
          * @param contextFactory Required by [ContextRegistry],
@@ -55,7 +55,7 @@ data class ServerContext(
          */
         fun createForTest(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-            timekeeper: Timekeeper = SystemTimekeeper,
+            timeSource: TimeSource = SystemTimeSource(),
             dataStore: DataStore = BlankDataStore(),
             accountRepository: AccountRepository = BlankAccountRepository(),
             contextFactory: ContextFactory = FakeContextFactory(emptyMap())
@@ -68,7 +68,7 @@ data class ServerContext(
                 dataStore = dataStore,
                 contextRegistry = ContextRegistry(contextFactory),
                 commandDispatcher = CommandDispatcher(),
-                stageActDirector = StageActDirector(timekeeper, ActIdStore),
+                stageActDirector = StageActDirector(timeSource, ActIdStore),
                 webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(
                     account = account,

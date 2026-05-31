@@ -2,7 +2,6 @@ package testUtils
 
 import encore.time.source.TimeController
 import encore.time.source.TimeSource
-import encore.time.Timekeeper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 
@@ -15,12 +14,12 @@ class VirtualTimeSource(private val scope: TestScope) : TimeSource, TimeControll
     override val controller: TimeController = this
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun nowMillis(): Long = scope.testScheduler.currentTime
+    override fun now(): Long = scope.testScheduler.currentTime
 }
 
 /**
- * Shorthand to create a [Timekeeper] with [VirtualTimeSource].
+ * Shorthand to create a [TimeSource] with [VirtualTimeSource].
  */
-fun virtualTimekeeper(scope: TestScope): Timekeeper {
-    return Timekeeper(VirtualTimeSource(scope))
+fun virtualTimeSource(scope: TestScope): TimeSource {
+    return VirtualTimeSource(scope)
 }

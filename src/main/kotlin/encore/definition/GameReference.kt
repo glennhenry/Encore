@@ -61,15 +61,15 @@ object GameReference {
         }
         initializeState = 1
 
-        val start1 = TimeCenter.system.now()
+        val start1 = TimeCenter.now()
         Fancam.info(Tags.Reference) { "Initializing GameReference..." }
 
         val ctx = InitContext()
         ctx.block()
         ctx.entries.forEach { (source, loader) ->
-            val start2 = TimeCenter.system.now()
+            val start2 = TimeCenter.now()
             val definitions = loader.produce(source)
-            val finish2 = (TimeCenter.system.now() - start2).milliseconds
+            val finish2 = (TimeCenter.now() - start2).milliseconds
             Fancam.trace(Tags.Reference) {
                 "Loaded '${source.className()}' by '${loader.className()}' in ${finish2}, produced ${definitions.size} definition entries."
             }
@@ -77,7 +77,7 @@ object GameReference {
             definitions.forEach { registry[it::class] = it }
         }
 
-        Fancam.info(Tags.Reference) { "GameReference initialized in ${(TimeCenter.system.now() - start1).milliseconds}" }
+        Fancam.info(Tags.Reference) { "GameReference initialized in ${(TimeCenter.now() - start1).milliseconds}" }
         initializeState = 2
     }
 

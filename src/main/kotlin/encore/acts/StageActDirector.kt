@@ -4,9 +4,8 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
 import encore.fancam.Tags
-import encore.time.TimeCenter
-import encore.time.Timekeeper
 import encore.time.source.SystemTimeSource
+import encore.time.source.TimeSource
 import encore.utils.identifier.Ids
 import encore.utils.identifier.shortUuid
 import encore.utils.support.className
@@ -109,12 +108,11 @@ import kotlin.time.Duration.Companion.milliseconds
  * - delete persisted progress data
  * - notify client
  *
- * @property timekeeper Component that provides time.
- *                      Use [Timekeeper] with [SystemTimeSource] for real usage.
+ * @property timeSource Component that provides time. Use [SystemTimeSource] for real usage.
  * @property actStore Provides storage and access for running act identifiers.
  */
 class StageActDirector(
-    private val timekeeper: Timekeeper,
+    private val timeSource: TimeSource,
     private val actStore: ActIdStore
 ) {
     private val activeActs = mutableMapOf<String, Job>()
@@ -173,7 +171,7 @@ class StageActDirector(
         callOnStart: Boolean,
         performDirectly: Boolean
     ): String {
-        val startedAt = timekeeper.now()
+        val startedAt = timeSource.now()
         val id = Ids.uuid()
         val choreo = act.choreography(concept)
 
@@ -195,7 +193,7 @@ class StageActDirector(
                         }
                     }
 
-                    val now = timekeeper.now()
+                    val now = timeSource.now()
                     firstPerformAt = now
                     previousPerformAt = now
                     act.perform(concept, 1)
@@ -203,7 +201,7 @@ class StageActDirector(
                 }
 
                 while (true) {
-                    val now = timekeeper.now()
+                    val now = timeSource.now()
                     val delay = choreo.next(
                         concept = concept,
                         context = ChoreographyContext(
@@ -225,7 +223,7 @@ class StageActDirector(
                     }
 
                     if (delay > 0) delay(delay.milliseconds)
-                    if (firstPerformAt == null) firstPerformAt = timekeeper.now()
+                    if (firstPerformAt == null) firstPerformAt = timeSource.now()
 
                     act.perform(concept, ++performCount)
                 }
@@ -257,7 +255,7 @@ class StageActDirector(
     val formatter = SimpleDateFormat("HH:mm:ss")
 
     fun formatFinishTime(delay: Long): String {
-        val future = (TimeCenter.system.now() + delay)
+        val future = (timeSource.now() + delay)
         val formattedDuration = delay.milliseconds.toComponents { days, hours, minutes, seconds, _ ->
             String.format("%01dd %01dhr %01dm %01ds", days, hours, minutes, seconds)
         }

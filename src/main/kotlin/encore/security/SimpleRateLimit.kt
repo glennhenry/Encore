@@ -1,6 +1,6 @@
 package encore.security
 
-import encore.time.Timekeeper
+import encore.time.source.TimeSource
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.seconds
 class SimpleRateLimit(
     private val timeWindow: Long = 10.seconds.inWholeMilliseconds,
     private val maxRequests: Int = 30,
-    private val timekeeper: Timekeeper
+    private val timeSource: TimeSource
 ) {
     private data class Entry(var count: Int, var expiresAt: Long)
 
@@ -28,7 +28,7 @@ class SimpleRateLimit(
      * Returning `false` indicates the request has been rate limited.
      */
     fun allow(remoteHost: String): Boolean {
-        val now = timekeeper.now()
+        val now = timeSource.now()
 
         val entry = entries.getOrPut(remoteHost) {
             Entry(count = 0, expiresAt = now + timeWindow)

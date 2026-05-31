@@ -100,7 +100,7 @@ class TrackEventBuilder(
 
     private fun create(): TrackEvent = TrackEvent(
         name = name,
-        timestamp = TimeCenter.system.now(),
+        timestamp = TimeCenter.now(),
         data = data,
         route = route,
         tags = tags,

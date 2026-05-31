@@ -14,7 +14,6 @@ import encore.route.guard.DefaultSecurity
 import encore.subunit.scope.PlayerScope
 import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
-import encore.time.Timekeeper
 import encore.time.source.SystemTimeSource
 import encore.venue.Venue
 import encore.websocket.handler.WsCommandHandler
@@ -60,14 +59,11 @@ val SystemTimezone: ZoneId = ZoneId.systemDefault()
  */
 suspend fun Application.configureApplication() {
     // install system time
-    TimeCenter.update(
-        system = Timekeeper(SystemTimeSource()),
-        game = Timekeeper(SystemTimeSource())
-    )
+    TimeCenter.update(source = SystemTimeSource())
 
     // configure security
     val bannedAddresses = mutableSetOf<String>()
-    val security = DefaultSecurity(bannedAddresses, TimeCenter.system)
+    val security = DefaultSecurity(bannedAddresses, TimeCenter.source)
 
     // setup the framework
     val (mongoc, db) = installEncore(
@@ -175,7 +171,7 @@ fun GameStageInitContext.lifecycleHooks() {
         val pid = connection.playerId
         if (pid != UndeterminedIdentity) {
             serverContext.subunits.presence.markOffline(pid)
-            serverContext.subunits.account.updateLastActivity(pid, TimeCenter.system.now())
+            serverContext.subunits.account.updateLastActivity(pid, TimeCenter.now())
             serverContext.contextRegistry.getContext(pid)
                 ?.subunits
                 ?.all()

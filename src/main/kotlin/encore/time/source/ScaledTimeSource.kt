@@ -4,7 +4,7 @@ import io.ktor.util.date.getTimeMillis
 
 /**
  * An implementation of [TimeSource] where the time returned from
- * [nowMillis] is scaled by some amount that can be modified from [setScale].
+ * [now] is scaled by some amount that can be modified from [setScale].
  *
  * Implemented time control operation:
  * - [setScale]
@@ -16,14 +16,14 @@ class ScaledTimeSource : TimeSource, TimeController {
     private var anchorMillis = realMillis
     private var scale = 1.0
 
-    override fun nowMillis(): Long {
+    override fun now(): Long {
         val realElapsedTime = getTimeMillis() - realMillis
         val scaledElapsedTime = (realElapsedTime * scale).toLong()
         return anchorMillis + scaledElapsedTime
     }
 
     override fun setScale(scale: Double) {
-        anchorMillis = nowMillis()
+        anchorMillis = now()
         realMillis = getTimeMillis()
         this.scale = scale
     }

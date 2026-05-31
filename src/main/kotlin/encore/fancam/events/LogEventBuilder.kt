@@ -90,7 +90,7 @@ class LogEventBuilder(
         onLogCalled(
             LogEvent(
                 message = message,
-                timestamp = TimeCenter.system.now(),
+                timestamp = TimeCenter.now(),
                 level = level,
                 tag = tag,
                 logFull = full,
@@ -114,7 +114,7 @@ class LogEventBuilder(
         onLogCalled(
             LogEvent(
                 message = message,
-                timestamp = TimeCenter.system.now(),
+                timestamp = TimeCenter.now(),
                 level = level,
                 tag = tag,
                 logFull = true,
