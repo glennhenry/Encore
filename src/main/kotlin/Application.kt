@@ -5,7 +5,6 @@ import encore.backstage.command.ExampleCommand
 import encore.context.ServerContext
 import encore.datastore.MongoCollectionName
 import encore.definition.GameReference
-import encore.fancam.Fancam
 import encore.network.lifecycle.PlayerLifecycle
 import encore.network.stage.GameStage
 import encore.network.stage.GameStageInitContext
@@ -89,6 +88,9 @@ suspend fun Application.configureApplication() {
         mongoDatabase = db
     )
 
+    // initialize GameReference and register definitions
+    gameReference()
+
     // create admin account
     if (Venue.encore.adminEnabled) {
         serverContext.subunits.creation.createAdmin(Globals, alwaysRecreate = false)
@@ -99,9 +101,6 @@ suspend fun Application.configureApplication() {
 
     // register commands
     commandHandlers(serverContext)
-
-    // initialize GameReference and register definitions
-    gameReference()
 
     // configure routing
     // ephemeral token storage for /backstage entry
@@ -123,7 +122,7 @@ suspend fun Application.configureApplication() {
     ) {
         lifecycleHooks()
         fanchantGuides()
-        handlers()
+        handlers(serverContext)
     }
 
     val servers = buildList<Stage> {
@@ -192,7 +191,7 @@ fun GameStageInitContext.fanchantGuides() {
     // guide()
 }
 
-fun GameStageInitContext.handlers() {
+fun GameStageInitContext.handlers(serverContext: ServerContext) {
     // register handlers
 
     // handler()
