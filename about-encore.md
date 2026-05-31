@@ -1,6 +1,10 @@
-# History
+# About Encore
 
-## Private Server Development
+Encore is a code template used to prototype an online game private server quickly.
+
+## History
+
+### Private Server Development
 
 The framework originated from a private server development of a dead online game around July 2025.
 
@@ -34,7 +38,7 @@ Overall, many things were repetition of older projects. Most basic components ar
 
 At that time, the codebase wasn't a template or framework yet, I simply kep1 refactoring the code while I encounter problems.
 
-## Beginning of the Framework
+### Beginning of the Framework
 
 On Nov 2025, I got the idea of creating a skeleton version of the code. I stripped down the implementation layer of my most advanced project. This results in an "empty game server template." Adapation becomes easier as I only need to rename some identifiers and start implementing the game behavior with the same mental model.
 
@@ -50,7 +54,7 @@ Primarily, I was motivated by Chinese MMO private servers. They make a lot of pr
 - Old school online game reminds a specific vibes: early internet, forum board, IRC, unique user interface.
 - Keygen software is very specific: you want to play a game, but it's paid, so you had to dive over the internet and risk your computer a malware. The musics were memorable, cybercore visuals, anime or ASCII art intro, etc. Searching for the keygen feels like an internet adventure which gives similar vibe during reverse engineer.
 
-## Encore
+### Encore
 
 With all of these ideas combined, I decided to create a personal tool, a server kit, a framework to help me implement a private server. The framework should have a cool name and logo, branded with a personality, delivered with an ASCII banner, and may be operated within a desktop client app (like XAMPP).
 
@@ -60,7 +64,7 @@ After some brainstorming, I eventually picked "Encore" as the framework name. In
 
 The logo is dark and glows in pink. This is based on my favorite color pink and black which makes a good combination. The dark side represents a dying area, while the glowy pink represents a life in a darkness. This connects with game revival idea: a dead game but enthusiastic fans tries to relive it. It's not a complete dark because it is currently being revived, likewise not a complete light because the revival is and fan-based.
 
-### K-pop
+#### K-pop
 
 I thought of inserting K-pop as an identity into the framework, more than just a framework name. Although it's cringe at first, I realize that many terminologies actually fits.
 
@@ -84,7 +88,7 @@ Some of the renamed codebase terminologies:
 
 The idea of K-pop in a somewhat hacky environment produces giggles during coding. I inserted easter eggs into the codebase which makes it more satisfying.
 
-## Ending & Credits
+### Ending & Credits
 
 Started from Nov 2025, refactored from early Feb 2026 to late May 2026, the first organized version.
 
