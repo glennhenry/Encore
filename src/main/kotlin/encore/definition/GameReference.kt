@@ -71,7 +71,7 @@ object GameReference {
             val definitions = loader.produce(source)
             val finish2 = (TimeCenter.system.now() - start2).milliseconds
             Fancam.trace(Tags.Reference) {
-                "Loaded '${source.className()}' in ${finish2}ms, produced ${definitions.size} definition entries."
+                "Loaded '${source.className()}' by '${loader.className()}' in ${finish2}, produced ${definitions.size} definition entries."
             }
 
             definitions.forEach { registry[it::class] = it }
@@ -84,11 +84,14 @@ object GameReference {
     /**
      * Retrieves a registered [GameDefinition] of type [T].
      *
-     * @throws IllegalArgumentException if no definition of the requested type is registered.
+     * @throws IllegalArgumentException if the requested definition is not registered.
      */
     inline fun <reified T : Any> get(): T {
         return registry[T::class] as? T
-            ?: throw IllegalArgumentException("Class ${T::class.simpleName} is not registered.")
+            ?: throw IllegalArgumentException(
+                "GameDefintion <${T::class.simpleName}> is not registered. " +
+                        "Call GameReference.initialize() and provide the definition first."
+            )
     }
 }
 
