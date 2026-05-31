@@ -83,6 +83,7 @@ suspend fun Application.configureApplication() {
     val serverContext = createServerContext(
         appScope = appScope,
         serverSubunitScope = serverSubunitScope,
+        collectionName = MongoCollectionName,
         mongoClient = mongoc,
         mongoDatabase = db
     )

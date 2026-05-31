@@ -13,6 +13,7 @@ import encore.backstage.command.CommandDispatcher
 import encore.context.ContextRegistry
 import encore.context.ServerContext
 import encore.context.ServerSubunits
+import encore.datastore.MongoCollectionName
 import encore.datastore.MongoDataStore
 import encore.presence.PlayerPresenceSubunit
 import encore.session.SessionSubunit
@@ -29,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 suspend fun createServerContext(
     appScope: CoroutineScope,
     serverSubunitScope: ServerScope,
+    collectionName: MongoCollectionName,
     mongoClient: MongoClient,
     mongoDatabase: MongoDatabase
 ): ServerContext {
@@ -41,7 +43,9 @@ suspend fun createServerContext(
         accountCollection = mongoDatabase.getCollection(MongoCollectionName.playerAccount)
     )
     // RealContextFactory must be updated overtime to update PlayerSubunits construction
-    val contextRegistry = ContextRegistry(factory = RealContextFactory(dataStore))
+    val contextRegistry = ContextRegistry(
+        factory = RealContextFactory(dataStore, collectionName, mongoDatabase)
+    )
     val stageActDirector = StageActDirector(
         timekeeper = TimeCenter.system,
         actStore = ActIdStore

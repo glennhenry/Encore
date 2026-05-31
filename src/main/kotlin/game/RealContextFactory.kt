@@ -1,9 +1,11 @@
 package game
 
+import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.context.ContextFactory
 import encore.context.PlayerContext
 import encore.context.PlayerSubunits
 import encore.datastore.DataStore
+import encore.datastore.MongoCollectionName
 import encore.datastore.collection.PlayerId
 import encore.network.transport.Connection
 import encore.subunit.scope.PlayerScope
@@ -15,7 +17,11 @@ import encore.subunit.scope.PlayerScope
  *
  * @property dataStore [DataStore] instance to retrieve player's data.
  */
-class RealContextFactory(private val dataStore: DataStore) : ContextFactory {
+class RealContextFactory(
+    private val dataStore: DataStore,
+    private val collectionName: MongoCollectionName,
+    private val mongoDatabase: MongoDatabase
+) : ContextFactory {
     override suspend fun createContext(
         playerId: PlayerId,
         connection: Connection
