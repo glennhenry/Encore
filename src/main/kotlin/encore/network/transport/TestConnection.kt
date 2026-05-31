@@ -72,8 +72,16 @@ class TestConnection(
         writtenBytes += input
     }
 
-    override fun acknowledge(playerId: PlayerId, username: String) {
+    override fun updateIdentity(playerId: PlayerId, username: String) {
         identity.playerId = playerId
+        identity.username = username
+    }
+
+    override fun updatePlayerId(playerId: PlayerId) {
+        identity.playerId = playerId
+    }
+
+    override fun updateUsername(username: String) {
         identity.username = username
     }
 

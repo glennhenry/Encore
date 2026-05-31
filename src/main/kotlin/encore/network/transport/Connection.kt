@@ -54,9 +54,19 @@ interface Connection {
     suspend fun write(input: ByteArray, logOutput: Boolean = true, logFull: Boolean = false)
 
     /**
-     * Acknowledge this connection and attach identity information.
+     * Update this connection's identity information.
      */
-    fun acknowledge(playerId: PlayerId, username: String)
+    fun updateIdentity(playerId: PlayerId, username: String)
+
+    /**
+     * Update this connection's [playerId].
+     */
+    fun updatePlayerId(playerId: PlayerId)
+
+    /**
+     * Update this connection's [username].
+     */
+    fun updateUsername(username: String)
 
     /**
      * Closes the connection and performs clean-up.
