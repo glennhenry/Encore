@@ -23,7 +23,7 @@ fun ByteArray.startsWithBytes(prefix: ByteArray): Boolean {
  * println(text.safeAsciiString()) // hello world ? 123
  * ```
  */
-fun ByteArray.safeAsciiString(replaceWith: Char = '?'): String {
+fun ByteArray.safeAsciiString(replaceWith: Char = '�'): String {
     val decoded = decodeToString()
     val sb = StringBuilder()
     var lastWasReplacement = false
