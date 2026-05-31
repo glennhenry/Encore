@@ -1,6 +1,6 @@
 # Encore
 
-<img src="game.png" alt="gameplay image" width=200/>
+<img src="progress.png" alt="encore logo" width=200/>
 
 ## About
 
@@ -15,7 +15,7 @@ Encore [version info](https://github.com/glennhenry/Encore/blob/main/src/main/ko
 ```
 readme template
 
-[progress image](./progress.png)
+<img src="progress.png" alt="gameplay image" width=200/>
 
 Server emulator for X, developed by X, closed on X.
 
