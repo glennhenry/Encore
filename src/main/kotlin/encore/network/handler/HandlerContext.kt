@@ -1,5 +1,6 @@
 package encore.network.handler
 
+import encore.datastore.collection.PlayerId
 import encore.network.fanchant.Fanchant
 import encore.network.transport.Connection
 
@@ -14,3 +15,7 @@ data class HandlerContext<out T : Fanchant>(
     val connection: Connection,
     val fanchant: T
 )
+
+fun HandlerContext<*>.playerId(): PlayerId {
+    return connection.playerId
+}
