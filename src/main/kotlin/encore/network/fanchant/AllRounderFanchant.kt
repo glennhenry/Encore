@@ -15,6 +15,6 @@ class AllRounderFanchant(val decoded: String) : Fanchant {
     override fun toString(): String = decoded
 }
 
-object AllRounderFanchantType: FanchantType<AllRounderFanchant> {
+object AllRounderFanchantType: FanchantType<Fanchant> {
     override val id: String = "N/A"
 }

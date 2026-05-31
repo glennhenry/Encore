@@ -2,8 +2,8 @@ package encore.network.handler
 
 import encore.fancam.Fancam
 import encore.fancam.Tags
-import encore.network.fanchant.AllRounderFanchant
 import encore.network.fanchant.AllRounderFanchantType
+import encore.network.fanchant.Fanchant
 import encore.network.fanchant.FanchantType
 
 /**
@@ -15,10 +15,10 @@ import encore.network.fanchant.FanchantType
  * It can also be used as a place to quickly prototype a response without
  * actually implementing a strict fanchant guide or fanchant class.
  */
-class AllRounderHandler : FanchantHandler<AllRounderFanchant> {
-    override val fanchantType: FanchantType<AllRounderFanchant> = AllRounderFanchantType
+class AllRounderHandler : FanchantHandler<Fanchant> {
+    override val fanchantType: FanchantType<Fanchant> = AllRounderFanchantType
 
-    override suspend fun handle(ctx: HandlerContext<AllRounderFanchant>) = with(ctx) {
+    override suspend fun handle(ctx: HandlerContext<Fanchant>) = with(ctx) {
         Fancam.warn(Tags.Socket) { "No handler for fanchant of type ${fanchant.type.id}" }
 
         // directly respond here...
