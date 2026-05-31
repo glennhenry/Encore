@@ -10,6 +10,7 @@ import encore.network.lifecycle.PlayerLifecycle
 import encore.network.stage.GameStage
 import encore.network.stage.GameStageInitContext
 import encore.network.stage.Stage
+import encore.network.transport.UndeterminedIdentity
 import encore.route.guard.DefaultSecurity
 import encore.subunit.scope.PlayerScope
 import encore.subunit.scope.ServerScope
@@ -173,7 +174,7 @@ fun GameStageInitContext.lifecycleHooks() {
     hook(PlayerLifecycle.OnDisconnect, "Player cleanup") { serverContext, connection ->
         // Only perform cleanup if playerId is set (player was authenticated)
         val pid = connection.playerId
-        if (pid != "[Undetermined]") {
+        if (pid != UndeterminedIdentity) {
             serverContext.subunits.presence.markOffline(pid)
             serverContext.subunits.account.updateLastActivity(pid, TimeCenter.system.now())
             serverContext.contextRegistry.getContext(pid)

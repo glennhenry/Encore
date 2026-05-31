@@ -23,12 +23,12 @@ interface Connection {
     /**
      * Shorthand for [ConnectionIdentity.playerId]
      */
-    val playerId: PlayerId get() = identity.playerId ?: "[Undetermined]"
+    val playerId: PlayerId get() = identity.playerId ?: UndeterminedIdentity
 
     /**
      * Shorthand for [ConnectionIdentity.username]
      */
-    val username: String get() = identity.username ?: "[Undetermined]"
+    val username: String get() = identity.username ?: UndeterminedIdentity
 
     /**
      * Shorthand for [ConnectionIdentity.remoteAddress]

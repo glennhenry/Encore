@@ -36,3 +36,5 @@ data class ConnectionIdentity(
         }
     }
 }
+
+const val UndeterminedIdentity = "[Undetermined]"
