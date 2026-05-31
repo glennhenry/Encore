@@ -166,9 +166,10 @@ fun errorHtml(code: Int, message: String): String {
 
 suspend fun configureDatabase(): Pair<MongoClient, MongoDatabase> {
     val mongoc = MongoClient.create(Venue.encore.database.dbUrl)
-    val db = mongoc.getDatabase("admin")
-    val commandResult = db.runCommand(Document("ping", 1))
+    val testDb = mongoc.getDatabase("admin")
+    val commandResult = testDb.runCommand(Document("ping", 1))
     Fancam.info(Tags.Startup) { "MongoDB connection successful: $commandResult" }
+    val db = mongoc.getDatabase(Venue.encore.database.dbName)
     return mongoc to db
 }
 
