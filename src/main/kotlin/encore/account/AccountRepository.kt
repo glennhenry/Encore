@@ -21,17 +21,6 @@ import encore.account.model.Profile
  */
 interface AccountRepository {
     /**
-     * Returns [PlayerAccount] associated with the given [playerId], if it exists.
-     *
-     * Returns [Result.success] with:
-     * - the [PlayerAccount] if found
-     * - `null` if no account exists for the given [playerId]
-     *
-     * Returns [Result.failure] if an error occurs while retrieving the data.
-     */
-    suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?>
-
-    /**
      * Returns [PlayerAccount] associated with the given [username], if it exists.
      *
      * Returns [Result.success] with:
@@ -52,6 +41,17 @@ interface AccountRepository {
      * Returns [Result.failure] if an error occurs while retrieving the data.
      */
     suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?>
+
+    /**
+     * Returns [Profile] associated with the given [playerId], if it exists.
+     *
+     * Returns [Result.success] with:
+     * - the [Profile] if found
+     * - `null` if no account exists for the given [playerId]
+     *
+     * Returns [Result.failure] if an error occurs while retrieving the data.
+     */
+    suspend fun getProfile(playerId: PlayerId): Result<Profile?>
 
     /**
      * Returns the [Credentials] of the provided [username], if the account exists.

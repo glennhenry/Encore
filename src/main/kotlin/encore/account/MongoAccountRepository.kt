@@ -16,14 +16,6 @@ import org.bson.codecs.pojo.annotations.BsonId
  * [AccountRepository] implementation using MongoDB.
  */
 class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccount>) : AccountRepository {
-    override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount> {
-        return runMongoCatching {
-            accountCollection
-                .find(Filters.eq(FieldPlayerId, playerId))
-                .firstOrNull()
-        }
-    }
-
     override suspend fun getAccountByUsername(username: String): Result<PlayerAccount> {
         return runMongoCatching {
             accountCollection
@@ -45,6 +37,17 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
                 )
                 .firstOrNull()
                 ?.playerId
+        }
+    }
+
+    override suspend fun getProfile(playerId: PlayerId): Result<Profile?> {
+        return runMongoCatching {
+            accountCollection
+                .withDocumentClass<QueryProfile>()
+                .find(Filters.eq(FieldPlayerId, playerId))
+                .projection(Projections.include(FieldProfile))
+                .firstOrNull()
+                ?.profile
         }
     }
 
@@ -138,4 +141,12 @@ data class QueryCredentials(
     @field:BsonId val id: String? = null,
     val playerId: PlayerId,
     val hashedPassword: String
+)
+
+/**
+ * Mongo projection class to query the `profile` of [PlayerAccount].
+ */
+data class QueryProfile(
+    @field:BsonId val id: String? = null,
+    val profile: Profile
 )

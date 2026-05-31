@@ -151,12 +151,11 @@ class TestAuthSubunit {
         val db = MongoDataStore(mongoDb, TestMongoCollectionName)
         val manager = SessionSubunit(scope(), SystemTimekeeper)
         val repo = object : AccountRepository {
-            override suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?> = TODO()
             override suspend fun getAccountByUsername(username: String): Result<PlayerAccount?> = TODO()
             override suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?> = TODO()
             override suspend fun getCredentials(username: String): Result<Credentials?> =
                 Result.failure(RuntimeException("xiaoting"))
-
+            override suspend fun getProfile(playerId: PlayerId): Result<Profile?> = TODO()
             override suspend fun updatePlayerAccount(playerId: PlayerId, account: PlayerAccount): Result<Unit> = TODO()
             override suspend fun updateProfile(playerId: PlayerId, profile: Profile): Result<Unit> = TODO()
             override suspend fun updateLastActivity(playerId: PlayerId, lastActivity: Long): Result<Unit> = TODO()

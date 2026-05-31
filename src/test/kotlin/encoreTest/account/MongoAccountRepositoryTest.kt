@@ -3,6 +3,7 @@ package encoreTest.account
 import TestMongoCollectionName
 import encore.account.MongoAccountRepository
 import encore.account.model.Credentials
+import encore.account.model.Profile
 import encore.datastore.collection.PlayerAccount
 import encore.utils.identifier.Ids
 import encore.utils.hash
@@ -39,7 +40,6 @@ class MongoAccountRepositoryTest {
 
         collection.insertMany(List(20) { account() } + account)
 
-        assertEquals(account.playerId, repo.getAccountByPlayerId(id).getOrThrow().playerId)
         assertEquals(account.playerId, repo.getAccountByUsername(name).getOrThrow().playerId)
         assertEquals(id, repo.getPlayerIdByUsername(name).getOrThrow())
         assertEquals(Credentials(id, account.hashedPassword), repo.getCredentials(name).getOrThrow())
@@ -58,6 +58,11 @@ class MongoAccountRepositoryTest {
 
         repo.updateLastActivity(newId, 1000)
         assertEquals(1000, repo.getAccountByUsername(name).getOrThrow().profile.lastActiveAt)
+
+        repo.updateProfile(newId, Profile(newId, createdAt = 1234, lastActiveAt = 5678))
+        val pr = repo.getAccountByUsername(name).getOrThrow().profile
+        assertEquals(1234, pr.createdAt)
+        assertEquals(5678, pr.lastActiveAt)
 
         assertTrue(repo.usernameExists(name).getOrThrow())
         assertTrue(repo.emailExists(email).getOrThrow())
