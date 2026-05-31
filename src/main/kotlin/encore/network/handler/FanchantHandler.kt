@@ -2,6 +2,7 @@ package encore.network.handler
 
 import encore.network.fanchant.Fanchant
 import encore.network.fanchant.FanchantType
+import encore.network.transport.Connection
 
 /**
  * Represent a handler for network messages.
@@ -47,9 +48,8 @@ interface FanchantHandler<T : Fanchant> {
     /**
      * Handles an incoming [Fanchant] with the given handler [ctx].
      *
-     * @param ctx Context of message handling. This contains the materialized message,
-     *            player's metadata (e.g., player ID), and transport method
-     *            [HandlerContext.sendRaw] for sending responses.
+     * @param ctx Required information for message handling.
+     *            This contains the materialized message and the player's [Connection] object.
      */
     suspend fun handle(ctx: HandlerContext<T>)
 }

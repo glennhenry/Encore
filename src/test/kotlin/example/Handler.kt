@@ -102,7 +102,7 @@ class DotSeparatedHandler: FanchantHandler<DotSeparatedFanchant> {
     override suspend fun handle(ctx: HandlerContext<DotSeparatedFanchant>) = with(ctx) {
         if (fanchant.payload.contains("|")) {
             val messageToSend = "RESPONSE.EX.FAIL"
-            sendRaw(messageToSend.toByteArray())
+            ctx.connection.write(messageToSend.toByteArray())
         } else {
             val cleanPayload = fanchant.payload.substringAfter("MSG1.EX.").split(".")
             val result = StringBuilder()
@@ -112,7 +112,7 @@ class DotSeparatedHandler: FanchantHandler<DotSeparatedFanchant> {
             }
 
             val messageToSend = "RESPONSE.EX.$result"
-            sendRaw(messageToSend.toByteArray())
+            ctx.connection.write(messageToSend.toByteArray())
         }
     }
 }

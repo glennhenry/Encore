@@ -7,7 +7,6 @@ import encore.context.ServerContext
 import encore.datastore.collection.PlayerAccount
 import encore.datastore.collection.PlayerId
 import encore.network.fanchant.Fanchant
-import encore.network.handler.DefaultHandlerContext
 import encore.network.handler.HandlerContext
 import encore.network.transport.ConnectionIdentity
 import encore.network.transport.TestConnection
@@ -37,7 +36,7 @@ data class HandlerTestState<T : Fanchant>(
     val playerContext = PlayerContext(playerId, connection, account, subunits)
     val contextFactory = FakeContextFactory(mapOf(playerId to playerContext))
     val serverContext = ServerContext.createForTest(contextFactory = contextFactory)
-    val handlerContext: HandlerContext<T> = DefaultHandlerContext(
+    val handlerContext: HandlerContext<T> = HandlerContext(
         fanchant = message,
         connection = connection
     )

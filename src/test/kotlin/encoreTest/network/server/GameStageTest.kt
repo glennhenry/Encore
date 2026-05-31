@@ -283,21 +283,21 @@ object Fc4Type : FanchantType<Fc4> {
 class Fc1Handler : FanchantHandler<Fc1> {
     override val fanchantType: FanchantType<Fc1> = Fc1Type
     override suspend fun handle(ctx: HandlerContext<Fc1>) {
-        ctx.sendRaw(byteArrayOf(1, 1, 1))
+        ctx.connection.write(byteArrayOf(1, 1, 1))
     }
 }
 
 class Fc2Handler : FanchantHandler<Fc2> {
     override val fanchantType: FanchantType<Fc2> = Fc2Type
     override suspend fun handle(ctx: HandlerContext<Fc2>) {
-        ctx.sendRaw(byteArrayOf(2, 2, 2))
+        ctx.connection.write(byteArrayOf(2, 2, 2))
     }
 }
 
 class Fc3Handler : FanchantHandler<Fc3> {
     override val fanchantType: FanchantType<Fc3> = Fc3Type
     override suspend fun handle(ctx: HandlerContext<Fc3>) {
-        ctx.sendRaw(byteArrayOf(3, 3, 3))
+        ctx.connection.write(byteArrayOf(3, 3, 3))
     }
 }
 

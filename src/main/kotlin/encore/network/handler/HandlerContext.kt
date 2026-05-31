@@ -1,33 +1,16 @@
 package encore.network.handler
 
-import encore.datastore.collection.PlayerId
 import encore.network.fanchant.Fanchant
-import encore.network.transport.ConnectionIdentity
+import encore.network.transport.Connection
 
 /**
  * Encapsulate objects and data needed by handlers to handle network messages.
  *
+ * @property connection The [Connection] object of the player.
+ * @property fanchant The received network message to be handled.
  * @param T Concrete type of the message.
  */
-interface HandlerContext<out T : Fanchant> {
-    /**
-     * The identifier for the player's connection.
-     */
-    val connectionIdentity: ConnectionIdentity
-
-    /**
-     * The received network message to be handled.
-     */
+data class HandlerContext<out T : Fanchant>(
+    val connection: Connection,
     val fanchant: T
-
-    /**
-     * Send the client [raw] bytes.
-     *
-     * This function merely send bytes to the connection.
-     * Serialization is caller responsibility, and can be done
-     * by calling the appropriate serializer utility.
-     */
-    suspend fun sendRaw(raw: ByteArray, logOutput: Boolean = true, logFull: Boolean = false)
-
-    fun acknowledge(playerId: PlayerId, username: String)
-}
+)

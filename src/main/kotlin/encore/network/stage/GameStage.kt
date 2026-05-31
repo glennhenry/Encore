@@ -10,8 +10,8 @@ import encore.network.fanchant.guide.AllRounderFanchantGuide
 import encore.network.fanchant.guide.DecodeResult
 import encore.network.fanchant.guide.FanchantGuide
 import encore.network.fanchant.guide.FanchantGuideRegistry
-import encore.network.handler.DefaultHandlerContext
 import encore.network.handler.FanchantHandler
+import encore.network.handler.HandlerContext
 import encore.network.lifecycle.PlayerLifecycle
 import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.network.transport.Connection
@@ -228,7 +228,7 @@ class GameStage(
 
         // Dispatch fanchant to handler
         val handler = fanchantCoordinator.findHandler(fanchant)
-        val context = DefaultHandlerContext(
+        val context = HandlerContext(
             connection = connection,
             fanchant = fanchant
         )
