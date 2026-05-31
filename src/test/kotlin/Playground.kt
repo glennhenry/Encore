@@ -5,7 +5,7 @@ import kotlin.test.Test
 /**
  * Playground for quick testing and code run
  *
- * .\gradlew test --tests "Playground.playground" --console=plain
+ * .\gradlew test --tests "Playground.play" --console=plain
  */
 class Playground {
     @BeforeTest
