@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
  */
 class SimpleRateLimit(
     private val timeWindow: Long = 10.seconds.inWholeMilliseconds,
-    private val maxRequests: Int = 30,
+    private val maxRequests: Int = 500,
     private val timeSource: TimeSource
 ) {
     private data class Entry(var count: Int, var expiresAt: Long)
