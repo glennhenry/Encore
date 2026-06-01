@@ -19,7 +19,7 @@ import game.GameIdentity
 object EncoreIdentity {
     const val Title = "Encore"
     const val Version = "1.0.1"
-    const val VersionDate = "2026.05.26"
+    const val VersionDate = "2026.05.31"
     const val Codename = "Debut - rookie - first music show"
     const val Slogan = "Bring it back live."
     const val Logo = """
