@@ -10,7 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class SocketDispatcherTest {
+class FanchantCoordinatorTest {
     @Test
     fun `dispatch success with one fanchant type and one handler`() {
         val dispatcher = FanchantCoordinator()
