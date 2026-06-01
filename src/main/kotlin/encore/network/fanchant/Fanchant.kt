@@ -25,9 +25,26 @@ import encore.network.handler.FanchantHandler
  */
 interface Fanchant {
     /**
-     * Typed association of this fanchant which is used for handler dispatch.
+     * Logical identifier of this fanchant, which is also used for handler
+     * dispatchment.
+     *
+     * This typically describe the purpose of the message.
+     * It should be unique per-message, meaning each different
+     * `Fanchant` type or any subclass of it associate the fanchant
+     * with a different identifier.
+     *
+     * For example,
+     * - `LoginMessage` with `"login"` type inheriting `GameFanchant`,
+     *   which inherits `Fanchant`. This may be handled by `LoginHandler`
+     *   which assigns `"login"` as the message type it handles.
+     * - `MoveMessage` with `"move"` type inheriting `GameFanchant`.
+     *   This may be handled by `MoveHandler` which assigns `"move"`.
+     *
+     * **Important**: all fanchant type should be different, regardless
+     * if they are a different [Fanchant] implementation. This is because
+     * dispatchment logic primarily rely on type.
      */
-    val type: FanchantType<*>
+    val type: String
 
     /**
      * Returns a human-readable representation of this packet

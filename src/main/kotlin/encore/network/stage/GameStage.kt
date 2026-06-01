@@ -198,7 +198,7 @@ class GameStage(
                     Fancam.debug(Tags.Socket) {
                         buildString {
                             appendLine("[SOCKET DECODE] -> success")
-                            appendLine("$INDENT type   : ${fanchant.type.id}")
+                            appendLine("$INDENT type   : ${fanchant.type}")
                             append("$INDENT guide  : ${guide.className()}")
                         }
                     }
@@ -218,7 +218,7 @@ class GameStage(
                 Fancam.debug(Tags.Socket) {
                     buildString {
                         appendLine("[SOCKET DECODE] -> fallback")
-                        appendLine("$INDENT type   : ${chant.type.id}")
+                        appendLine("$INDENT type   : ${chant.type}")
                         append("$INDENT guide  : ${allRounderFanchantGuide.className()}")
                     }
                 }
@@ -231,9 +231,9 @@ class GameStage(
                 buildString {
                     appendLine(
                         "Multiple fanchant guides decoded the same packet: " +
-                                matched.joinToString { "${it.first}/type=${it.second.type.id}" }
+                                matched.joinToString { "${it.first}/type=${it.second.type}" }
                     )
-                    append("$INDENT chosen: $chosenGuide/type=${fanchant.type.id}")
+                    append("$INDENT chosen: $chosenGuide/type=${fanchant.type}")
                 }
             }
         }
@@ -244,9 +244,27 @@ class GameStage(
             connection = connection,
             fanchant = fanchant
         )
-        handler.handleUnsafe(context)
 
-        return fanchant.type.id
+        if (!handler.expectedFanchantClass.isInstance(context.fanchant)) {
+            error(
+                buildString {
+                    appendLine("Fanchant handler type mismatch")
+                    appendLine("Handler        : ${handler.className()}")
+                    appendLine("Handler expects: ${handler.expectedFanchantClass.qualifiedName}")
+                    appendLine("Actual message : ${context.fanchant::class.qualifiedName}")
+                    appendLine("Fanchant type  : '${context.fanchant.type}'")
+                    appendLine()
+                    appendLine("> Ensure FanchantHandler<T> generic type matches the actual message class that the routing type is supposed to be.")
+                    appendLine("> e.g., handler with 'login' fanchantType shouldn't declare 'T' as `MoveMessage` when it should be `LoginMessage`.")
+                }
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        handler as FanchantHandler<Fanchant>
+        handler.handle(context)
+
+        return fanchant.type
     }
 
     // when no other guide matches, uses AllRounderFanchantGuide

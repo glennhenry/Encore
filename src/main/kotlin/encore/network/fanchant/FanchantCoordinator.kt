@@ -19,11 +19,10 @@ import encore.utils.support.className
  * - Only allow one handler per one fanchant type, violations fail fast
  *   at registration time.
  * - A mismatch between handler's expected fanchant class with the
- *   concrete, runtime materialized fanchant class will not be dispatched
- *   and warned instead.
+ *   concrete, runtime materialized fanchant class will result in runtime error.
  */
 class FanchantCoordinator {
-    private val handlers = mutableMapOf<FanchantType<*>, FanchantHandler<*>>()
+    private val handlers = mutableMapOf<String, FanchantHandler<*>>()
     private val allRounderHandler = AllRounderHandler()
 
     /**
@@ -41,7 +40,7 @@ class FanchantCoordinator {
 
         if (existing != null) {
             throw IllegalArgumentException(
-                "Fanchant type '${type.id}' is already associated with ${existing.className()}."
+                "Fanchant type '${type}' is already associated with ${existing.className()}."
             )
         }
 
