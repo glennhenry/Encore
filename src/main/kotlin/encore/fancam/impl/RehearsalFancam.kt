@@ -227,13 +227,13 @@ class RehearsalFancam : FancamTemplate {
      *
      * @throws AssertionError if fail to match the predicate.
      */
-    fun assertLogHas(withLevel: Level, withinLastN: Int, predicate: (String) -> Boolean): Boolean {
+    fun assertLogHas(withLevel: Level, withinLastN: Int, predicate: (LogEvent) -> Boolean): Boolean {
         val assert = when (withLevel) {
-            Level.Trace -> takeLastLogTrace(withinLastN).any { predicate(it.message()) }
-            Level.Debug -> takeLastLogDebug(withinLastN).any { predicate(it.message()) }
-            Level.Info -> takeLastLogInfo(withinLastN).any { predicate(it.message()) }
-            Level.Warn -> takeLastLogWarn(withinLastN).any { predicate(it.message()) }
-            Level.Error -> takeLastLogError(withinLastN).any { predicate(it.message()) }
+            Level.Trace -> takeLastLogTrace(withinLastN).any { predicate(it) }
+            Level.Debug -> takeLastLogDebug(withinLastN).any { predicate(it) }
+            Level.Info -> takeLastLogInfo(withinLastN).any { predicate(it) }
+            Level.Warn -> takeLastLogWarn(withinLastN).any { predicate(it) }
+            Level.Error -> takeLastLogError(withinLastN).any { predicate(it) }
             Level.Off -> {
                 true
             }

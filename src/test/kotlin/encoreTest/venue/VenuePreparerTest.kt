@@ -284,7 +284,7 @@ class VenuePreparerTest {
 
         assertTrue {
             TestFancam.get().assertLogHas(Level.Warn, 2) {
-                it.contains(
+                it.message().contains(
                     "Duplicate configuration key detected: 'venue.encore.server.host'. " +
                             "Last value wins localhost."
                 )
@@ -293,7 +293,7 @@ class VenuePreparerTest {
 
         assertTrue {
             TestFancam.get().assertLogHas(Level.Warn, 1) {
-                it.contains(
+                it.message().contains(
                     "Duplicate configuration key detected: 'venue.encore.server.port'. " +
                             "Last value wins 7777."
                 )
@@ -379,7 +379,7 @@ class VenuePreparerTest {
 
         assertTrue {
             TestFancam.get().assertLogHas(Level.Warn, 1) {
-                it.contains("Unused configuration keys detected")
+                it.message().contains("Unused configuration keys detected")
             }
         }
     }

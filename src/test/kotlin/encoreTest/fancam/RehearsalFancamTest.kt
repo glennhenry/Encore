@@ -83,7 +83,7 @@ class RehearsalFancamTest {
         fancam.trace { "Trace1" }
 
         assertTrue {
-            fancam.assertLogHas(Level.Trace, 1) { it == "Trace1" }
+            fancam.assertLogHas(Level.Trace, 1) { it.message() == "Trace1" }
         }
 
         fancam.trace { "Trace2" }
@@ -93,7 +93,7 @@ class RehearsalFancamTest {
         println(fancam.takeLastLogTrace(4).joinToString())
 
         assertFailsWith<AssertionError> {
-            fancam.assertLogHas(Level.Trace, 3) { it == "Trace1" }
+            fancam.assertLogHas(Level.Trace, 3) { it.message() == "Trace1" }
         }
     }
 
