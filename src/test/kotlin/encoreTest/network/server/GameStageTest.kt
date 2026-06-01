@@ -2,6 +2,7 @@ package encoreTest.network.server
 
 import encore.context.ServerContext
 import encore.datastore.collection.PlayerId
+import encore.fancam.events.Level
 import encore.network.fanchant.Fanchant
 import encore.network.fanchant.guide.DecodeResult
 import encore.network.fanchant.guide.FanchantGuide
@@ -12,7 +13,9 @@ import encore.network.transport.ConnectionIdentity
 import encore.network.transport.TestConnection
 import encore.utils.safeAsciiString
 import kotlinx.coroutines.*
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import testUtils.TestFancam
 import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -28,6 +31,10 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Uses [GameStage.activateConnection] with [TestConnection] directly instead
  * of making actual socket connection (though the socket port 7777 will still be used).
+ *
+ * Use TestScope for connection so the test wait predictably until the connection ends
+ * Use real scope for game server because it is supposed to process message in blocking way
+ * Call TestConnection.enqueueIncoming(byteArrayOf()) to signal -1, triggering end of read()
  */
 class GameStageTest {
     /**
@@ -50,16 +57,22 @@ class GameStageTest {
         gameStage.initialize(scope, ServerContext.createForTest())
         gameStage.start()
 
-        val connection = createConnection(scope = scope)
+        val connection = createConnection(scope = this)
         gameStage.activateConnection(connection)
 
         // "a12345" will be identified as Guide1 and materialized into Fc1
         val packet = "a12345".toByteArray()
+
+        // send the packet
         connection.enqueueIncoming(packet)
 
-        connection.awaitOutgoing(1)
+        // signal end of read
+        connection.enqueueIncoming(byteArrayOf())
 
-        // This will be handled by Fc1Handler which returns 1 1 1
+        // advance the test scheduler, which will prompt the server to finish its task
+        advanceUntilIdle()
+
+        // handled by Fc1Handler which returns 1 1 1
         val result = connection.getOutgoing()
         assertEquals(1, result.size)
         assertContentEquals(byteArrayOf(1, 1, 1), result.first())
@@ -86,21 +99,29 @@ class GameStageTest {
         gameStage.initialize(scope, ServerContext.createForTest())
         gameStage.start()
 
-        val connection = createConnection(scope = scope)
+        val connection = createConnection(scope = this)
         gameStage.activateConnection(connection)
 
         // nobody can handle this (decode fails)
         val packet = "wioenyrv😍😂80u803uvr💀".toByteArray()
+
+        // send the packet
         connection.enqueueIncoming(packet)
 
-        // can't use awaitOutgoing since it waits until getOutgoing is non empty
+        // no need to wait for server since it doesn't handle it
+        // send read() end directly
+        connection.enqueueIncoming(byteArrayOf())
 
+        // ensure nothing is sent to the connection
         assertTrue(connection.getOutgoing().isEmpty())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `dispatch fails when the handler associate type and message class wrongly`() = runTest {
+        TestFancam.create()
+        val fancam = TestFancam.get()
+
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameStage = GameStage("127.0.0.1", 7771) {
             guide(Guide1())
@@ -115,7 +136,17 @@ class GameStageTest {
         // this will materialize into fc1 message by guide1
         // that handler123 will be responsible to handle
         val packet = "a12345".toByteArray()
+
+        // send the packet
         connection.enqueueIncoming(packet)
+
+        // give the server opportunity to finish its work
+        advanceUntilIdle()
+
+        // assert that a log error was called
+        fancam.assertLogHas(Level.Error, 1) {
+            it.throwable?.message?.contains("Fanchant handler type mismatch") ?: false
+        }
     }
 
     class Handler123 : FanchantHandler<Fc3> {
