@@ -249,10 +249,10 @@ class GameStage(
             error(
                 buildString {
                     appendLine("Fanchant handler type mismatch")
-                    appendLine("Handler        : ${handler.className()}")
-                    appendLine("Handler expects: ${handler.expectedFanchantClass.qualifiedName}")
-                    appendLine("Actual message : ${context.fanchant::class.qualifiedName}")
-                    appendLine("Fanchant type  : '${context.fanchant.type}'")
+                    appendLine("Handler         : ${handler.className()}")
+                    appendLine("Handler expects : ${handler.expectedFanchantClass.qualifiedName}")
+                    appendLine("Actual message  : ${context.fanchant::class.qualifiedName}")
+                    appendLine("Fanchant type   : '${context.fanchant.type}'")
                     appendLine()
                     appendLine("> Ensure FanchantHandler<T> generic type matches the actual message class that the routing type is supposed to be.")
                     appendLine("> e.g., handler with 'login' fanchantType shouldn't declare 'T' as `MoveMessage` when it should be `LoginMessage`.")

@@ -98,6 +98,38 @@ class GameStageTest {
         assertTrue(connection.getOutgoing().isEmpty())
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `dispatch fails when the handler associate type and message class wrongly`() = runTest {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val gameStage = GameStage("127.0.0.1", 7771) {
+            guide(Guide1())
+            handler(Handler123())
+        }
+        gameStage.initialize(scope, ServerContext.createForTest())
+        gameStage.start()
+
+        val connection = createConnection(scope = this)
+        gameStage.activateConnection(connection)
+
+        // this will materialize into fc1 message by guide1
+        // that handler123 will be responsible to handle
+        val packet = "a12345".toByteArray()
+        connection.enqueueIncoming(packet)
+    }
+
+    class Handler123 : FanchantHandler<Fc3> {
+        // it handles message with routing type "type-fc1"
+        // but wrongly declares T as Fc3
+        // this will error when a message is materialized and type is "type-fc1" but is not actually Fc4
+        override val fanchantType: String = "type-fc1"
+        override val expectedFanchantClass: KClass<Fc3> = Fc3::class
+
+        override suspend fun handle(ctx: HandlerContext<Fc3>) {
+            throw AssertionError("should fail before this")
+        }
+    }
+
     /**
      * .\gradlew test --tests "encoreTest.network.server.GameStageTest.should capable serving multiple clients"
      *
@@ -249,12 +281,10 @@ class Fc1(val payload: String) : Fanchant {
     override fun toString(): String = "Fc1($payload)"
 }
 
-
 class Fc2(val payload: String) : Fanchant {
     override val type: String = "type-fc2"
     override fun toString(): String = "Fc2($payload)"
 }
-
 
 class Fc3(val payload: String) : Fanchant {
     override val type: String = "type-fc3"
