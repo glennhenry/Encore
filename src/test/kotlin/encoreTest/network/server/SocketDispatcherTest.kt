@@ -2,10 +2,10 @@ package encoreTest.network.server
 
 import encore.network.fanchant.Fanchant
 import encore.network.fanchant.FanchantCoordinator
-import encore.network.fanchant.FanchantType
 import encore.network.handler.FanchantHandler
 import encore.network.handler.HandlerContext
 import encore.utils.support.className
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -32,24 +32,22 @@ class SocketDispatcherTest {
 }
 
 class Handler1 : FanchantHandler<ExFc> {
-    override val fanchantType: FanchantType<ExFc> = ExFcType
+    override val fanchantType: String = "type1"
+    override val expectedFanchantClass: KClass<ExFc> = ExFc::class
     override suspend fun handle(ctx: HandlerContext<ExFc>) {
         println("Handler1 - handle")
     }
 }
 
 class Handler2 : FanchantHandler<ExFc> {
-    override val fanchantType: FanchantType<ExFc> = ExFcType
+    override val fanchantType: String = "type1"
+    override val expectedFanchantClass: KClass<ExFc> = ExFc::class
     override suspend fun handle(ctx: HandlerContext<ExFc>) {
         println("Handler2 - handle")
     }
 }
 
 class ExFc(val payload: String) : Fanchant {
-    override val type: FanchantType<*> = ExFcType
+    override val type: String = "type1"
     override fun toString(): String = "ExMsg1($payload)"
-}
-
-object ExFcType: FanchantType<ExFc> {
-    override val id: String = "type1"
 }
