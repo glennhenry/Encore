@@ -87,6 +87,9 @@ class GameStageTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `handled by all rounder handler when no fanchant guide matches`() = runTest {
+        TestFancam.create()
+        val fancam = TestFancam.get()
+
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val gameStage = GameStage("127.0.0.1", 7771) {
             guide(Guide1())
@@ -114,6 +117,14 @@ class GameStageTest {
 
         // ensure nothing is sent to the connection
         assertTrue(connection.getOutgoing().isEmpty())
+
+        // wait until test connection and server finish
+        advanceUntilIdle()
+
+        // assert that a log warn was called
+        fancam.assertLogHas(Level.Warn, 1) {
+            it.message().contains("Unhandled fanchant")
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
