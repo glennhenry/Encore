@@ -1,5 +1,6 @@
 import bootstrap.*
 import encore.EncoreIdentity
+import encore.EncoreIdentity.celebrate
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
 import encore.context.ServerContext
@@ -28,6 +29,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.modules.SerializersModule
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
 
@@ -136,6 +138,7 @@ suspend fun Application.configureApplication() {
 
     // prints encore banner
     println(EncoreIdentity.banner(GameIdentity))
+    celebrate(LocalDate.now(SystemTimezone))
 
     // install shutdown hook
     shutdownHook(appScope, serverSubunitScope, serverContext.subunits, servers)

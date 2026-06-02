@@ -2,7 +2,13 @@
 
 package encore
 
+import encore.fancam.Fancam
+import encore.fancam.events.Level
+import encore.utils.Emoji
 import game.GameIdentity
+import java.time.LocalDate
+import java.time.Month
+import java.time.MonthDay
 
 /**
  * Defines identity of the Encore framework.
@@ -55,5 +61,75 @@ object EncoreIdentity {
             appendLine("Made possible by $Title. $Slogan")
             appendLine("_______________________________________________")
         }
+    }
+
+    fun celebrate(today: LocalDate) {
+        isSpecialDay(today)
+    }
+
+    private fun isSpecialDay(today: LocalDate) {
+        when {
+            isDate(today, MonthDay.of(Month.MARCH, 2)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("03.02", "Dayeon") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.MARCH, 12)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("03.12", "Hikaru") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.APRIL, 26)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("04.26", "Chaehyun") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.JULY, 27)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("07.27", "Bahiyyih") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.AUGUST, 12)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("08.12", "Yujin") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.AUGUST, 22)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("08.22", "Yeseo") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.NOVEMBER, 12)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("11.12", "Xiaoting") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.DECEMBER, 16)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("12.16", "Mashiro") }
+                    .log()
+            }
+
+            isDate(today, MonthDay.of(Month.DECEMBER, 27)) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { birthdayText("12.27", "Youngeun") }
+                    .log()
+            }
+        }
+    }
+
+    private fun isDate(today: LocalDate, monthDay: MonthDay): Boolean {
+        return today.month == monthDay.month && today.dayOfMonth == monthDay.dayOfMonth
+    }
+
+    private fun birthdayText(date: String, name: String): String {
+        return "($date) Happy birthday $name... ${Emoji.Birthday}"
     }
 }
