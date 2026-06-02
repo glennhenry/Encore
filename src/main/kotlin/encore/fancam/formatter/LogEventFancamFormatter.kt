@@ -59,8 +59,15 @@ class LogEventFancamFormatter(
             .padEnd(config.tagPadding, '_')
 
         val styledTag = if (config.colorEnabled) {
-            // misuse but efficient: use level off to color tag
-            colorizeText(Level.Off, "[$tag]")
+            if (tag.contains("kp")) {
+                colorizeSegmentBg(140, "[$tag]")
+            } else {
+                if (config.useBackgroundColor) {
+                    colorizeSegmentBg(254, "[$tag]")
+                } else {
+                    colorizeSegmentFg(54, "[$tag]")
+                }
+            }
         } else {
             "[$tag]"
         }
@@ -129,7 +136,7 @@ class LogEventFancamFormatter(
                 Level.Info -> AnsiColors.InfoBg
                 Level.Warn -> AnsiColors.WarnBg
                 Level.Error -> AnsiColors.ErrorBg
-                Level.Off -> AnsiColors.TagBg
+                Level.Off -> AnsiColors.bg(140)
             }
         } else {
             bg = ""
@@ -139,7 +146,7 @@ class LogEventFancamFormatter(
                 Level.Info -> AnsiColors.InfoFg
                 Level.Warn -> AnsiColors.WarnFg
                 Level.Error -> AnsiColors.ErrorFg
-                Level.Off -> AnsiColors.TagFg
+                Level.Off -> AnsiColors.fg(140)
             }
         }
 

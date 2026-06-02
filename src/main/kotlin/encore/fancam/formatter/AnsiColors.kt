@@ -35,6 +35,14 @@ object AnsiColors {
  * Colorize the given [text] with a **256-foreground** [color].
  * This start ANSI coloring, places text, and put a reset afterward.
  */
-fun colorizeSegment(color: Int, text: String): String {
+fun colorizeSegmentFg(color: Int, text: String): String {
     return "${AnsiColors.fg(color)}$text${AnsiColors.Reset}"
+}
+
+/**
+ * Colorize the given [text] with a **256-background** [color].
+ * This start ANSI coloring, places text, and put a reset afterward.
+ */
+fun colorizeSegmentBg(color: Int, text: String): String {
+    return "${AnsiColors.bg(color)}$text${AnsiColors.Reset}"
 }
