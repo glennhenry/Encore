@@ -45,6 +45,11 @@ object Fancam {
             return
         }
         this.fancam = fancam
+        if (fancam is OfficialFancam) {
+            INDENT = " ".repeat(60)
+        } else if (fancam is RehearsalFancam) {
+            INDENT = " ".repeat(21)
+        }
     }
 
     /**
@@ -87,7 +92,21 @@ object Fancam {
  * Blank spaces to include in the log message when you are logging with
  * multiple lines and wants the next line to align with the upper log call.
  *
- * This is hardcoded and should be modified manually when formatting changes
- * (which includes changes like padding length).
+ * When fancam is changed on [Fancam] object, this indent will be adjusted.
+ * However, it is only hardcoded to rehearsal (21) and official fancam (60).
+ * The number of indent should be modified when formatting
+ * changes (e.g., padding length, timestamp formatting).
+ *
+ * ### Details
+ *
+ * The amount of indent is the amount of characters printed before the
+ * actual log message.
+ *
+ * ```
+ * [11:38:33.389](      InstallEncore.kt:96)[INFO ][startup___] Running server on developmentMode
+ * ________________________________________60 blank spaces_____ Next line of the log message
+ * ```
+ *
+ * This includes: timestamp, source, tag, label, and separator symbols.
  */
-const val INDENT = "                                                            "
+var INDENT = " ".repeat(21)
