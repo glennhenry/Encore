@@ -4,8 +4,10 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
 import encore.fancam.Tags
+import encore.fancam.events.Level
 import encore.time.source.SystemTimeSource
 import encore.time.source.TimeSource
+import encore.utils.Emoji
 import encore.utils.identifier.Ids
 import encore.utils.identifier.shortUuid
 import encore.utils.support.className
@@ -222,6 +224,8 @@ class StageActDirector(
                         }
                     }
 
+                    ggeretsae(delay)
+
                     if (delay > 0) delay(delay.milliseconds)
                     if (firstPerformAt == null) firstPerformAt = timeSource.now()
 
@@ -293,5 +297,40 @@ class StageActDirector(
      */
     fun shutdown() {
         activeActs.forEach { (actId, _) -> stop(actId) }
+    }
+
+    private fun ggeretsae(delay: Long) {
+        when (delay.milliseconds.inWholeSeconds) {
+            in between(178) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { "(02:58) ${Emoji.Bubble} Pop that body like bubble gum" }
+                    .log()
+            }
+
+            in between(188) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { "(03:08) ${Emoji.Stars} Fly high like shooting stars..." }
+                    .log()
+            }
+
+            in between(196) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { "(03:16) ${Emoji.Knife} You know I'm a killer" }
+                    .log()
+            }
+
+            in between(198) -> {
+                Fancam.event(Level.Off, "kp")
+                    .message { "(03:18) ${Emoji.Run} Kep1 going, 와다다다" }
+                    .log()
+            }
+
+
+            else -> {} // nothing
+        }
+    }
+
+    private fun between(n: Int): IntRange {
+        return n - 1..n + 1
     }
 }
