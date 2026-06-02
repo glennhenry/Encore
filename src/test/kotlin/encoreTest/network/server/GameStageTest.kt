@@ -123,7 +123,7 @@ class GameStageTest {
         val fancam = TestFancam.get()
 
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameStage = GameStage("127.0.0.1", 7771) {
+        val gameStage = GameStage("127.0.0.1", 7772) {
             guide(Guide1())
             handler(Handler123())
         }
@@ -174,7 +174,7 @@ class GameStageTest {
     @Test
     fun `should capable serving multiple clients`() = runTest {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val gameStage = GameStage("127.0.0.1", 7772) {
+        val gameStage = GameStage("127.0.0.1", 7773) {
             guide(Guide1())
             guide(Guide2())
             guide(Guide3())
