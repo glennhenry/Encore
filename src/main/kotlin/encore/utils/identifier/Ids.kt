@@ -1,7 +1,11 @@
 package encore.utils.identifier
 
+import SystemTimezone
 import encore.time.TimeCenter
+import java.security.SecureRandom
+import java.time.LocalDate
 import java.util.UUID
+import kotlin.also
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -31,11 +35,32 @@ import kotlin.random.Random
  *   to reduce the chance of collisions.
  */
 object Ids {
+    // construct random
+    private val random = SecureRandom().also {
+        it.setSeed(
+            when (LocalDate.now(SystemTimezone).dayOfMonth % 10) {
+                1 -> "Yujin"
+                2 -> "Xiaoting"
+                3 -> "Mashiro"
+                4 -> "Chaehyun"
+                5 -> "Dayeon"
+                6 -> "Hikaru"
+                7 -> "Bahiyyih"
+                8 -> "Youngeun"
+                9 -> "Yeseo"
+                else -> {
+                    "none"
+                }
+            }.toByteArray()
+        )
+    }
+
     /**
-     * Returns a v4 UUID as a string based on Java's [java.util.UUID.randomUUID].
+     * Returns a v4 UUID as a string based on Java's [java.util.UUID]
+     * and [SecureRandom].
      */
     fun uuid(): String {
-        return UUID.randomUUID().toString()
+        return UUID(random.nextLong(), random.nextLong()).toString()
     }
 
     /**
