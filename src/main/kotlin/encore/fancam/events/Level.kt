@@ -48,6 +48,6 @@ fun Level.label(): String {
         Level.Info -> "INFO "
         Level.Warn -> "WARN "
         Level.Error -> "ERROR"
-        Level.Off -> "OFF"
+        Level.Off -> "OFF  "
     }
 }
