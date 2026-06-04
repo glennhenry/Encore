@@ -19,6 +19,7 @@ import io.ktor.serialization.kotlinx.protobuf.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.doublereceive.DoubleReceive
 import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
@@ -61,6 +62,7 @@ suspend fun Application.installEncore(
     configureFancam()
     configureCors()
     configureStatusPages()
+    configureDoubleReceive()
     configureWebSocket()
     configureSecurity(security)
     interceptResponse()
@@ -142,6 +144,10 @@ fun Application.configureStatusPages() {
             )
         }
     }
+}
+
+fun Application.configureDoubleReceive() {
+    install(DoubleReceive)
 }
 
 /**
