@@ -98,7 +98,7 @@ class TestAuthSubunit {
         val pcs = PlayerCreationSubunit(db)
         val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        auth.register("helloworld", "kotlinktor")
+        auth.register("helloworld", "kotlinktor", "helloworld@email.com")
         Assertions.assertFalse(auth.isUsernameAvailable("helloworld").okOrThrow())
         assertTrue(repo.usernameExists("helloworld").getOrThrow())
     }
@@ -136,7 +136,7 @@ class TestAuthSubunit {
         val pcs = PlayerCreationSubunit(db)
         val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        auth.register("helloworld", "kotlinktor")
+        auth.register("helloworld", "kotlinktor", "helloworld@email.com")
         val session = auth.login("helloworld", "ktor")
         assertTrue((session as Outcome.Ok).value is LoginResult.InvalidCredentials)
     }
@@ -166,7 +166,7 @@ class TestAuthSubunit {
         val pcs = PlayerCreationSubunit(db)
         val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        auth.register("helloworld", "kotlinktor")
+        auth.register("helloworld", "kotlinktor", "helloworld@email.com")
         val session = auth.login("helloworld", "ktor")
         // should error on first call to repository in getCredentials
         assertTrue(session is Outcome.Fail)
@@ -186,7 +186,7 @@ class TestAuthSubunit {
         val pcs = PlayerCreationSubunit(db)
         val auth = AuthSubunit(accountSubunit, pcs, manager)
 
-        auth.register("helloworld", "kotlinktor")
+        auth.register("helloworld", "kotlinktor", "helloworld@email.com")
         val session = auth.login("helloworld", "kotlinktor")
         assertTrue(((session as Outcome.Ok).value is LoginResult.Success))
     }

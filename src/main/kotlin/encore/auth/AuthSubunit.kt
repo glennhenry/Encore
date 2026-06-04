@@ -40,9 +40,9 @@ class AuthSubunit(
      * - [Outcome.Fail] if there is an internal repository error.
      * - Otherwise [Outcome.Ok] with [UserSession].
      */
-    suspend fun register(username: String, password: String): Outcome<UserSession> {
+    suspend fun register(username: String, password: String, email: String): Outcome<UserSession> {
         try {
-            val playerId = creationSubunit.createPlayer(username, password)
+            val playerId = creationSubunit.createPlayer(username, password, email)
             Fancam.trace(Tags.Auth) { "Registered '$username' successfully" }
             val session = sessionSubunit.create(playerId)
             return Outcome.Ok(session)
