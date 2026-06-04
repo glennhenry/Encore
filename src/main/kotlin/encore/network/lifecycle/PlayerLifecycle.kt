@@ -1,5 +1,7 @@
 package encore.network.lifecycle
 
+import encore.context.PlayerContext
+
 /**
  * Represent the lifecycle of player connection in the socket server.
  */
@@ -8,6 +10,16 @@ enum class PlayerLifecycle {
      * Player is connected to the socket server.
      */
     OnConnect,
+
+    /**
+     * Player is identified, typically through an authentication process.
+     */
+    OnIdentified,
+
+    /**
+     * [PlayerContext] is created for the player.
+     */
+    OnContextCreated,
 
     /**
      * Player is disconnected from the socket server.
