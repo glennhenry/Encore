@@ -15,6 +15,7 @@ import encore.context.ServerContext
 import encore.context.ServerSubunits
 import encore.datastore.MongoCollectionName
 import encore.datastore.MongoDataStore
+import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.presence.PlayerPresenceSubunit
 import encore.session.SessionSubunit
 import encore.subunit.scope.ServerScope
@@ -51,6 +52,7 @@ suspend fun createServerContext(
         actStore = ActIdStore
     )
     val commandDispatcher = CommandDispatcher()
+    val playerLifecycleHandler = PlayerLifecycleHandler(logEachHook = true)
     val webSocketManager = WebSocketManager()
 
     // setup ServerSubunits
@@ -76,6 +78,7 @@ suspend fun createServerContext(
         contextRegistry = contextRegistry,
         stageActDirector = stageActDirector,
         commandDispatcher = commandDispatcher,
+        playerLifecycleHandler = playerLifecycleHandler,
         webSocketManager = webSocketManager,
         subunits = subunits
     )

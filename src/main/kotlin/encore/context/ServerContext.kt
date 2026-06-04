@@ -12,6 +12,7 @@ import encore.backstage.command.CommandDispatcher
 import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerId
+import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
@@ -30,6 +31,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @property dataStore [DataStore] instance of the server.
  * @property contextRegistry Tracks and manages [PlayerContext].
  * @property commandDispatcher Tracks and executes server commands.
+ * @property playerLifecycleHandler Dispatches hook for player's connection activity.
  * @property stageActDirector Provide API to start and stop stage acts.
  * @property webSocketManager Manages client websocket connections.
  * @property subunits Container for server subunit instances.
@@ -38,6 +40,7 @@ data class ServerContext(
     val dataStore: DataStore,
     val contextRegistry: ContextRegistry,
     val commandDispatcher: CommandDispatcher,
+    val playerLifecycleHandler: PlayerLifecycleHandler,
     val stageActDirector: StageActDirector,
     val webSocketManager: WebSocketManager,
     val subunits: ServerSubunits
@@ -57,6 +60,7 @@ data class ServerContext(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
             timeSource: TimeSource = SystemTimeSource(),
             dataStore: DataStore = BlankDataStore(),
+            playerLifecycleHandler: PlayerLifecycleHandler = PlayerLifecycleHandler(true),
             accountRepository: AccountRepository = BlankAccountRepository(),
             contextFactory: ContextFactory = FakeContextFactory(emptyMap())
         ): ServerContext {
@@ -68,6 +72,7 @@ data class ServerContext(
                 dataStore = dataStore,
                 contextRegistry = ContextRegistry(contextFactory),
                 commandDispatcher = CommandDispatcher(),
+                playerLifecycleHandler = playerLifecycleHandler,
                 stageActDirector = StageActDirector(timeSource, ActIdStore),
                 webSocketManager = WebSocketManager(),
                 subunits = ServerSubunits(
