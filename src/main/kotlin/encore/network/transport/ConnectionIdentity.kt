@@ -23,7 +23,7 @@ data class ConnectionIdentity(
      * playerId = f51ac90b-12cc-4372-a567-0e02b2c3d479
      * username = playerABC
      *
-     * [playerABC/f51ac90b]
+     * [username=playerABC/playerId=f51ac90b]
      * ```
      *
      * If `playerId` or `username` is unset, [remoteAddress] will be returned instead.
