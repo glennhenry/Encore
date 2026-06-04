@@ -12,12 +12,14 @@ import encore.backstage.command.CommandDispatcher
 import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
 import encore.datastore.collection.PlayerId
+import encore.fancam.Fancam
 import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
 import encore.subunit.scope.ServerScope
 import encore.time.source.SystemTimeSource
 import encore.time.source.TimeSource
+import encore.utils.support.className
 import encore.websocket.WebSocketManager
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.EmptyCoroutineContext
@@ -131,5 +133,29 @@ data class ServerSubunits(
      */
     fun all(): Set<Subunit<ServerScope>> {
         return setOf(account, auth, creation, presence, session)
+    }
+
+    /**
+     * Debut every server subunit instances with [scope].
+     */
+    suspend fun debut(scope: ServerScope) {
+        all().forEach { subunit ->
+            val result = subunit.debut(scope)
+            if (result.isFailure) {
+                Fancam.error(result.exceptionOrNull()) { "Result.failure on ServerSubunit debut '${subunit.className()}'" }
+            }
+        }
+    }
+
+    /**
+     * Disband every server subunit instances with [scope].
+     */
+    suspend fun disband(scope: ServerScope) {
+        all().forEach { subunit ->
+            val result = subunit.disband(scope)
+            if (result.isFailure) {
+                Fancam.error(result.exceptionOrNull()) { "Result.failure on ServerSubunit disband '${subunit.className()}'" }
+            }
+        }
     }
 }

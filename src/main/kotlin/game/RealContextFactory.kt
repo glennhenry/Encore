@@ -31,7 +31,8 @@ class RealContextFactory(
         }
 
         val subunits = PlayerSubunits(example = "REPLACE")
-        subunits.all().forEach { it.debut(PlayerScope(playerId)) }
+        val scope = PlayerScope(playerId)
+        subunits.debut(scope)
 
         return PlayerContext(
             playerId = playerId,

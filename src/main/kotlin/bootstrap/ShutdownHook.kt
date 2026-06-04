@@ -28,7 +28,7 @@ fun shutdownHook(
     Runtime.getRuntime().addShutdownHook(Thread {
         runBlocking {
             try {
-                subunits.all().forEach { it.disband(serverSubunitScope) }
+                subunits.disband(serverSubunitScope)
                 servers.forEach { server ->
                     server.shutdown()
                 }

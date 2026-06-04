@@ -177,8 +177,7 @@ fun GameStageInitContext.lifecycleHooks() {
             serverContext.subunits.account.updateLastActivity(pid, TimeCenter.now())
             serverContext.contextRegistry.getContext(pid)
                 ?.subunits
-                ?.all()
-                ?.forEach { it.disband(PlayerScope(pid)) }
+                ?.disband(PlayerScope(pid))
             serverContext.contextRegistry.removeContext(pid)
         }
     }

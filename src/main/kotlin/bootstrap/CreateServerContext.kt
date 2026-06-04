@@ -71,7 +71,7 @@ suspend fun createServerContext(
     )
 
     // debut all subunits
-    subunits.all().forEach { it.debut(serverSubunitScope) }
+    subunits.debut(ServerScope)
 
     val serverContext = ServerContext(
         dataStore = dataStore,
