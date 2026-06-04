@@ -4,10 +4,31 @@ import encore.datastore.collection.PlayerId
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * Represents an active client connection to the socket server.
+ * Represents an active client connection to the server.
  *
- * Implementations of this interface define how data is read from and written to
- * the underlying transport (e.g., TCP socket, WebSocket, or virtual connection).
+ * `Connection` acts as the transport layer between the server and a client.
+ * It encapsulates the underlying communication mechanism and provides APIs
+ * for reading incoming data and writing outgoing data.
+ *
+ * A connection is initially unidentified and typically goes through an
+ * authentication or handshake process before being recognized as a valid user.
+ * Once identified, the connection's identity should be updated to reflect
+ * the authenticated user.
+ *
+ * Each connection also provides a lightweight key-value storage for
+ * temporary runtime data associated with the client. This storage is intended
+ * for short-lived state that only exists for the lifetime of the connection.
+ *
+ * Data stored here should generally be small and non-persistent, as it is
+ * discarded when the connection closes. Typical use cases include temporary
+ * registration state, session-scoped gameplay data, or other transient values
+ * that do not justify a dedicated server-side component.
+ *
+ * Implementations of this interface are responsible for:
+ * - Reading and writing data through the underlying transport
+ *   (e.g. TCP sockets, WebSockets, or virtual connections).
+ * - Managing connection identity and authentication state.
+ * - Providing temporary per-connection key-value storage.
  */
 interface Connection {
     /**
@@ -41,6 +62,21 @@ interface Connection {
     val address: String get() = identity.remoteAddress
 
     /**
+     * Update this connection's identity information.
+     */
+    fun updateIdentity(playerId: PlayerId, username: String)
+
+    /**
+     * Update this connection's [playerId].
+     */
+    fun updatePlayerId(playerId: PlayerId)
+
+    /**
+     * Update this connection's [username].
+     */
+    fun updateUsername(username: String)
+
+    /**
      * Reads data sent by the client.
      *
      * @return A [Pair] where the first element is the number of bytes read
@@ -59,19 +95,26 @@ interface Connection {
     suspend fun write(input: ByteArray, logOutput: Boolean = true, logFull: Boolean = false)
 
     /**
-     * Update this connection's identity information.
+     * Returns the value associated with [key], or `null` if no value exists.
      */
-    fun updateIdentity(playerId: PlayerId, username: String)
+    fun get(key: String): Any?
 
     /**
-     * Update this connection's [playerId].
+     * Associates [value] with [key].
+     *
+     * If a value is already associated with the key, it is replaced.
      */
-    fun updatePlayerId(playerId: PlayerId)
+    fun put(key: String, value: Any)
 
     /**
-     * Update this connection's [username].
+     * Removes the value associated with [key], if present.
      */
-    fun updateUsername(username: String)
+    fun delete(key: String)
+
+    /**
+     * Removes all values stored in this connection's temporary storage.
+     */
+    fun clearStorage()
 
     /**
      * Closes the connection and performs clean-up.

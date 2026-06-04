@@ -27,6 +27,7 @@ class DefaultConnection(
     override val connectionScope: CoroutineScope
 ) : Connection {
     override val identity: ConnectionIdentity = ConnectionIdentity(remoteAddress = remoteAddress)
+    private val storage = mutableMapOf<String, Any>()
 
     /**
      * Suspends until data becomes available on the input channel,
@@ -92,6 +93,22 @@ class DefaultConnection(
         identity.username = username
     }
 
+    override fun get(key: String): Any? {
+        return storage[key]
+    }
+
+    override fun put(key: String, value: Any) {
+        storage[key] = value
+    }
+
+    override fun delete(key: String) {
+        storage.remove(key)
+    }
+
+    override fun clearStorage() {
+        storage.clear()
+    }
+
     /**
      * Shutdown the connection which cancels the [connectionScope].
      *
@@ -100,6 +117,7 @@ class DefaultConnection(
      */
     override suspend fun shutdown() {
         try {
+            clearStorage()
             connectionScope.cancel(CancellationException("Connection closed"))
             connectionScope.coroutineContext.job.join()
         } catch (_: ClosedWriteChannelException) {

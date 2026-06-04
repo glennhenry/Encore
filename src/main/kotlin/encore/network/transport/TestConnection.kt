@@ -29,10 +29,13 @@ import kotlin.time.Duration.Companion.seconds
  * conn.write("World".toByteArray())
  * assertEquals("World", String(conn.getOutgoing().first()))
  * ```
+ *
+ * Storage is also available to be provided directly via constructor.
  */
 class TestConnection(
     override val identity: ConnectionIdentity,
-    override val connectionScope: CoroutineScope
+    override val connectionScope: CoroutineScope,
+    private val storage: MutableMap<String, Any> = mutableMapOf()
 ) : Connection {
     private val incoming = Channel<ByteArray>(Channel.UNLIMITED)
     private val writtenBytes = mutableListOf<ByteArray>()
@@ -89,7 +92,24 @@ class TestConnection(
         identity.username = username
     }
 
+    override fun get(key: String): Any? {
+        return storage[key]
+    }
+
+    override fun put(key: String, value: Any) {
+        storage[key] = value
+    }
+
+    override fun delete(key: String) {
+        storage.remove(key)
+    }
+
+    override fun clearStorage() {
+        storage.clear()
+    }
+
     override suspend fun shutdown() {
+        clearStorage()
         incoming.close()
     }
 
