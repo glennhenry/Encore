@@ -24,7 +24,8 @@ import encore.network.fanchant.Fanchant
  *
  * See `test.kotlin.encoreTest.example.MessageFormat` for an implementation example.
  *
- * @param T The intermediate decoded representation produced during decoding.
+ * @param T The **intermediate decoded representation** produced during decoding.
+ *          This is not the target [Fanchant] class it eventually produces in [materialize].
  */
 interface FanchantGuide<T> {
     /**
