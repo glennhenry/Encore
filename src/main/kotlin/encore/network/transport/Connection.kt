@@ -21,6 +21,11 @@ interface Connection {
     val identity: ConnectionIdentity
 
     /**
+     * Returns whether this connection is identified as a valid player in the server.
+     */
+    fun isIdentified(): Boolean
+
+    /**
      * Shorthand for [ConnectionIdentity.playerId]
      */
     val playerId: PlayerId get() = identity.playerId ?: UndeterminedIdentity

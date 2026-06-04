@@ -32,7 +32,7 @@ data class ConnectionIdentity(
         return if (username == null && playerId == null) {
             "[addr=$remoteAddress]"
         } else {
-            "[$username/${playerId?.take(8)}]"
+            "[username=$username/playerId=${playerId?.take(8)}]"
         }
     }
 }

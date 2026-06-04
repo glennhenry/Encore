@@ -72,6 +72,10 @@ class TestConnection(
         writtenBytes += input
     }
 
+    override fun isIdentified(): Boolean {
+        return identity.playerId != null
+    }
+
     override fun updateIdentity(playerId: PlayerId, username: String) {
         identity.playerId = playerId
         identity.username = username
