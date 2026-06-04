@@ -16,8 +16,6 @@ import io.ktor.server.request.receiveText
 import io.ktor.server.request.uri
 import io.ktor.server.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 suspend fun ApplicationCall.stringifyHttpRequest(unhandled: Boolean): String {
     return buildString {
@@ -41,12 +39,7 @@ suspend fun ApplicationCall.stringifyHttpRequest(unhandled: Boolean): String {
 
         appendLine("$INDENT type=$type, length=$length, remote=$host")
 
-        val body = if (type.contentSubtype.contains("urlencoded")) {
-            // unescape
-            URLDecoder.decode(request.call.receiveText(), StandardCharsets.UTF_8.toString())
-        } else {
-            request.call.receiveText()
-        }
+        val body = request.call.receiveText()
 
         appendLine("$INDENT <=========body=========>")
         appendLine("$INDENT $body")
