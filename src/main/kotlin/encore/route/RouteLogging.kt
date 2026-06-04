@@ -12,11 +12,14 @@ import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentLength
 import io.ktor.server.request.contentType
 import io.ktor.server.request.httpMethod
+import io.ktor.server.request.receiveText
 import io.ktor.server.request.uri
 import io.ktor.server.response.ApplicationSendPipeline
 import io.ktor.util.AttributeKey
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
-fun ApplicationCall.stringifyHttpRequest(unhandled: Boolean): String {
+suspend fun ApplicationCall.stringifyHttpRequest(unhandled: Boolean): String {
     return buildString {
         if (unhandled) {
             appendLine("----- [Unhandled HTTP Request]")
@@ -36,7 +39,18 @@ fun ApplicationCall.stringifyHttpRequest(unhandled: Boolean): String {
         val length = request.contentLength() ?: "N/A"
         val host = request.origin.remoteHost.takeIf { it.isNotBlank() } ?: "N/A"
 
-        append("$INDENT type=$type, length=$length, remote=$host")
+        appendLine("$INDENT type=$type, length=$length, remote=$host")
+
+        val body = if (type.contentSubtype.contains("urlencoded")) {
+            // unescape
+            URLDecoder.decode(request.call.receiveText(), StandardCharsets.UTF_8.toString())
+        } else {
+            request.call.receiveText()
+        }
+
+        appendLine("$INDENT <=========body=========>")
+        appendLine("$INDENT $body")
+        append("$INDENT <=========end==========>")
     }
 }
 

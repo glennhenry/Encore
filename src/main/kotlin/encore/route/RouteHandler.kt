@@ -74,7 +74,9 @@ interface RouteHandler {
 suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
     val startedAt = TimeCenter.now()
     call.attributes.put(ReqResLoggingKey, startedAt)
-    Fancam.debug(Tags.Api) { call.stringifyHttpRequest(unhandled = false) }
+
+    val req = call.stringifyHttpRequest(unhandled = false)
+    Fancam.debug(Tags.Api) { req }
 
     try {
         val result = auth.verify(call)

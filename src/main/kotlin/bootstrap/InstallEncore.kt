@@ -135,7 +135,8 @@ fun Application.configureStatusPages() {
         }
 
         unhandled { call ->
-            Fancam.warn(Tags.Api) { call.stringifyHttpRequest(unhandled = true) }
+            val req = call.stringifyHttpRequest(unhandled = true)
+            Fancam.warn(Tags.Api) { req }
 
             call.respondText(
                 text = errorHtml(404, "Not found in the system."),
@@ -195,7 +196,8 @@ fun Application.configureSecurity(security: SecurityGuard) {
         when (val result = security.verify(call)) {
             is GuardResult.Welcome -> proceed()
             is GuardResult.GetOut -> {
-                Fancam.debug(Tags.Api) { call.stringifyHttpRequest(unhandled = false) }
+                val req = call.stringifyHttpRequest(unhandled = false)
+                Fancam.debug(Tags.Api) { req }
 
                 call.respondText(
                     text = errorHtml(403, result.why),
