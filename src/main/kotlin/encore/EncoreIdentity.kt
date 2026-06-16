@@ -71,55 +71,55 @@ object EncoreIdentity {
         when {
             isDate(today, MonthDay.of(Month.MARCH, 2)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("03.02", "Dayeon") }
+                    .message { birthdayText("03.02", "Kim Dayeon") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.MARCH, 12)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("03.12", "Hikaru") }
+                    .message { birthdayText("03.12", "Ezaki Hikaru") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.APRIL, 26)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("04.26", "Chaehyun") }
+                    .message { birthdayText("04.26", "Kim Chaehyun") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.JULY, 27)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("07.27", "Bahiyyih") }
+                    .message { birthdayText("07.27", "Huening Bahiyyih") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.AUGUST, 12)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("08.12", "Yujin") }
+                    .message { birthdayText("08.12", "Choi Yujin") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.AUGUST, 22)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("08.22", "Yeseo") }
+                    .message { birthdayText("08.22", "Kang Yeseo") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.NOVEMBER, 12)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("11.12", "Xiaoting") }
+                    .message { birthdayText("11.12", "Shen Xiaoting") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.DECEMBER, 16)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("12.16", "Mashiro") }
+                    .message { birthdayText("12.16", "Sakamoto Mashiro") }
                     .log()
             }
 
             isDate(today, MonthDay.of(Month.DECEMBER, 27)) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { birthdayText("12.27", "Youngeun") }
+                    .message { birthdayText("12.27", "Seo Youngeun") }
                     .log()
             }
         }

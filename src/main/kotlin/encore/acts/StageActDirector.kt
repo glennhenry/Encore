@@ -315,7 +315,7 @@ class StageActDirector(
 
             in between(196) -> {
                 Fancam.event(Level.Off, "kp")
-                    .message { "(03:16) ${Emoji.Knife} You know I'm a killer" }
+                    .message { "(03:16) ${Emoji.Knife} You know I'm a KILLA" }
                     .log()
             }
 
