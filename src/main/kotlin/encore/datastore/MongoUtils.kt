@@ -1,5 +1,8 @@
 package encore.datastore
 
+import com.mongodb.client.result.DeleteResult
+import com.mongodb.client.result.InsertManyResult
+import com.mongodb.client.result.InsertOneResult
 import com.mongodb.client.result.UpdateResult
 import org.bson.conversions.Bson
 
@@ -66,4 +69,82 @@ fun UpdateResult.throwIfNotModified(
                     (updateStr?.let { "\n     update=$it" } ?: "")
         )
     }
+}
+
+/**
+ * Ensure this insert one result is acknowledged, otherwise
+ * throw an [IllegalStateException].
+ *
+ * Can be chained with [InsertOneResult.and].
+ */
+fun ensureAck(res: InsertOneResult): InsertOneResult {
+    if (!res.wasAcknowledged()) {
+        error("MongoDB insert one not acknowledged: $res")
+    }
+    return res
+}
+
+/**
+ * Ensure this insert one result and [other] is acknowledged,
+ * otherwise throw an IllegalStateException.
+ */
+fun InsertOneResult.and(other: InsertOneResult): InsertOneResult {
+    if (!this.wasAcknowledged() || !other.wasAcknowledged()) {
+        error("MongoDB insert one not acknowledged: \n" +
+                "this=$this \n" +
+                "other=$other")
+    }
+    return other
+}
+
+/**
+ * Ensure this insert many result is acknowledged, otherwise
+ * throw an [IllegalStateException].
+ *
+ * Can be chained with [InsertManyResult.and].
+ */
+fun ensureAck(res: InsertManyResult): InsertManyResult {
+    if (!res.wasAcknowledged()) {
+        error("MongoDB insert many not acknowledged: $res")
+    }
+    return res
+}
+
+/**
+ * Ensure this insert many result and [other] is acknowledged,
+ * otherwise throw an [IllegalStateException].
+ */
+fun InsertManyResult.and(other: InsertManyResult): InsertManyResult {
+    if (!this.wasAcknowledged() || !other.wasAcknowledged()) {
+        error("MongoDB insert many not acknowledged: \n" +
+                "this=$this \n" +
+                "other=$other")
+    }
+    return other
+}
+
+/**
+ * Ensure this delete result is acknowledged, otherwise
+ * throw an [IllegalStateException].
+ *
+ * Can be chained with [DeleteResult.and].
+ */
+fun ensureAck(res: DeleteResult): DeleteResult {
+    if (!res.wasAcknowledged()) {
+        error("MongoDB delete not acknowledged: $res")
+    }
+    return res
+}
+
+/**
+ * Ensure this delete result and [other] is acknowledged,
+ * otherwise throw an [IllegalStateException].
+ */
+fun DeleteResult.and(other: DeleteResult): DeleteResult {
+    if (!this.wasAcknowledged() || !other.wasAcknowledged()) {
+        error("MongoDB delete not acknowledged: \n" +
+                "this=$this \n" +
+                "other=$other")
+    }
+    return other
 }

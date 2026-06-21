@@ -3,13 +3,10 @@ package encore.datastore
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
-import encore.datastore.collection.PlayerAccount
-import encore.datastore.collection.PlayerId
-import encore.datastore.collection.PlayerObjects
-import encore.datastore.collection.PlayerServerObjects
-import encore.datastore.collection.ServerObjects
+import encore.datastore.collection.*
 import encore.fancam.Fancam
 import encore.fancam.Tags
+import encore.utils.support.asUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -106,42 +103,20 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
         playerObjects: PlayerObjects,
         playerServerObjects: PlayerServerObjects
     ): Result<Unit> {
-        return try {
-            val accountAck = accounts.insertOne(account).wasAcknowledged()
-            val pObjAck = this.playerObjects.insertOne(playerObjects).wasAcknowledged()
-            val psObjAck = this.playerServerObjects.insertOne(playerServerObjects).wasAcknowledged()
-
-            if (accountAck && pObjAck && psObjAck) {
-                Result.success(Unit)
-            } else {
-                Fancam.error(tag = Tags.Datastore) {
-                    "MongoDB creation not acknowledged: playerId=${account.playerId}, accountAck=$accountAck, pObjAck=$pObjAck, psObjAck=$psObjAck"
-                }
-                Result.failure(
-                    IllegalStateException("MongoDB insert not acknowledged")
-                )
-            }
-        } catch (e: Exception) {
-            Fancam.error(e, Tags.Datastore) { "MongoDB creation failed: playerId=${account.playerId}" }
-            Result.failure(e)
+        return runMongoCatching {
+            ensureAck(accounts.insertOne(account))
+                .and(this.playerObjects.insertOne(playerObjects))
+                .and(this.playerServerObjects.insertOne(playerServerObjects))
+                .asUnit()
         }
     }
 
     override suspend fun delete(playerId: PlayerId): Result<Unit> {
-        return try {
-            val accountAck = accounts.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
-            val pObjAck = playerObjects.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
-            val psObjAck = playerServerObjects.deleteOne(Filters.eq(FieldPlayerId, playerId)).wasAcknowledged()
-
-            if (accountAck && pObjAck && psObjAck) {
-                Result.success(Unit)
-            } else {
-                Fancam.error(tag = Tags.Datastore) { "MongoDB deletion not acknowledged: playerId=$playerId, accountAck=$accountAck, pObjAck=$pObjAck, psObjAck=$psObjAck" }
-                Result.failure(IllegalStateException("MongoDB deletion not acknowledged"))
-            }
-        } catch (e: Exception) {
-            Fancam.error(e, Tags.Datastore) { "MongoDB deletion failed: playerId=$playerId" }
-            Result.failure(e)
+        return runMongoCatching {
+            ensureAck(accounts.deleteOne(Filters.eq(FieldPlayerId, playerId)))
+                .and(playerObjects.deleteOne(Filters.eq(FieldPlayerId, playerId)))
+                .and(playerServerObjects.deleteOne(Filters.eq(FieldPlayerId, playerId)))
+                .asUnit()
         }
     }
 
