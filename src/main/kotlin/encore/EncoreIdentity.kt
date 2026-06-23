@@ -24,8 +24,8 @@ import java.time.MonthDay
  */
 object EncoreIdentity {
     const val Title = "Encore"
-    const val Version = "1.0.5"
-    const val VersionDate = "2026.06.21"
+    const val Version = "1.0.6"
+    const val VersionDate = "2026.06.23"
     const val Codename = "Rookie - first fan concert"
     const val Slogan = "Bring it back live."
     const val Logo = """
