@@ -56,9 +56,9 @@ interface RouteHandler {
 }
 
 /**
- * Handles this route by:
- * - Logging incoming requests and outgoing responses.
- * - Applying the optional [auth] guard before executing [block].
+ * Utility to handle an endpoint route which:
+ * - Logs incoming requests and outgoing responses.
+ * - Applies the optional [auth] guard before executing [block].
  *
  * Request handling is aborted if [AuthGuard.verify] does not return
  * [GuardResult.Welcome].
@@ -71,7 +71,7 @@ interface RouteHandler {
  * @param auth Auth guard to apply. Defaults to [NoAuthGuard].
  * @param block Request handling block.
  */
-suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
+suspend fun RoutingContext.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
     val startedAt = TimeCenter.now()
     call.attributes.put(ReqResLoggingKey, startedAt)
 
@@ -95,7 +95,7 @@ suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthG
 }
 
 /**
- * Handles this route using the given [auth] guard.
+ * Utility to handle an endpoint route which apply the given [auth] guard.
  *
  * Request handling is aborted if [AuthGuard.verify] does not return
  * [GuardResult.Welcome].
@@ -106,7 +106,7 @@ suspend fun RouteHandler.handle(call: ApplicationCall, auth: AuthGuard = NoAuthG
  * @param auth Auth guard to apply.
  * @param block Request handling block.
  */
-suspend fun RouteHandler.guard(call: ApplicationCall, auth: AuthGuard, block: suspend () -> Unit) {
+suspend fun RoutingContext.guard(call: ApplicationCall, auth: AuthGuard, block: suspend () -> Unit) {
     try {
         val result = auth.verify(call)
         if (result is GuardResult.GetOut) {
