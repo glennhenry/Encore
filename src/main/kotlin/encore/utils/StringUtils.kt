@@ -1,5 +1,10 @@
 package encore.utils
 
+import encore.fancam.Fancam
+import encore.serialization.toJsonElement
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+
 /**
  * Break the string into multiple lines.
  *
@@ -37,4 +42,40 @@ fun String.breakIntoLines(maxCharsEachLine: Int, lineIndent: Int = 0): String {
     }
 
     return result.toString()
+}
+
+val jsonPrettyPrinter = Json {
+    prettyPrint = true
+    prettyPrintIndent = "  "
+}
+
+/**
+ * Converts this into a pretty formatted JSON String.
+ *
+ * It relies on **reflection** to support any kind of values.
+ * It is typically used for structured logging or debugging
+ * in combination with the [Fancam] logger.
+ */
+fun Any.toJsonString(preIndent: Int = 0): String {
+    val json = jsonPrettyPrinter.encodeToString(
+        JsonElement.serializer(),
+        this.toJsonElement(useReflection = true)
+    )
+    if (preIndent <= 0) return json
+
+    val prefix = "".padStart(preIndent, ' ')
+
+    val lines = json.lines()
+    return buildString {
+        lines.forEachIndexed { index, string ->
+            if (index == 0) {
+                append(string)
+            } else {
+                append(" $prefix$string")
+            }
+            if (index != lines.lastIndex) {
+                append("\n")
+            }
+        }
+    }
 }
