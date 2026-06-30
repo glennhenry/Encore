@@ -39,7 +39,7 @@ suspend fun createServerContext(
     val dataStore = MongoDataStore(
         db = mongoClient.getDatabase(Venue.encore.database.dbName),
         collectionName = MongoCollectionName
-    )
+    ).also { it.awaitInit() }
     val accountRepository = MongoAccountRepository(
         accountCollection = mongoDatabase.getCollection(MongoCollectionName.playerAccount)
     )

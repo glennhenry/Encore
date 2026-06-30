@@ -44,7 +44,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
         val elapsed = measureTime {
             initJob.await()
         }
-        Fancam.info(Tags.Datastore) { "MongoDB initialized in ${elapsed}ms" }
+        Fancam.info(Tags.Datastore) { "MongoDB initialized in ${elapsed.inWholeMilliseconds}ms" }
     }
 
     private suspend fun setupCollections() {
