@@ -1,6 +1,7 @@
 package encore.datastore
 
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.datastore.collection.*
@@ -53,6 +54,7 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
             Fancam.info(Tags.Datastore) { "MongoDB contains $count accounts" }
             prepareServerObjects()
             setupIndexes()
+            setupUniqueConstraints()
         } catch (e: Exception) {
             Fancam.error(e, Tags.Datastore) { "MongoDB scandal during initialization" }
         }
@@ -61,6 +63,17 @@ class MongoDataStore(db: MongoDatabase, collectionName: MongoCollectionName) : D
     private suspend fun setupIndexes() {
         serverObjects.createIndex(Indexes.text())
         Fancam.info(Tags.Datastore) { "Mongo index set up" }
+    }
+
+    private suspend fun setupUniqueConstraints() {
+        // account.username unique
+        accounts.createIndex(
+            Indexes.ascending(FieldUsername), IndexOptions().unique(true)
+        )
+        // account.email unique
+        accounts.createIndex(
+            Indexes.ascending(FieldEmail), IndexOptions().unique(true)
+        )
     }
 
     private suspend fun prepareServerObjects() {

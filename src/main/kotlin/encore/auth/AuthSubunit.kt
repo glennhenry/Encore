@@ -1,5 +1,6 @@
 package encore.auth
 
+import com.mongodb.MongoWriteException
 import com.toxicbakery.bcrypt.Bcrypt
 import encore.EncoreConfig
 import encore.account.AccountSubunit
@@ -32,21 +33,31 @@ class AuthSubunit(
     /**
      * Register an account with [username] and [password].
      *
-     * This will also create a session by calling [SessionSubunit.create].
-     * It doesn't check username authenticity as it should be done beforehand
-     * with [isUsernameAvailable].
+     * A successful registration will also create and return a user session
+     * from [SessionSubunit.create].
+     *
+     * **Note**: The uniqueness of username and email applies. Although
+     * [AccountSubunit.usernameExists] or [AccountSubunit.emailExists]
+     * is called beforehand, there is still a potential duplicate race.
+     * When such thing happens, account won't be registered.
      *
      * Returns:
      * - [Outcome.Fail] if there is an internal repository error.
+     * - [Outcome.Ok] with `null` if username or email already exists.
      * - Otherwise [Outcome.Ok] with [UserSession].
      */
-    suspend fun register(username: String, password: String, email: String): Outcome<UserSession> {
+    suspend fun register(username: String, password: String, email: String): Outcome<UserSession?> {
         try {
             val playerId = creationSubunit.createPlayer(username, password, email)
             Fancam.trace(Tags.Auth) { "Registered '$username' successfully" }
             val session = sessionSubunit.create(playerId)
             return Outcome.Ok(session)
         } catch (e: Throwable) {
+            if (e is MongoWriteException && e.code == 11000) {
+                Fancam.error(e, Tags.Auth) { "Duplicate field encountered on '$username' registration" }
+                return Outcome.Ok(null)
+            }
+
             Fancam.error(e, Tags.Auth) { "Failed to register '$username'" }
             return Outcome.Fail
         }
