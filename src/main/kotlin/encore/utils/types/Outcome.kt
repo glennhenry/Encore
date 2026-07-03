@@ -42,14 +42,26 @@ fun <T> Outcome<T>.isOk(): Boolean = this is Outcome.Ok
 fun <T> Outcome<T>.isFail(): Boolean = this is Outcome.Fail
 
 /**
- * Returns the value of this outcome or `null` if it fails.
+ * Returns the value of this outcome if it is [Outcome.Ok]
+ * or `null` if it is [Outcome.Fail].
  */
-fun <T> Outcome<T>.okOrNull(): T? = (this as? Outcome.Ok)?.value
+fun <T> Outcome<T>.okOrNull(): T? {
+    return when (this) {
+        is Outcome.Ok -> value
+        Outcome.Fail -> null
+    }
+}
 
 /**
- * Returns the value of this outcome or throw an [IllegalStateException] if it fails.
+ * Returns the value of this outcome if it is [Outcome.Ok]
+ * or throw an [IllegalStateException] if it is [Outcome.Fail].
  */
-fun <T> Outcome<T>.okOrThrow(): T = (this as? Outcome.Ok)?.value ?: error("Expected Outcome.Ok but got Outcome.Fail")
+fun <T> Outcome<T>.okOrThrow(): T {
+    return when (this) {
+        is Outcome.Ok -> value
+        Outcome.Fail -> error("Expected Outcome.Ok but got Outcome.Fail")
+    }
+}
 
 /**
  * Returns the value if this is [Outcome.Ok], otherwise throws an error.
