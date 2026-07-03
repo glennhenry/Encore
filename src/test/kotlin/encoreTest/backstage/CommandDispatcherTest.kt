@@ -1,6 +1,5 @@
 package encoreTest.backstage
 
-import com.mongodb.assertions.Assertions.assertTrue
 import encore.backstage.command.types.ArgumentCollection
 import encore.backstage.command.types.ArgumentDescriptor
 import encore.backstage.command.Command

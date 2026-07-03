@@ -1,6 +1,5 @@
 package encoreTest.security
 
-import com.mongodb.assertions.Assertions.assertFalse
 import encore.EncoreFancamConfig
 import encore.fancam.Fancam
 import encore.fancam.impl.OfficialFancam
@@ -12,6 +11,7 @@ import testUtils.assertDoesNotFailSuspend
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 

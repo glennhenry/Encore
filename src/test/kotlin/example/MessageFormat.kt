@@ -1,6 +1,5 @@
 package example
 
-import com.mongodb.assertions.Assertions.assertFalse
 import encore.network.fanchant.guide.DecodeResult
 import encore.network.fanchant.guide.FanchantGuide
 import encore.network.fanchant.Fanchant
