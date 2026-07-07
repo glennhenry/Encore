@@ -9,7 +9,7 @@ import { fontHeadTags } from "./src/assets/headlinks.js";
 // https://astro.build/config
 export default defineConfig({
   // site: "", // deployment URL
-  base: "docs/",
+  base: "docs",
   markdown: {
     rehypePlugins: [[rehypeExternalLinks, externalLinkIcon]],
   },
