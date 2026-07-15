@@ -27,10 +27,12 @@ sealed interface GuardResult {
     data class GetOut(val status: HttpStatusCode, val message: String, val reason: String? = null) : GuardResult
 
     /**
-     * The request is simply rejected with no guaranteed response.
+     * The request is rejected.
      *
-     * **The guard implementation is expected to call [ApplicationCall.respond] manually**,
-     * otherwise nothing will be used as response for the request.
+     * This aborts the request without sending back any response.
+     *
+     * **It is the guard responsibility to respond to the request
+     * by calling [ApplicationCall.respond].**
      *
      * @param reason Optional message for logging purpose.
      */
