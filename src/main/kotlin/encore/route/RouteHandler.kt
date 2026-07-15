@@ -1,5 +1,6 @@
 package encore.route
 
+import bootstrap.errorHtml
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.route.guard.AuthGuard
@@ -7,8 +8,10 @@ import encore.route.guard.GuardResult
 import encore.route.guard.NoAuthGuard
 import encore.time.TimeCenter
 import encore.utils.support.className
+import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.*
 
 /**
@@ -79,10 +82,23 @@ suspend fun RoutingContext.handle(call: ApplicationCall, auth: AuthGuard = NoAut
     Fancam.debug(Tags.Api) { req }
 
     try {
-        val result = auth.verify(call)
-        if (result is GuardResult.GetOut) {
-            Fancam.trace(Tags.Api) { "Request refused by auth guard due to: ${result.why}" }
-            return
+        when (val result = auth.verify(call)) {
+            is GuardResult.Welcome -> {}
+            is GuardResult.GetOut -> {
+                call.respondText(
+                    text = errorHtml(result.status.value, result.message),
+                    contentType = ContentType.Text.Html,
+                    status = result.status
+                )
+
+                Fancam.trace(Tags.Api) { "Request refused by AuthGuard.GetOut due to: ${result.reason}" }
+                return
+            }
+
+            is GuardResult.Reject -> {
+                Fancam.trace(Tags.Api) { "Request refused by AuthGuard.Reject due to: ${result.reason}" }
+                return
+            }
         }
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)
@@ -108,10 +124,23 @@ suspend fun RoutingContext.handle(call: ApplicationCall, auth: AuthGuard = NoAut
  */
 suspend fun RoutingContext.guard(call: ApplicationCall, auth: AuthGuard, block: suspend () -> Unit) {
     try {
-        val result = auth.verify(call)
-        if (result is GuardResult.GetOut) {
-            Fancam.trace(Tags.Api) { "Request refused by auth guard due to: ${result.why}" }
-            return
+        when (val result = auth.verify(call)) {
+            is GuardResult.Welcome -> {}
+            is GuardResult.GetOut -> {
+                call.respondText(
+                    text = errorHtml(result.status.value, result.message),
+                    contentType = ContentType.Text.Html,
+                    status = result.status
+                )
+
+                Fancam.trace(Tags.Api) { "Request refused by AuthGuard.GetOut due to: ${result.reason}" }
+                return
+            }
+
+            is GuardResult.Reject -> {
+                Fancam.trace(Tags.Api) { "Request refused by AuthGuard.Reject due to: ${result.reason}" }
+                return
+            }
         }
     } catch (e: Throwable) {
         val method = colorizeHttpMethod(call.request.httpMethod.value)

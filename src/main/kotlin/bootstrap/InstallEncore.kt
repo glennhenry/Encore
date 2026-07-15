@@ -200,14 +200,22 @@ fun Application.configureSecurity(security: SecurityGuard) {
                 Fancam.debug(Tags.Api) { req }
 
                 call.respondText(
-                    text = errorHtml(403, result.why),
+                    text = errorHtml(result.status.value, result.message),
                     contentType = ContentType.Text.Html,
-                    status = HttpStatusCode.Forbidden
+                    status = result.status
                 )
 
                 val remote = call.request.origin.remoteHost
-                Fancam.info(Tags.Api) { "Security refused $remote due to: ${result.why}" }
+                Fancam.info(Tags.Api) { "Security refused $remote due to: ${result.reason ?: "<unspecified>"}" }
+                finish()
+            }
 
+            is GuardResult.Reject -> {
+                val req = call.stringifyHttpRequest(unhandled = false)
+                Fancam.debug(Tags.Api) { req }
+
+                val remote = call.request.origin.remoteHost
+                Fancam.info(Tags.Api) { "Security refused $remote due to: ${result.reason ?: "<unspecified>"}" }
                 finish()
             }
         }

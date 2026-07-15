@@ -2,6 +2,7 @@ package encore.route.guard
 
 import encore.security.SimpleRateLimit
 import encore.time.source.TimeSource
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.contentLength
@@ -28,7 +29,7 @@ class DefaultSecurity(private val bannedAddresses: Set<String>, timeSource: Time
         val length = call.request.contentLength() ?: return null
 
         if (length > 1024 * 1024 * 10) {
-            return GuardResult.GetOut("payload too large")
+            return GuardResult.GetOut(HttpStatusCode.PayloadTooLarge, "payload too large", "payload too large")
         }
 
         return null
@@ -38,7 +39,7 @@ class DefaultSecurity(private val bannedAddresses: Set<String>, timeSource: Time
         val remote = call.request.origin.remoteHost
 
         if (remote in bannedAddresses) {
-            return GuardResult.GetOut("banned address")
+            return GuardResult.GetOut(HttpStatusCode.Forbidden, "banned address", "banned address")
         }
 
         return null
@@ -48,7 +49,7 @@ class DefaultSecurity(private val bannedAddresses: Set<String>, timeSource: Time
         val remote = call.request.origin.remoteHost
 
         if (!rateLimiter.allow(remote)) {
-            return GuardResult.GetOut("rate limited")
+            return GuardResult.GetOut(HttpStatusCode.Forbidden, "rate limited", "rate limited")
         }
 
         return null
