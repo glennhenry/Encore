@@ -10,7 +10,7 @@ The framework is primarily created for private server development. It includes r
 
 An empty documentation site is also available to write reverse engineering findings.
 
-Encore [version info](https://github.com/glennhenry/Encore/blob/main/src/main/kotlin/encore/EncoreIdentity.kt): `1.0.13 (Rookie - on vacation)`
+Encore [version info](https://github.com/glennhenry/Encore/blob/main/src/main/kotlin/encore/EncoreIdentity.kt): `1.0.14 (Rookie - on vacation)`
 
 ```
 readme template

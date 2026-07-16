@@ -5,6 +5,7 @@ import encore.fancam.INDENT
 import encore.fancam.Tags
 import encore.fancam.formatter.colorizeSegmentFg
 import encore.time.TimeCenter
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.PipelineCall
@@ -59,7 +60,7 @@ fun Application.interceptResponse() {
 
 fun PipelineCall.stringifyHttpResponse(subject: Any, elapsed: Long): String {
     return buildString {
-        val status = colorizeStatusCode(response.status()?.value ?: 0)
+        val status = colorizeStatusCode(response.status())
         val method = colorizeHttpMethod(request.httpMethod.value)
 
         appendLine("----- [HTTP Response]")
@@ -102,8 +103,12 @@ fun colorizeHttpMethod(method: String): String {
     }
 }
 
-fun colorizeStatusCode(status: Int): String {
-    return when (status) {
+fun colorizeStatusCode(status: HttpStatusCode?): String {
+    if (status == null) {
+        return colorizeSegmentFg(249, "no-status")
+    }
+
+    return when (status.value) {
         in 100..199 -> {
             colorizeSegmentFg(249, status.toString())
         }
