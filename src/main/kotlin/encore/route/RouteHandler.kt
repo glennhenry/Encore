@@ -75,7 +75,7 @@ interface RouteHandler {
  * @param auth Auth guard to apply. Defaults to [NoAuthGuard].
  * @param block Request handling block.
  */
-suspend fun RoutingContext.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
+suspend fun Route.handle(call: ApplicationCall, auth: AuthGuard = NoAuthGuard, block: suspend () -> Unit) {
     val startedAt = TimeCenter.now()
     call.attributes.put(ReqResLoggingKey, startedAt)
 
@@ -137,7 +137,7 @@ suspend fun RoutingContext.handle(call: ApplicationCall, auth: AuthGuard = NoAut
  * @param auth Auth guard to apply.
  * @param block Request handling block.
  */
-suspend fun RoutingContext.guard(call: ApplicationCall, auth: AuthGuard, block: suspend () -> Unit) {
+suspend fun Route.guard(call: ApplicationCall, auth: AuthGuard, block: suspend () -> Unit) {
     try {
         when (val result = auth.verify(call)) {
             is GuardResult.Welcome -> {}
