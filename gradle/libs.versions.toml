@@ -1,10 +1,10 @@
 [versions]
-kotlin = "2.4.10"
-ktor = "3.5.1"
-slf4j-noop = "2.0.17"
+kotlin = "2.4.20"
+ktor = "3.6.0"
+slf4j-noop = "2.0.19"
 bcrypt = "1.0.9"
-kotlin-mongodb = "5.9.0"
-bson-kotlinx = "5.9.0"
+kotlin-mongodb = "5.12.0"
+bson-kotlinx = "5.12.0"
 
 [libraries]
 # --- Kotlin ---
