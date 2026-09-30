@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "dev.encore"
-version = "1.1.4"
+version = "1.2.0"
 
 application {
     mainClass = "ApplicationKt"
