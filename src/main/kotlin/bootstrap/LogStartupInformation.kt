@@ -13,12 +13,14 @@ fun logStartupInformation() {
     val apiPort = Venue.encore.server.port
 
     Fancam.info(Tags.Startup) { "Server and framework components initialized." }
-    Fancam.info(Tags.Startup) { "File/API served at (${serverHost}:$apiPort)." }
-    Fancam.info(Tags.Startup) { "Devtools served at (${serverHost}:$apiPort/backstage)." }
+    Fancam.info(Tags.Startup) { "HTTP server live at (${serverHost}:$apiPort)." }
+    Fancam.info(Tags.Startup) { "Devtools live at (${serverHost}:$apiPort/backstage)." }
 
     if (File("docs_build/index.html").exists()) {
         Fancam.info(Tags.Startup) { "Docs website available on ${serverHost}:$apiPort." }
     } else {
         Fancam.info(Tags.Startup) { "Docs website not available. Optionally, run 'npm install' & 'npm run dev' in the docs folder to preview it." }
     }
+
+    Fancam.info(Tags.Startup) { "Open the game in your browser at http://127.0.0.1:8080" }
 }

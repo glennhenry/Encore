@@ -102,9 +102,9 @@ fun Application.configureSerialization(module: SerializersModule = SerializersMo
 fun configureFancam() {
     Fancam.initialize(OfficialFancam(Venue.encore.fancam))
     if (Venue.encore.devMode) {
-        Fancam.info(Tags.Startup) { "Running server on developmentMode" }
+        Fancam.info(Tags.Startup) { "Running server on ${colorizeSegmentFg(33, "development mode")} (developmentMode=true)" }
     } else {
-        Fancam.info(Tags.Startup) { "developmentMode is off" }
+        Fancam.info(Tags.Startup) { "Running server on ${colorizeSegmentFg(130, "production mode")} (developmentMode=false)" }
     }
 }
 
