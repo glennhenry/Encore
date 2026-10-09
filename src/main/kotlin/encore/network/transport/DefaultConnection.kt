@@ -57,6 +57,8 @@ class DefaultConnection(
                     .message {
                         buildString {
                             appendLine("[SOCKET SEND]")
+                            appendLine("$INDENT identity  : $identity")
+                            appendLine("$INDENT bytes     : ${input.size}")
                             appendLine("$INDENT raw       : ${input.safeAsciiString()}")
                             append("$INDENT raw (hex) : ${input.hexString()}")
                         }

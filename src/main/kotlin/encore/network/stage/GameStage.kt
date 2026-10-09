@@ -3,6 +3,7 @@ package encore.network.stage
 import encore.fancam.Fancam
 import encore.fancam.INDENT
 import encore.fancam.Tags
+import encore.fancam.formatter.colorizeSegmentFg
 import encore.network.fanchant.AllRounderFanchant
 import encore.network.fanchant.Fanchant
 import encore.network.fanchant.FanchantCoordinator
@@ -124,18 +125,21 @@ class GameStage(
                     serverContext.playerLifecycleHandler.onReceive(serverContext, connection)
 
                     // start handle
-                    var fanchantType = "[Undetermined]"
+                    var (fanchantType, handlerName) = "[Undetermined]" to "[None]"
                     val elapsed = measureTimeMillis {
-                        fanchantType = handleFanchant(connection, data)
+                        val result = handleFanchant(connection, data)
+                        fanchantType = result.first
+                        handlerName = result.second
                     }
 
                     // end handle
                     Fancam.debug(Tags.Socket) {
                         buildString {
                             appendLine("<===== [SOCKET END]")
-                            appendLine("$INDENT type      : $fanchantType")
-                            appendLine("$INDENT identity  : ${connection.identity}")
-                            appendLine("$INDENT duration  : ${elapsed}ms")
+                            appendLine("$INDENT type     : $fanchantType")
+                            appendLine("$INDENT handler  : $handlerName")
+                            appendLine("$INDENT identity : ${connection.identity}")
+                            appendLine("$INDENT duration : ${elapsed}ms")
                             append("====================================================================================================")
                         }
                     }
@@ -166,21 +170,21 @@ class GameStage(
      * inherently ambiguous. In such cases, the first successful decoding
      * result is selected, and a warning is logged.
      *
-     * @return The specific fanchant type where decode succeed.
+     * @return The specific fanchant type where decode succeeded and its handler class name.
      */
-    private suspend fun handleFanchant(connection: Connection, data: ByteArray): String {
+    private suspend fun handleFanchant(connection: Connection, data: ByteArray): Pair<String, String> {
         // Empty data
         if (data.isEmpty()) {
             Fancam.debug(Tags.Socket) { "[SOCKET] Ignored empty data from connection=$connection" }
-            return "[Empty data]"
+            return "[Empty data]" to "[None]"
         }
 
         Fancam.debug(Tags.Socket) {
             buildString {
                 appendLine("=====> [SOCKET RECEIVE]")
-                appendLine("$INDENT identity  : ${connection.identity}")
-                appendLine("$INDENT bytes     : ${data.size}")
-                appendLine("$INDENT raw       : ${data.safeAsciiString()}")
+                appendLine("$INDENT identity : ${connection.identity}")
+                appendLine("$INDENT bytes    : ${data.size}")
+                appendLine("$INDENT raw      : ${data.safeAsciiString()}")
                 append("$INDENT raw (hex) : ${data.hexString()}")
             }
         }
@@ -199,10 +203,10 @@ class GameStage(
 
                     Fancam.debug(Tags.Socket) {
                         buildString {
-                            appendLine("[SOCKET DECODE] -> success")
-                            appendLine("$INDENT type   : ${fanchant.type}")
-                            appendLine("$INDENT guide  : ${guide.className()}")
-                            append("$INDENT class  : ${fanchant.className()}")
+                            appendLine("[SOCKET DECODE] -> ${colorizeSegmentFg(108, "success")}")
+                            appendLine("$INDENT guide    : ${guide.className()}")
+                            appendLine("$INDENT fanchant : ${fanchant.className()}")
+                            append("$INDENT type     : ${fanchant.type}")
                         }
                     }
 
@@ -220,9 +224,10 @@ class GameStage(
                 val chant = allRounderFanchant(data)
                 Fancam.debug(Tags.Socket) {
                     buildString {
-                        appendLine("[SOCKET DECODE] -> fallback")
-                        appendLine("$INDENT type   : ${chant.type}")
-                        append("$INDENT guide  : ${allRounderFanchantGuide.className()}")
+                        appendLine("[SOCKET DECODE] -> ${colorizeSegmentFg(103, "fallback")}")
+                        appendLine("$INDENT guide    : ${allRounderFanchantGuide.className()}")
+                        appendLine("$INDENT fanchant : ${chant.className()}")
+                        append("$INDENT type     : ${chant.type}")
                     }
                 }
 
@@ -274,7 +279,7 @@ class GameStage(
             }
         }
 
-        return fanchant.type
+        return fanchant.type to handler.className()
     }
 
     // when no other guide matches, uses AllRounderFanchantGuide

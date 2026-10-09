@@ -5,6 +5,7 @@ import encore.network.handler.AllRounderHandler
 import encore.fancam.Fancam
 import encore.fancam.INDENT
 import encore.fancam.Tags
+import encore.fancam.formatter.colorizeSegmentFg
 import encore.utils.support.className
 
 /**
@@ -62,12 +63,13 @@ class FanchantCoordinator {
         Fancam.debug(Tags.Socket) {
             buildString {
                 if (handler == null) {
-                    appendLine("[SOCKET DISPATCH] -> fallback")
+                    appendLine("[SOCKET DISPATCH] -> ${colorizeSegmentFg(103, "fallback")}")
                 } else {
-                    appendLine("[SOCKET DISPATCH] -> success")
+                    appendLine("[SOCKET DISPATCH] -> ${colorizeSegmentFg(108, "success")}")
                 }
-                appendLine("$INDENT fanchant.toString(): $fanchant")
-                append("$INDENT handler            : ${handler?.className() ?: allRounderHandler.className()}")
+                appendLine("$INDENT class      : ${fanchant.className()}")
+                appendLine("$INDENT toString() : $fanchant")
+                append("$INDENT handler    : ${handler?.className() ?: allRounderHandler.className()}")
             }
         }
 

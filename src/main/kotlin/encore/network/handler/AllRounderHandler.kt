@@ -3,6 +3,7 @@ package encore.network.handler
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.network.fanchant.AllRounderFanchant
+import encore.utils.support.className
 
 /**
  * Fallback-based handler implementation of [FanchantHandler].
@@ -17,7 +18,7 @@ class AllRounderHandler : FanchantHandler<AllRounderFanchant> {
     override val fanchantType: String = "N/A"
 
     override suspend fun handle(ctx: HandlerContext<AllRounderFanchant>) = with(ctx) {
-        Fancam.warn(Tags.Socket) { "Unhandled fanchant of type '${fanchant.type}'" }
+        Fancam.warn(Tags.Socket) { "Unhandled fanchant: ${fanchant.className()}(type=${fanchant.type})" }
 
         // directly respond here...
     }
