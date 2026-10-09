@@ -2,9 +2,6 @@ package encore.venue
 
 import encore.EncoreConfig
 import encore.annotation.runtime.VenueKey
-import encore.venue.Venue.custom
-import encore.venue.Venue.encore
-import encore.venue.Venue.secret
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import game.config.CustomConfig
@@ -100,6 +97,13 @@ object Venue {
         preparer.validate()
 
         Fancam.info(Tags.Venue) { "Venue preparation finished." }
+    }
+
+    /**
+     * Returns `true` if `Venue` is already initialized.
+     */
+    fun isInitialized(): Boolean {
+        return _encore != null
     }
 
     /**

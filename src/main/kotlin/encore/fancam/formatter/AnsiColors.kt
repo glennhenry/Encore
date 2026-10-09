@@ -1,5 +1,8 @@
 package encore.fancam.formatter
 
+import encore.EncoreFancamConfig
+import encore.venue.Venue
+
 /**
  * Ansi colors (256) constants to style console.
  *
@@ -34,15 +37,23 @@ object AnsiColors {
 /**
  * Colorize the given [text] with a **256-foreground** [color].
  * This start ANSI coloring, places text, and put a reset afterward.
+ *
+ * If color is not enabled via [EncoreFancamConfig.colorEnabled],
+ * this will return the plain text.
  */
 fun colorizeSegmentFg(color: Int, text: String): String {
+    if (Venue.isInitialized() && !Venue.encore.fancam.colorEnabled) return text
     return "${AnsiColors.fg(color)}$text${AnsiColors.Reset}"
 }
 
 /**
  * Colorize the given [text] with a **256-background** [color].
  * This start ANSI coloring, places text, and put a reset afterward.
+ *
+ * If color is not enabled via [EncoreFancamConfig.colorEnabled],
+ * this will return the plain text.
  */
 fun colorizeSegmentBg(color: Int, text: String): String {
+    if (Venue.isInitialized() && !Venue.encore.fancam.colorEnabled) return text
     return "${AnsiColors.bg(color)}$text${AnsiColors.Reset}"
 }
