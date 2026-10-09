@@ -42,6 +42,10 @@ val defaultFilters = listOf(
     "kotlin.coroutines",
     "encore.fancam",
     "encore.security.screening",
+    "encore.route.RouteHandler",
+    "encore.utils.support.Safely",
+    "encore.network.transport.Connection",
+    "encore.network.transport.DefaultConnection",
     "kotlinx.coroutines",
     "java.lang.Thread",
     "java.util.concurrent"
