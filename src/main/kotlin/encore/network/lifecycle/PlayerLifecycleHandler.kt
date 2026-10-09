@@ -40,7 +40,7 @@ import encore.network.stage.GameStage
  * - Notifying other players if their friend is now online
  * - Re-running server tasks
  */
-class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
+class PlayerLifecycleHandler {
     /**
      * Hook of player lifecycle, provides [ServerContext]
      * and the associated player's [Connection].
@@ -76,11 +76,9 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnConnect] event for [connection].
      */
     suspend fun onConnect(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onConnect lifecycle for '${connection.identity}'" }
         for ((name, hook) in onConnectHooks) {
             try {
                 hook(serverContext, connection)
-                if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onConnect '$name' executed" }
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Lifecycle) { "onConnect '$name' scandal for '${connection.identity}'" }
             }
@@ -92,11 +90,9 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnIdentified] event for [connection].
      */
     suspend fun onIdentified(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onIdentified lifecycle for '${connection.identity}'" }
         for ((name, hook) in onIdentifiedHooks) {
             try {
                 hook(serverContext, connection)
-                if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onIdentified '$name' executed" }
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Lifecycle) { "onIdentified '$name' scandal for '${connection.identity}'" }
             }
@@ -107,11 +103,9 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnContextCreated] event for [connection].
      */
     suspend fun onContextCreated(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onContextCreated lifecycle for '${connection.identity}'" }
         for ((name, hook) in onContextCreatedHooks) {
             try {
                 hook(serverContext, connection)
-                if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onContextCreated '$name' executed" }
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Lifecycle) { "onContextCreated '$name' scandal for '${connection.identity}'" }
             }
@@ -122,11 +116,9 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnDisconnect] event for [connection].
      */
     suspend fun onDisconnect(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onDisconnect lifecycle for '${connection.identity}'" }
         for ((name, hook) in onDisconnectHooks) {
             try {
                 hook(serverContext, connection)
-                if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onDisconnect '$name' executed" }
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Lifecycle) { "onDisconnect '$name' scandal for '${connection.identity}'" }
             }
@@ -137,11 +129,9 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnSend] event for [connection].
      */
     suspend fun onSend(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onSend lifecycle for '${connection.identity}'" }
         for ((name, hook) in onSendHooks) {
             try {
                 hook(serverContext, connection)
-                if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onSend '$name' executed" }
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Lifecycle) { "onSend '$name' scandal for '${connection.identity}'" }
             }
@@ -152,11 +142,9 @@ class PlayerLifecycleHandler(private val logEachHook: Boolean = true) {
      * Represent the [PlayerLifecycle.OnReceive] event for [connection].
      */
     suspend fun onReceive(serverContext: ServerContext, connection: Connection) {
-        if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onReceive lifecycle for '${connection.identity}'" }
         for ((name, hook) in onReceiveHooks) {
             try {
                 hook(serverContext, connection)
-                if (logEachHook) Fancam.trace(Tags.Lifecycle) { "onReceive '$name' executed" }
             } catch (e: Exception) {
                 Fancam.error(e, Tags.Lifecycle) { "onReceive '$name' scandal for '${connection.identity}'" }
             }

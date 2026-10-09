@@ -81,7 +81,7 @@ class RealContextFactory(
             actStore = ActIdStore
         )
         val commandDispatcher = CommandDispatcher()
-        val playerLifecycleHandler = PlayerLifecycleHandler(logEachHook = true)
+        val playerLifecycleHandler = PlayerLifecycleHandler()
         val webSocketManager = WebSocketManager()
 
         // setup ServerSubunits

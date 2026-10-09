@@ -70,7 +70,7 @@ data class ServerContext(
             parentScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
             timeSource: TimeSource = SystemTimeSource(),
             dataStore: DataStore = BlankDataStore(),
-            playerLifecycleHandler: PlayerLifecycleHandler = PlayerLifecycleHandler(true),
+            playerLifecycleHandler: PlayerLifecycleHandler = PlayerLifecycleHandler(),
             accountRepository: AccountRepository = BlankAccountRepository(),
             extraRepository: PlayerExtraRepository = InMemoryPlayerExtraRepository(),
             contextFactory: ContextFactory = FakeContextFactory(emptyMap())
