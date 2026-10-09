@@ -87,8 +87,8 @@ fun Any?.toLogBody(): String {
         }
 
         else -> {
-            val type = this::class.simpleName ?: "unknown"
-            "$type(${toString().length} chars)"
+            val cls = this::class.simpleName ?: "<unknown>"
+            "$cls()"
         }
     }
 }
