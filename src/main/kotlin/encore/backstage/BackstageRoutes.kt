@@ -24,7 +24,7 @@ import kotlin.time.Duration.Companion.minutes
 
 /**
  * Backstage routes (devtools). In the backstage, there are three sections of tools:
- *  - **Console**: live log from server.
+ *  - **Logger**: live log stream from server.
  *  - **Monitor**: server status and activity from server (e.g., active players, server state, running task).
  *  - **Command**: external input to control server runtime.
  *
@@ -36,16 +36,16 @@ import kotlin.time.Duration.Companion.minutes
  *     - If invalid, send back `wall.html` (back to step 2).
  *     - If valid, set cookie of `backstage-clientId` with a new generated token (valid for 6 hours).
  *     Then, server responds with `backstage.html`.
- * 5. Client-side connects to websocket, including the previous token to the query parameter of the WS link.
- * 6. Server verify the WS query param.
+ * 5. Client-side connects to websocket, including the previous token as a query parameter.
+ * 6. Server verify the WS query parameter.
  *     - If invalid, refuse the connection. This will prevent arbitrary websocket connection.
- *     The page will still be valid, though client can't do anything.
+ *     The page will still be valid, but client can't do anything.
  *     - If valid, then websocket connection is approved.
  *     - From now on, refreshing page does not prompt `wall.html` anymore since server
  *     will also check this cookie.
- * 7. Client and server starts exchanging WS messages for console and commands tool.
- *     - Server sends log message on server to client for console.
- *     - Client periodically make API request to `/server-status`, including the cookie token
+ * 7. Client and server starts exchanging WS messages for tools.
+ *     - Server streams log message to client for logger.
+ *     - Client periodically make API request to `/monitor`, including the cookie token
  *     to get monitoring status.
  *         - If cookie token is invalid, server return error status.
  *         - If cookie token is valid, server return JSON for server status.

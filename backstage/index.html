@@ -12,12 +12,47 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <title>Backstage</title>
   <style>
-   
+    .main {
+      font-size: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      border-bottom: 3px solid var(--color-primary);
+      gap: 8px;
+    }
+
+    .topbar h1 {
+      font-size: 20px;
+    }
+
+    .topbar .icon-link {
+      font-size: 13px;
+    }
   </style>
 </head>
 
 <body>
-  <h1>Hello</h1>
+  <div class="main">
+    <div class="topbar">
+      <h1>Backstage</h1>
+      <a class="icon-link" href="/">
+        <img src="/backstage/assets/logger.png" width="24px" alt="Logger">
+        <p>Logger</p>
+      </a>
+      <a class="icon-link" href="/">
+        <img src="/backstage/assets/monitor.png" width="24px" alt="Monitor">
+        <p>Monitor</p>
+      </a>
+      <a class="icon-link" href="/">
+        <img src="/backstage/assets/console.png" width="24px" style="margin-right:-2px;" alt="Command">
+        <p>Command</p>
+      </a>
+    </div>
+
+  </div>
   <div class="toast-container"></div>
   <script>
     $(document).ready(function () {
