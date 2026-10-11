@@ -1,5 +1,6 @@
 package encore.backstage
 
+import encore.EncoreIdentity
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.route.RouteHandler
@@ -8,10 +9,12 @@ import encore.route.guard.AuthGuard
 import encore.route.guard.GuardResult
 import encore.route.guard.NoAuthGuard
 import encore.route.handle
+import encore.serialization.JSON
 import encore.time.TimeCenter
 import encore.utils.identifier.Ids
 import encore.venue.Venue
 import encore.websocket.WebSocketMessage
+import game.GameIdentity
 import game.context.ServerContext
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -61,6 +64,7 @@ class BackstageRoutes(
 ) : RouteHandler {
     private val backstageAuthGuard = BackstageAuthGuard { verifyToken(it) }
     private var cmdHelpText = ""
+    private var metadata = ""
 
     fun verifyToken(token: String): Boolean {
         return serverContext.subunits.session.verify(token)
@@ -142,6 +146,23 @@ class BackstageRoutes(
         get("/backstage/status") {
             guard(call, backstageAuthGuard) {
                 call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        get("/backstage/metadata") {
+            guard(call, backstageAuthGuard) {
+                if (metadata.isBlank()) {
+                    metadata = JSON.encode(
+                        mapOf(
+                            "encoreVersion" to EncoreIdentity.Version,
+                            "encoreVersionDate" to EncoreIdentity.VersionDate,
+                            "encoreCodename" to EncoreIdentity.Codename,
+                            "serverName" to GameIdentity.Title,
+                            "serverVersion" to GameIdentity.Version,
+                        )
+                    )
+                }
+                call.respond(metadata)
             }
         }
 

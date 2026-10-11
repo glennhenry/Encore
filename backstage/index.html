@@ -97,10 +97,11 @@
     <div class="content">
       <div class="callout">
         <div class="version">
-          <p>Running <strong>Dead Zone Server</strong> of version <strong>0.0.1</strong>.</p>
+          <p>Running <strong id="server-name"></strong> of version <strong id="server-version"></strong>.</p>
           <div class="space-y-s"></div>
           <p>Encore details:</p>
-          <p>Version: <strong>Rookie</strong> - <strong>1.2.0</strong> at <strong>2026.09.30</strong></p>
+          <p>Version: <strong id="encore-codename"></strong> - <strong id="encore-version"></strong> at <strong
+              id="encore-version-date"></strong></p>
         </div>
         <div class="status">
           <p>Status: <span id="status-text"></span></p>
@@ -128,11 +129,28 @@
   <div class="toast-container"></div>
   <script>
     $(document).ready(function () {
+      requestMetadata()
       updateStatus()
       setInterval(() => {
         updateStatus()
       }, 60000);
     })
+
+    async function requestMetadata() {
+      try {
+        const response = await fetch(`/backstage/metadata`)
+        if (response.ok) {
+          const data = await response.json()
+          $("#encore-version").text(data.encoreVersion)
+          $("#encore-version-date").text(data.encoreVersionDate)
+          $("#encore-codename").text(data.encoreCodename)
+          $("#server-name").text(data.serverName)
+          $("#server-version").text(data.serverVersion)
+        }
+      } catch (err) {
+        Toast.error("Something is wrong!", `Request metadata error: ${err.message}`, true)
+      }
+    }
 
     async function updateStatus() {
       try {
