@@ -67,6 +67,10 @@ class BackstageRoutes(
             }
         }
 
+        get("/backstage/status") {
+            call.respond(HttpStatusCode.OK)
+        }
+
         get("/backstage") {
             handle(call, NoAuthGuard) {
                 val wallHtml = File("backstage/wall.html")

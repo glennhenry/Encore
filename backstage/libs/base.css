@@ -12,6 +12,23 @@ body {
   width: 16px;
 }
 
+.space-y-s {
+  height: 8px;
+}
+
+.space-y-md {
+  height: 16px;
+}
+
+.link {
+  color: #2d72ad;
+  text-decoration: underline;
+}
+
+.link:hover {
+  text-decoration-thickness: 2px;
+}
+
 .icon-link {
   display: flex;
   align-items: center;
