@@ -3,10 +3,14 @@ package encore.backstage
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.route.RouteHandler
+import encore.route.guard
+import encore.route.guard.AuthGuard
+import encore.route.guard.GuardResult
 import encore.route.guard.NoAuthGuard
 import encore.route.handle
 import encore.time.TimeCenter
 import encore.utils.identifier.Ids
+import encore.venue.Venue
 import encore.websocket.WebSocketMessage
 import game.context.ServerContext
 import io.ktor.http.*
@@ -41,8 +45,7 @@ import kotlin.time.Duration.Companion.minutes
  *     - If invalid, refuse the connection. This will prevent arbitrary websocket connection.
  *     The page will still be valid, but client can't do anything.
  *     - If valid, then websocket connection is approved.
- *     - From now on, refreshing page does not prompt `wall.html` anymore since server
- *     will also check this cookie.
+ *     - From now on, refreshing page does not prompt `wall.html` anymore.
  * 7. Client and server starts exchanging WS messages for tools.
  *     - Server streams log message to client for logger.
  *     - Client periodically make API request to `/monitor`, including the cookie token
@@ -56,30 +59,26 @@ class BackstageRoutes(
     private val serverContext: ServerContext,
     private val tokenStorage: MutableMap<String, Long>
 ) : RouteHandler {
+    private val backstageAuthGuard = BackstageAuthGuard { verifyToken(it) }
+    private var cmdHelpText = ""
+
+    fun verifyToken(token: String): Boolean {
+        return serverContext.subunits.session.verify(token)
+    }
+
     override fun Route.install() {
         staticFiles("backstage/libs", File("backstage/libs"))
         staticFiles("backstage/assets", File("backstage/assets"))
 
-        get("/backstage-new") {
-            handle(call, NoAuthGuard) {
-                val html = File("backstage/index.html")
-                call.respondFile(html)
-            }
-        }
-
-        get("/backstage/status") {
-            call.respond(HttpStatusCode.OK)
-        }
-
         get("/backstage") {
             handle(call, NoAuthGuard) {
                 val wallHtml = File("backstage/wall.html")
-                val mainHtml = File("backstage/main.html")
+                val indexHtml = File("backstage/index.html")
 
                 // skip auth on developmentMode
-                if (application.developmentMode) {
+                if (Venue.encore.devMode) {
                     Fancam.trace(Tags.Backstage) { "Auth skipped on /backstage (development mode)" }
-                    call.respondFile(mainHtml)
+                    call.respondFile(indexHtml)
                     return@handle
                 }
 
@@ -87,14 +86,14 @@ class BackstageRoutes(
                 val cookie = call.request.cookies["backstage-clientId"]
 
                 // PASS: user with cookie has already authenticated before
-                if (cookie != null && serverContext.subunits.session.verify(cookie)) {
+                if (cookie != null && verifyToken(cookie)) {
                     Fancam.trace(Tags.Backstage) { "Passed to /backstage: cookie available" }
-                    call.respondFile(mainHtml)
+                    call.respondFile(indexHtml)
                     return@handle
                 }
 
                 // WALL: user with cookie but expired
-                if (cookie != null && !serverContext.subunits.session.verify(cookie)) {
+                if (cookie != null && !verifyToken(cookie)) {
                     Fancam.trace(Tags.Backstage) { "Wall to /backstage: cookie has expired" }
                     call.respondText(
                         insertHtmlTemplate(wallHtml, "{{MESSAGE}}", "Cookie expired"),
@@ -136,44 +135,41 @@ class BackstageRoutes(
                 )
                 call.response.cookies.append("backstage-clientId", session.token, maxAge = 21600, path = "/backstage")
                 Fancam.trace(Tags.Backstage) { "Passed to /backstage: token is valid" }
-                call.respondFile(mainHtml)
+                call.respondFile(indexHtml)
             }
         }
 
-        get("/backstage/server-status") {
-            handle(call, NoAuthGuard) {
-                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@handle
-
-                call.respond("Status received (work in progress).")
+        get("/backstage/status") {
+            guard(call, backstageAuthGuard) {
+                call.respond(HttpStatusCode.OK)
             }
         }
 
         get("/backstage/cmd-help-text") {
-            handle(call, NoAuthGuard) {
-                if (!call.ensureSession { serverContext.subunits.session.verify(it) }) return@handle
-
-                val commands = serverContext.commandDispatcher.getAllRegisteredCommands()
-                val html = StringBuilder()
-
-                html.append("<ul>")
-                for (cmd in commands) {
-                    html.append("<li><b><code>${cmd.commandId}</code></b>: ${cmd.description}</li>")
+            guard(call, backstageAuthGuard) {
+                if (cmdHelpText.isBlank()) {
+                    val commands = serverContext.commandDispatcher.getAllRegisteredCommands()
+                    val html = StringBuilder()
+                    html.append("<ul>")
+                    for (cmd in commands) {
+                        html.append("<li><b><code>${cmd.commandId}</code></b>: ${cmd.description}</li>")
+                    }
+                    html.append("</ul>")
+                    cmdHelpText = html.toString()
                 }
-                html.append("</ul>")
-
-                call.respondText(html.toString(), ContentType.Text.Html)
+                call.respondText(cmdHelpText, ContentType.Text.Html)
             }
         }
 
         webSocket("/backstage/ws") {
-            val token = if (application.developmentMode) {
+            val token = if (Venue.encore.devMode) {
                 // dev mode uses arbitrary identifier
                 "DEV-${TimeCenter.now()}"
             } else {
                 // websocket can't send cookie, token cookie for WS is included in the param instead
-                // also verify the token
+                // then verify the token
                 call.request.queryParameters["token"]
-                    ?.takeIf { serverContext.subunits.session.verify(it) }
+                    ?.takeIf { verifyToken(it) }
             }
 
             if (token == null) {
@@ -188,6 +184,14 @@ class BackstageRoutes(
             try {
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
+                        // re-check token on every WS request
+                        // dispose session if token has expired
+                        if (!verifyToken(token)) {
+                            Fancam.trace(Tags.Backstage) { "Client with token $token has expired" }
+                            serverContext.webSocketManager.removeClient(token)
+                            break
+                        }
+
                         val msg = frame.readText()
                         try {
                             val wsMessage = Json.decodeFromString<WebSocketMessage>(msg)
@@ -222,21 +226,22 @@ fun insertHtmlTemplate(file: File, templateId: String, message: String): String 
 }
 
 /**
- * Ensure backstage session is valid.
+ * Auth guard that ensure a backstage session is valid.
  *
- * Request must contain a non-expired cookie of `backstage-clientId`.
+ * Valid requests must send a non-expired cookie of `backstage-clientId`.
  *
- * @param verify Function used to verify the validity of the cookie.
- * @return Returns `true` when session is valid, `false` otherwise.
+ * @param verifyFunction Function used to verify the validity of the cookie.
  */
-suspend fun ApplicationCall.ensureSession(verify: (String) -> Boolean): Boolean {
-    val cookie = request.cookies["backstage-clientId"]
-    val cookieValid = cookie != null && verify(cookie)
+class BackstageAuthGuard(private val verifyFunction: (String) -> Boolean) : AuthGuard {
+    override suspend fun verify(call: ApplicationCall): GuardResult {
+        val cookie = call.request.cookies["backstage-clientId"]
+        val cookieValid = cookie != null && verifyFunction(cookie)
 
-    if (!application.developmentMode && !cookieValid) {
-        respond(HttpStatusCode.Forbidden, "Session invalid, please re-login")
-        return false
+        if (!Venue.encore.devMode && !cookieValid) {
+            call.respond(HttpStatusCode.Forbidden, "Session invalid, please re-login")
+            return GuardResult.Reject("Session invalid")
+        }
+
+        return GuardResult.Welcome
     }
-
-    return true
 }

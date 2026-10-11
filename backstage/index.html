@@ -138,12 +138,12 @@
       try {
         const response = await fetch(`/backstage/status`)
         if (response.ok) {
-          $("#status-text").text("LIVE").css("color", "green")
+          $("#status-text").text("LIVE 🚀").css("color", "green")
         } else {
-          $("#status-text").text("DEAD").css("color", "red")
+          $("#status-text").text("DEAD 💀").css("color", "red")
         }
       } catch (err) {
-        $("#status-text").text("DEAD").css("color", "red")
+        $("#status-text").text("DEAD 💀").css("color", "red")
         Toast.error("Something is wrong!", `Status request error: ${err.message}`, true)
       }
     }

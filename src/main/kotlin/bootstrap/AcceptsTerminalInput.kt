@@ -28,6 +28,7 @@ fun acceptsTerminalInput(appScope: CoroutineScope, backstageToken: ConcurrentHas
                     "token" -> {
                         val token = Ids.uuid()
                         println(token)
+                        println("Code will be valid for 1 minute. Anyone that has this code can use it to gain access to the backstage.")
                         backstageToken[token] = TimeCenter.now()
                         val toRemove = mutableListOf<String>()
                         backstageToken.forEach { (token, millis) ->
