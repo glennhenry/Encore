@@ -166,6 +166,24 @@ class BackstageRoutes(
             }
         }
 
+        get("/backstage/logger") {
+            handle(call, backstageAuthGuard) {
+                call.respondFile(File("backstage/logger.html"))
+            }
+        }
+
+        get("/backstage/monitor") {
+            handle(call, backstageAuthGuard) {
+                call.respondFile(File("backstage/monitor.html"))
+            }
+        }
+
+        get("/backstage/command") {
+            handle(call, backstageAuthGuard) {
+                call.respondFile(File("backstage/command.html"))
+            }
+        }
+
         get("/backstage/cmd-help-text") {
             guard(call, backstageAuthGuard) {
                 if (cmdHelpText.isBlank()) {
@@ -259,7 +277,7 @@ class BackstageAuthGuard(private val verifyFunction: (String) -> Boolean) : Auth
         val cookieValid = cookie != null && verifyFunction(cookie)
 
         if (!Venue.encore.devMode && !cookieValid) {
-            call.respond(HttpStatusCode.Forbidden, "Session invalid, please re-login")
+            call.respond(HttpStatusCode.Forbidden, "Session invalid. Please re-login.")
             return GuardResult.Reject("Session invalid")
         }
 
