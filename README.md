@@ -51,9 +51,8 @@ Docs files to edit:
 - `docs/public/favicon.ico` for docs' favicon
 - This `README.md` + `game.png`
 
-5 total images (replace 4):
+Replace 4 images:
 
-- [NO CHANGE] `backstage/favicon.ico` (devtools default icon)
 - [CHANGE] `assets/site/favicon.ico` (game icon) for gameplay website
 - [CHANGE] `docs/public/favicon.ico` (game icon) for docs website
 - [CHANGE] `docs/src/assets/<GameName>.png` (gameplay image) for docs intro

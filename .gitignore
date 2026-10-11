@@ -3,6 +3,7 @@
 .logs/
 deploy/
 assets/
+!backstage/assets/
 venue.secret.xml
 
 .gradle
