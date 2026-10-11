@@ -11,6 +11,7 @@ import encore.websocket.WebSocketMessage
 import game.context.ServerContext
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -56,6 +57,16 @@ class BackstageRoutes(
     private val tokenStorage: MutableMap<String, Long>
 ) : RouteHandler {
     override fun Route.install() {
+        staticFiles("backstage/libs", File("backstage/libs"))
+        staticFiles("backstage/assets", File("backstage/assets"))
+
+        get("/backstage-new") {
+            handle(call, NoAuthGuard) {
+                val html = File("backstage/index.html")
+                call.respondFile(html)
+            }
+        }
+
         get("/backstage") {
             handle(call, NoAuthGuard) {
                 val wallHtml = File("backstage/wall.html")
