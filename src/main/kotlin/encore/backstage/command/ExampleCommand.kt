@@ -1,6 +1,8 @@
 package encore.backstage.command
 
-import encore.backstage.command.types.ArgumentCollection
+import encore.backstage.command.types.Argument
+import encore.backstage.command.types.ArgumentInputs
+import encore.backstage.command.types.ArgumentType
 import encore.backstage.command.types.CommandResult
 import game.context.ServerContext
 
@@ -9,36 +11,23 @@ import game.context.ServerContext
  * Does nothing meaningful beside introducing patterns and testing command invocation.
  */
 class ExampleCommand : Command {
-    override val commandId: String = "test"
-    override val description: String = """
-    This is merely a <strong>test command</strong>, does nothing actually.
-    
-    Use this argument by invoking it like 'give a b c'.
+    override val id: String = "xxx-example"
+    override val name: String = "Example"
+    override val description: String = "This is merely a test command, does nothing actually."
+    override val arguments: List<Argument> = listOf(
+        Argument("a", "Argument A", "An example of required string argument", ArgumentType.String),
+        Argument("b", "Argument B", "An example of required string argument", ArgumentType.String),
+        Argument("c", "Argument C", "e.g., c=2 for uncaught exception, c=3 for execution failure", ArgumentType.Int, 1)
+    )
 
-    There are 3 arguments in total, the last arg 'c' is optional.
-    - a: String = an example of required string argument.
-    - b: String = an example of required string argument.
-    - c: String (default = 1) = an example of the number type.
-    
-    Use c = 2 to simulate uncaught exception.
-    Use c = 3 to simulate a domain failure.      
-""".trimIndent()
+    override suspend fun execute(serverContext: ServerContext, args: ArgumentInputs): CommandResult {
+        val a = args.getString("a")
+        val b = args.getString("b")
+        val c = args.getInt("c")
 
-    override suspend fun execute(serverContext: ServerContext, args: ArgumentCollection): CommandResult {
-        val a = args.next() ?: return CommandResult.NotEnoughArgument("first argument 'a' is required")
-        val b = args.next() ?: return CommandResult.NotEnoughArgument("second argument 'b' is required")
+        if (c == 2) throw Exception("Uncaught exception from c=2")
+        if (c == 3) return CommandResult.ExecutionFailure("Execution failure from c=3")
 
-        val expectedC = args.next()
-        val c = if (expectedC != null) {
-            expectedC.toIntOrNull()
-                ?: return CommandResult.InvalidArgumentType("third argument 'c' is supposed to be a Number type, got: '$expectedC'")
-        } else {
-            1
-        }
-
-        if (c == 2) throw Exception("Used c=2, here's an uncaught exception.")
-        if (c == 3) return CommandResult.ExecutionFailure("Used c=3, here's a domain error.")
-
-        return CommandResult.Executed("Success 'test' command with args: a=$a, b=$b, c=$c")
+        return CommandResult.Success("Executed 'test' command with args: a=$a, b=$b, c=$c")
     }
 }

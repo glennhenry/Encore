@@ -1,6 +1,7 @@
 package encore.backstage.command
 
-import encore.backstage.command.types.ArgumentCollection
+import encore.backstage.command.types.Argument
+import encore.backstage.command.types.ArgumentInputs
 import encore.backstage.command.types.CommandResult
 import game.context.ServerContext
 
@@ -11,31 +12,38 @@ import game.context.ServerContext
  * Command works by an implementation of this interface.
  * Implement the [execute] method to carry the specific action for the command.
  *
- * Use the command from the command backstage tool.
- * Register your commands in `Application.kt`.
+ * - Use the command from the command backstage tool.
+ * - Register your commands in `Application.kt`.
  *
- * See [ExampleCommand] or `encoreTest.backstage.CommandDispatcherTest` for example.
+ * See [ExampleCommand] for example.
  */
 interface Command {
     /**
-     * A human-readable name of this command used for invocation.
+     * A unique identifier of the command.
+     * Can use any kind of format or convention, but must be unique to other commands.
      *
-     * It must be unique to other commands, case-sensitive.
-     *
-     * For examples: `give`, `give-item`, `give-random-item`
+     * For examples: `give-item`, `GetLog`, `Start Event`.
      */
-    val commandId: String
+    val id: String
+
+    /**
+     * A human-readable name for the command used as display.
+     *
+     * For examples: `Give Item`, `Get Recent Logs`, `Start an event`.
+     */
+    val name: String
 
     /**
      * An explanation about the command.
      *
-     * Use this to explain the command's purpose and the argument details.
-     *
-     * This will displayed as a help text in the backstage tool.
-     *
-     * **Note**: It's possible to write HTML markup here.
+     * Use this to explain the command's purpose or execution details.
      */
     val description: String
+
+    /**
+     * The list of arguments for this command.
+     */
+    val arguments: List<Argument>
 
     /**
      * Contain execution logic of the command.
@@ -45,8 +53,5 @@ interface Command {
      *
      * @return Result of command execution: [CommandResult].
      */
-    suspend fun execute(
-        serverContext: ServerContext,
-        args: ArgumentCollection
-    ): CommandResult
+    suspend fun execute(serverContext: ServerContext, args: ArgumentInputs): CommandResult
 }

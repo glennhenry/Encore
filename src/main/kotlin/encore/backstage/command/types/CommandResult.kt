@@ -7,42 +7,28 @@ sealed class CommandResult(val message: String = "") {
     /**
      * The command executed successfully.
      */
-    class Executed(message: String) : CommandResult(message) {
-        override fun toString(): String = "Executed: $message"
+    class Success(message: String) : CommandResult(message) {
+        override fun toString(): String = "CommandResult.Success"
     }
 
     /**
-     * Command failed during execution due to a logical or domain error (e.g., player not found, invalid item).
+     * Command execution fails due to a logical or domain error (e.g., player not found, invalid item).
      */
     class ExecutionFailure(message: String) : CommandResult(message) {
-        override fun toString(): String = "ExecutionFailure: $message"
+        override fun toString(): String = "CommandResult.ExecutionFailure"
     }
 
     /**
-     * The command failed to execute because it was not found (not registered).
+     * The command is not registered.
      */
     class CommandNotFound(message: String) : CommandResult(message) {
-        override fun toString(): String = "CommandNotFound: $message"
-    }
-
-    /**
-     * The command failed to execute because argument is not enough.
-     */
-    class NotEnoughArgument(message: String) : CommandResult(message) {
-        override fun toString(): String = "NotEnoughArgument: $message"
-    }
-
-    /**
-     * The command failed to execute because argument type is invalid.
-     */
-    class InvalidArgumentType(message: String) : CommandResult(message) {
-        override fun toString(): String = "InvalidArgumentType: $message"
+        override fun toString(): String = "CommandResult.CommandNotFound"
     }
 
     /**
      * An unexpected error that is uncaught within the command's execution logic.
      */
     class Error(message: String) : CommandResult(message) {
-        override fun toString(): String = "Error: $message"
+        override fun toString(): String = "CommandResult.Error"
     }
 }
