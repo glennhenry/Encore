@@ -239,8 +239,15 @@ class CommandDispatcherTest {
     fun `command dispatcher handleCommand with required arguments returns success`() = runTest {
         val dispatcher = CommandDispatcher()
         dispatcher.register(ExampleCommand())
-
-        val request = CommandRequest("xxx-example", mapOf("a" to "abc", "b" to "def"))
+        val request =
+            CommandRequest(
+                "xxx-example",
+                mapOf(
+                    "a" to "abc", "b" to "def", "c" to 1,
+                    "d" to 2, "e" to 1.0, "f" to 1.0,
+                    "g" to true, "h" to true
+                )
+            )
         val result = dispatcher.handleCommand(request, context)
         assertTrue(result is CommandResult.Success)
     }
@@ -250,7 +257,15 @@ class CommandDispatcherTest {
         val dispatcher = CommandDispatcher()
         dispatcher.register(ExampleCommand())
 
-        val request = CommandRequest("xxx-example", mapOf("a" to "abc", "b" to "def", "c" to 1))
+        val request =
+            CommandRequest(
+                "xxx-example",
+                mapOf(
+                    "a" to "abc", "b" to "def", "c" to 1,
+                    "d" to 2, "e" to 1.0, "f" to 1.0,
+                    "g" to true, "h" to true, "i" to 1
+                )
+            )
         val result = dispatcher.handleCommand(request, context)
         assertTrue(result is CommandResult.Success)
     }
@@ -260,7 +275,15 @@ class CommandDispatcherTest {
         val dispatcher = CommandDispatcher()
         dispatcher.register(ExampleCommand())
 
-        val request = CommandRequest("xxx-example", mapOf("a" to "abc", "b" to "def", "c" to 2))
+        val request =
+            CommandRequest(
+                "xxx-example",
+                mapOf(
+                    "a" to "abc", "b" to "def", "c" to 1,
+                    "d" to 2, "e" to 1.0, "f" to 1.0,
+                    "g" to true, "h" to true, "i" to 2
+                )
+            )
         val result = dispatcher.handleCommand(request, context)
         assertTrue(result is CommandResult.Error)
     }
@@ -270,7 +293,15 @@ class CommandDispatcherTest {
         val dispatcher = CommandDispatcher()
         dispatcher.register(ExampleCommand())
 
-        val request = CommandRequest("xxx-example", mapOf("a" to "abc", "b" to "def", "c" to 3))
+        val request =
+            CommandRequest(
+                "xxx-example",
+                mapOf(
+                    "a" to "abc", "b" to "def", "c" to 1,
+                    "d" to 2, "e" to 1.0, "f" to 1.0,
+                    "g" to true, "h" to true, "i" to 3
+                )
+            )
         val result = dispatcher.handleCommand(request, context)
         assertTrue(result is CommandResult.ExecutionFailure)
     }
