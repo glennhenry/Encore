@@ -1,9 +1,11 @@
-import bootstrap.*
+import bootstrap.acceptsTerminalInput
+import bootstrap.installEncore
+import bootstrap.logStartupInformation
+import bootstrap.shutdownHook
 import encore.EncoreIdentity
 import encore.EncoreIdentity.celebrate
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
-import game.context.ServerContext
 import encore.definition.GameReference
 import encore.network.lifecycle.PlayerLifecycle
 import encore.network.stage.GameStage
@@ -16,10 +18,10 @@ import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
 import encore.time.source.SystemTimeSource
 import encore.venue.Venue
-import encore.websocket.handler.WsCommandHandler
 import game.GameIdentity
 import game.Globals
 import game.context.RealContextFactory
+import game.context.ServerContext
 import game.mongo.RuntimeMongoCollections
 import game.routes.fileRoutes
 import io.ktor.server.application.*
@@ -135,7 +137,7 @@ suspend fun Application.configureApplication() {
 
 fun websocketHandlers(serverContext: ServerContext) {
     with(serverContext.webSocketManager) {
-        registerHandler(WsCommandHandler(serverContext))
+        // registerHandler()
     }
 }
 

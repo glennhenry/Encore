@@ -1,6 +1,7 @@
 package encore.backstage
 
 import encore.EncoreIdentity
+import encore.backstage.command.types.CommandRequest
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.route.RouteHandler
@@ -19,6 +20,7 @@ import game.context.ServerContext
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.staticFiles
+import io.ktor.server.request.receiveText
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -50,7 +52,7 @@ import kotlin.time.Duration.Companion.minutes
  *     - If valid, then websocket connection is approved.
  *     - From now on, refreshing page does not prompt `wall.html` anymore.
  * 7. Client and server starts exchanging WS messages for tools.
- *     - Server streams log message to client for logger.
+ *     - Server streams log message to client for logger using websocket.
  *     - Client periodically make API request to `/monitor`, including the cookie token
  *     to get monitoring status.
  *         - If cookie token is invalid, server return error status.
@@ -63,7 +65,7 @@ class BackstageRoutes(
     private val tokenStorage: MutableMap<String, Long>
 ) : RouteHandler {
     private val backstageAuthGuard = BackstageAuthGuard { verifyToken(it) }
-    private var cmdHelpText = ""
+    private var cmdData = ""
     private var metadata = ""
 
     fun verifyToken(token: String): Boolean {
@@ -184,19 +186,33 @@ class BackstageRoutes(
             }
         }
 
-        get("/backstage/cmd-help-text") {
+        get("/backstage/command-data") {
             guard(call, backstageAuthGuard) {
-                if (cmdHelpText.isBlank()) {
+                if (cmdData.isBlank()) {
                     val commands = serverContext.commandDispatcher.getAllRegisteredCommands()
-                    val html = StringBuilder()
-                    html.append("<ul>")
-                    for (cmd in commands) {
-                        html.append("<li><b><code>${cmd.commandId}</code></b>: ${cmd.description}</li>")
-                    }
-                    html.append("</ul>")
-                    cmdHelpText = html.toString()
+                    cmdData = JSON.encode<List<CommandData>>(commands.map { cmd ->
+                        val args = cmd.arguments.map { arg ->
+                            ArgumentData(arg.id, arg.name, arg.description, arg.type.name, arg.defaultValue.toString())
+                        }
+                        CommandData(cmd.id, cmd.name, cmd.description, args)
+                    })
                 }
-                call.respondText(cmdHelpText, ContentType.Text.Html)
+                call.respond(cmdData)
+            }
+        }
+
+        post("/backstage/command") {
+            handle(call, backstageAuthGuard) {
+                val request = JSON.decode<CommandRequest>(call.receiveText())
+                val result = serverContext.commandDispatcher.handleCommand(request, serverContext)
+                call.respond(
+                    JSON.encode(
+                        mapOf(
+                            "result" to result.toString(),
+                            "message" to result.message
+                        )
+                    )
+                )
             }
         }
 
