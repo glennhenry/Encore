@@ -19,8 +19,8 @@ import game.GameIdentity
 import game.context.ServerContext
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.http.content.staticFiles
-import io.ktor.server.request.receiveText
+import io.ktor.server.http.content.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*

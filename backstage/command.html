@@ -33,13 +33,103 @@
     }
 
     .content {
-      padding: 8px;
+      display: flex;
     }
 
     .footer {
       padding: 4px;
       color: #9e9e9e;
       border-top: 1px solid #ccc;
+    }
+
+    .left-side {
+      width: 550px;
+      padding: 8px;
+    }
+
+    .output {
+      width: 500px;
+      height: 300px;
+      margin-top: 8px;
+      background-color: white;
+      border: 1px solid #ccc;
+    }
+
+    .right-side {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-left: 2px solid var(--color-primary);
+      overflow: scroll;
+    }
+
+    .command-select {
+      width: max-content;
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      gap: 4px;
+    }
+
+    .command {
+      width: max-content;
+      padding: 8px;
+    }
+
+    .cmd-name {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .cmd-list-arguments {
+      width: max-content;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .cmd-argument {
+      width: max-content;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cmd-argument-name {
+      font-size: 11px;
+    }
+
+    .cmd-argument-text-input {
+      width: 500px;
+      height: 40px;
+      padding: 4px;
+      border: 1px solid var(--color-primary);
+      border-radius: 4px;
+    }
+
+    .cmd-argument-boolean-input {
+      width: 20px;
+      height: 20px;
+    }
+
+    .cmd-submit {
+      all: unset;
+      width: max-content;
+      padding: 4px;
+      color: #f2f2f2;
+      background-color: var(--color-primary);
+      border: 1px solid #2a4e6c;
+      border-radius: 4px;
+    }
+
+    .cmd-submit:hover {
+      cursor: pointer;
+      background-color: #416b8f;
+    }
+
+    .cmd-submit:active {
+      background-color: #1e3950;
     }
   </style>
 </head>
@@ -62,8 +152,34 @@
       </a>
     </div>
     <div class="content">
-      <h1>Command</h1>
-      <em>Not implemeted</em>
+      <div class="left-side">
+        <h1>Command</h1>
+        <div class="output">
+        </div>
+        <div class="space-y-s"></div>
+        <div>
+          <p><strong>Command</strong> is a tool that allows you to instruct the server to do certain actions implemented
+            in server code.</p>
+          <div class="space-y-s"></div>
+          <p>The left side shows you the output, while on the right side you can choose the command to invoke and input
+            its arguments.</p>
+          <div class="space-y-s"></div>
+          <p>Some arguments are required meaning you must fill them before proceeding while some are optional. The
+            default
+            value will be used if you leave an optional argument empty.</p>
+          <div class="space-y-s"></div>
+        </div>
+      </div>
+      <div class="right-side">
+        <div class="command-select">
+          <label for="commands-selector">Select a command:</label>
+          <select id="commands-selector" name="commands">
+            <option selected value="">—</option>
+          </select>
+        </div>
+        <hr>
+        <div></div>
+      </div>
     </div>
     <footer class="footer">
       <p>Made possible by <a class="link" href="https://github.com/glennhenry/Encore" target="_blank">Encore</a>,
@@ -73,8 +189,216 @@
   </div>
   <div class="toast-container"></div>
   <script>
+    let commands = {}
+
     $(document).ready(function () {
+      getCommands().then(() => {
+        createSelector(commands)
+      })
+
+      $("#commands-selector").change(function (event) {
+        $(".right-side").children().last().remove()
+        $(".right-side").append(createCommand($(this).val()))
+      })
     })
+
+    async function getCommands() {
+      try {
+        const response = await fetch(`/backstage/command-data`)
+        if (response.ok) {
+          const json = await response.json()
+          commands = new Map(json.map(cmd => [cmd.id, cmd]))
+        }
+      } catch (err) {
+        Toast.error("Something is wrong!", `getCommands error: ${err.message}`, true)
+      }
+    }
+
+    function createSelector(commands) {
+      const selector = $("#commands-selector")
+      for (const [cmdId, cmd] of commands) {
+        const opt = $("<option></option>").attr("value", cmdId).text(cmd.name)
+        selector.append(opt)
+      }
+    }
+
+    function createCommand(id) {
+      if (id === "") return
+      const command = commands.get(id)
+      console.log(command)
+
+      const cmdElement = $("<div></div>").addClass("command")
+      const cmdName = $("<p></p>").addClass("cmd-name").text(`${command.name} (${command.id})`)
+      const cmdDescription = $("<p></p>").addClass("cmd-description").text(command.description)
+      const cmdArgumentForm = $("<form></form>").attr("id", "cmd-arguments-form").addClass("cmd-list-arguments")
+
+      for (const arg of command.arguments) {
+        const cmdArgument = $("<div></div>").addClass("cmd-argument")
+        const argLabel = $("<label></label>").addClass("cmd-argument-name").attr("for", arg.id).text(arg.name)
+
+        let argInput;
+        if (arg.type === "Boolean") {
+          argInput = $("<div></div>").addClass("cmd-argument-boolean-input")
+          const boolSelect = $("<select></select>").attr("id", arg.id).attr("name", arg.id)
+          boolSelect
+            .append($("<option></option>").attr("value", "").text("—"))
+            .append($("<option></option>").attr("value", "true").text("true"))
+            .append($("<option></option>").attr("value", "false").text("false"))
+          argInput.append(boolSelect)
+        } else {
+          argInput = $("<input></input>")
+            .addClass("cmd-argument-text-input")
+            .attr("id", arg.id)
+            .attr("name", arg.id)
+            .attr("type", "text")
+            .attr("placeholder", arg.description)
+            .attr("autocomplete", "off")
+        }
+
+        if (arg.defaultValue !== null && arg.defaultValue !== "null") {
+          argLabel.append($("<span></span>").text(` (optional; default=${arg.defaultValue})`).css("color", "#355d42"))
+          if (arg.type === "Boolean") {
+            argInput.children().first().val(arg.defaultValue)
+          } else {
+            argInput.val(arg.defaultValue)
+          }
+        } else {
+          if (argInput.attr("type") != "checkbox") {
+            argLabel.append($("<span></span>").text(` (required)`).css("color", "red"))
+            if (arg.type === "Boolean") {
+              argInput.children().first().attr("required", true)
+            } else {
+              argInput.attr("required", true)
+            }
+          }
+        }
+
+        cmdArgumentForm.append(cmdArgument.append(argLabel).append(argInput))
+      }
+
+      const executeButton = $("<button></button>")
+        .addClass("cmd-submit")
+        .attr("type", "submit")
+        .text("Execute")
+      cmdArgumentForm.append(executeButton)
+
+      cmdArgumentForm.submit(function (event) {
+        event.preventDefault()
+        let formArgs = cmdArgumentForm.serializeArray()
+
+        const expectedArgs = new Map(command.arguments.map(arg => [arg.id, arg]))
+        let inputArgs = [];
+        for (const field of formArgs) {
+          let value;
+          if (field.value !== "") {
+            value = transformValue(field.value, expectedArgs.get(field.name).type)
+          } else {
+            value = transformValue(expectedArgs.get(field.name).defaultValue, expectedArgs.get(field.name).type)
+          }
+          inputArgs.push({
+            id: field.name,
+            value: value,
+            name: expectedArgs.get(field.name).name
+          })
+        }
+
+        if (verifyArguments(expectedArgs, inputArgs)) {
+          sendCommand(id, inputArgs)
+        }
+      })
+
+      cmdElement
+        .append(cmdName)
+        .append(cmdDescription)
+        .append(cmdArgumentForm)
+
+      return cmdElement
+    }
+
+    function transformValue(val, type) {
+      if (type === "String") {
+        return String(val)
+      } else if (type === "Int") {
+        return Number(val)
+      } else if (type === "Double") {
+        return toDouble(val)
+      } else {
+        if (val === "false") return false
+        if (val === "true") return true
+      }
+    }
+
+    function toDouble(value) {
+      const num = parseFloat(value);
+      if (isNaN(num)) return NaN;
+      const decimalIndex = value.indexOf('.');
+      if (decimalIndex !== -1) {
+        const decimalPlaces = value.length - decimalIndex - 1;
+        return num.toFixed(decimalPlaces);
+      }
+      return num;
+    }
+
+    function verifyArguments(expectedArgs, inputArgs) {
+      for (const arg of inputArgs) {
+        const expectedArg = expectedArgs.get(arg.id)
+        if (expectedArg === null || expectedArg === undefined) {
+          Toast.error("Unexpected error", `${arg.id} (${arg.name}) not found in argument schema.`)
+          return false
+        }
+
+        if (expectedArg.type === "String") {
+          if (typeof arg.value !== "string") {
+            Toast.error("Please enter arguments correctly", `${arg.name} is supposed to be a String`)
+            return false
+          }
+        } else if (expectedArg.type === "Int") {
+          if (!Number.isInteger(arg.value)) {
+            Toast.error("Please enter arguments correctly", `${arg.name} is supposed to be an Integer`)
+            return false
+          }
+        } else if (expectedArg.type === "Double") {
+          if (!isFloat(arg.value)) {
+            Toast.error("Please enter arguments correctly", `${arg.name} is supposed to be a Double (e.g., 4.25)`)
+            return false
+          }
+        } else {
+          if (typeof arg.value !== "boolean") {
+            Toast.error("Please enter arguments correctly", `${arg.name} is supposed to be a Boolean (true/false)`)
+            return false
+          }
+        }
+      }
+
+      return true
+    }
+
+    // e.g., "12.1" "3.001" "10.0" "12.00000", "12.123"
+    const floatRegex = /^\d+\.\d+$/
+    function isFloat(value) {
+      return floatRegex.test(String(value).trim())
+    }
+
+    async function sendCommand(id, args) {
+      console.log(args)
+      const payload = {
+        "commandId": id,
+        "arguments": Object.fromEntries(new Map(args.map(arg => [arg.id, arg.value])))
+      }
+
+      try {
+        const response = await fetch(`/backstage/command`, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        })
+        if (response.ok) {
+          data = await response.json()
+          console.log(data.result, data.message)
+        }
+      } catch (err) {
+        Toast.error("Something is wrong!", `getCommands error: ${err.message}`, true)
+      }
+    }
   </script>
 </body>
 
