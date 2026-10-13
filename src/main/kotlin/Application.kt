@@ -10,6 +10,7 @@ import encore.backstage.command.core.GetLogsCommand
 import encore.backstage.command.core.GetRuntimeInfoCommand
 import encore.backstage.command.core.VerifySessionCommand
 import encore.backstage.command.core.GetVenueCommand
+import encore.backstage.command.core.ListWebSocketClientCommand
 import encore.backstage.command.core.ListSessionCommand
 import encore.backstage.command.core.MemoryStatsCommand
 import encore.backstage.command.core.ServerTimeCommand
@@ -172,6 +173,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(ServerTimeCommand())
         register(ListSessionCommand())
         register(VerifySessionCommand())
+        register(ListWebSocketClientCommand())
     }
 }
 
