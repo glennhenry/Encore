@@ -43,16 +43,42 @@
     }
 
     .left-side {
-      width: 550px;
+      width: 650px;
       padding: 8px;
     }
 
+    .title {
+      width: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .delete-output-btn {
+      all: unset;
+      cursor: pointer;
+    }
+
     .output {
-      width: 500px;
-      height: 300px;
+      width: 100%;
+      max-width: 600px;
+      height: 400px;
       margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      color: black;
       background-color: white;
       border: 1px solid #ccc;
+      font-size: 13px;
+      font-family: monospace;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .output-child {
+      padding: 4px 8px;
+      width: max-content;
+      min-width: 100%;
     }
 
     .right-side {
@@ -153,9 +179,13 @@
     </div>
     <div class="content">
       <div class="left-side">
-        <h1>Command</h1>
-        <div class="output">
+        <div class="title">
+          <h1>Command</h1>
+          <button class="delete-output-btn">
+            <img src="/backstage/assets/delete.png" width="16px" title="Clear" alt="Trash can">
+          </button>
         </div>
+        <div class="output"></div>
         <div class="space-y-s"></div>
         <div>
           <p><strong>Command</strong> is a tool that allows you to instruct the server to do certain actions implemented
@@ -200,6 +230,10 @@
         $(".right-side").children().last().remove()
         $(".right-side").append(createCommand($(this).val()))
       })
+
+      $(".delete-output-btn").click(function () {
+        $(".output").empty()
+      })
     })
 
     async function getCommands() {
@@ -225,7 +259,6 @@
     function createCommand(id) {
       if (id === "") return
       const command = commands.get(id)
-      console.log(command)
 
       const cmdElement = $("<div></div>").addClass("command")
       const cmdName = $("<p></p>").addClass("cmd-name").text(`${command.name} (${command.id})`)
@@ -380,24 +413,48 @@
     }
 
     async function sendCommand(id, args) {
-      console.log(args)
-      const payload = {
-        "commandId": id,
-        "arguments": Object.fromEntries(new Map(args.map(arg => [arg.id, arg.value])))
-      }
-
+      const cleanArgs = Object.fromEntries(new Map(args.map(arg => [arg.id, arg.value])))
+      addInputToOutput(id, cleanArgs)
       try {
         const response = await fetch(`/backstage/command`, {
           method: 'POST',
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            "commandId": id,
+            "arguments": cleanArgs
+          })
         })
         if (response.ok) {
           data = await response.json()
-          console.log(data.result, data.message)
+          addResponseToOutput(data.result, data.message)
         }
       } catch (err) {
         Toast.error("Something is wrong!", `getCommands error: ${err.message}`, true)
       }
+    }
+
+    function addInputToOutput(id, cleanArgs) {
+      const argsText = Object.entries(cleanArgs)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(", ");
+      const text = $("<p></p>")
+        .text("> ")
+        .append($("<span></span>").text(id).css("color", "blue"))
+        .append($("<span></span>").text(` (${argsText})`))
+      $(".output").append($("<div></div>").addClass("output-child").append(text))
+    }
+
+    function addResponseToOutput(status, message) {
+      let statusText;
+      if (status === "CommandResult.Success") {
+        statusText = $("<span></span>").text(`${status}:`).css("color", "green")
+      } else {
+        statusText = $("<span></span>").text(`${status}:`).css("color", "red")
+      }
+      const text = $("<p></p>")
+        .append(statusText)
+        .append($("<span></span>").text(`  \n  ${message}`))
+
+      $(".output").append($("<div></div>").addClass("output-child").css("border-bottom", "1px solid black").append(text))
     }
   </script>
 </body>
