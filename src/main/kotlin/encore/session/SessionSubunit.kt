@@ -1,5 +1,6 @@
 package encore.session
 
+import encore.backstage.command.core.SessionInfo
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.subunit.Subunit
@@ -144,6 +145,15 @@ class SessionSubunit(
         }
         val newSize = sessions.size
         Fancam.trace(Tags.Session) { "Scheduled sessions cleanup (${newSize - oldSize} sessions removed)" }
+    }
+
+    /**
+     * Get all active sessions.
+     */
+    fun getAllActiveSessions(): List<SessionInfo> {
+        return sessions.map {
+            SessionInfo(it.key, it.value.issuedAt, it.value.expiresAt)
+        }
     }
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)

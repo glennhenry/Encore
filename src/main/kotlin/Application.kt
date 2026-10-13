@@ -9,6 +9,7 @@ import encore.backstage.command.ExampleCommand
 import encore.backstage.command.core.GetLogsCommand
 import encore.backstage.command.core.GetRuntimeInfoCommand
 import encore.backstage.command.core.GetVenueCommand
+import encore.backstage.command.core.ListSessionCommand
 import encore.backstage.command.core.MemoryStatsCommand
 import encore.backstage.command.core.ServerTimeCommand
 import encore.backstage.command.core.ShutdownCommand
@@ -39,6 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.modules.SerializersModule
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
@@ -60,6 +62,8 @@ fun main() {
 }
 
 val SystemTimezone: ZoneId = ZoneId.systemDefault()
+val basicDateFormatter = SimpleDateFormat("HH:mm:ss")
+val detailedDateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
 /**
  * Main configuration and wiring code for the application.
@@ -164,6 +168,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(ShutdownCommand())
         register(GetVenueCommand())
         register(ServerTimeCommand())
+        register(ListSessionCommand())
     }
 }
 
