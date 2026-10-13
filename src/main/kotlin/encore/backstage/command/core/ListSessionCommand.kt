@@ -7,7 +7,6 @@ import encore.backstage.command.types.ArgumentInputs
 import encore.backstage.command.types.CommandResult
 import encore.session.SessionSubunit
 import encore.time.TimeCenter
-import encore.utils.identifier.shortUuid
 import game.context.ServerContext
 
 /**
@@ -17,8 +16,7 @@ class ListSessionCommand : Command {
     override val id: String = "list-session"
     override val name: String = "List sessions"
     override val description: String = """
-        List all valid sessions (results are limited to 20). 
-        All IDs are short-uuid (first 8 chars).
+        List all valid sessions (results are limited to 20).
     """.trimIndent()
     override val arguments: List<Argument> = emptyList()
 
@@ -54,7 +52,7 @@ fun formatSessionInfo(ses: SessionInfo): String {
         "no"
     }
     return """
-        id=${ses.id.shortUuid()}
+        id=${ses.id}
            issuedAt=${basicDateFormatter.format(ses.issuedAt)}
            expiresAt=${basicDateFormatter.format(ses.expiresAt)}
            isExpired=$isExpired
