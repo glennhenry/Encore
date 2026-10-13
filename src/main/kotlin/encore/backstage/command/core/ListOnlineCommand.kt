@@ -38,6 +38,7 @@ class ListOnlineCommand : Command {
                     appendLine("${idx + 1})  playerId: ${presence.playerId}")
                     appendLine("    onlineSince: ${basicDateFormatter.format(presence.onlineSince)} (${(TimeCenter.now() - presence.onlineSince).milliseconds.inWholeMinutes} minutes)")
                     appendLine("    lastNetworkActivity: ${basicDateFormatter.format(presence.lastNetworkActivity)}")
+                    appendLine()
                 }
             }
         )

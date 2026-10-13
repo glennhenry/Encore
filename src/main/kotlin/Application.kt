@@ -4,6 +4,9 @@ import bootstrap.logStartupInformation
 import bootstrap.shutdownHook
 import encore.EncoreIdentity
 import encore.EncoreIdentity.celebrate
+import encore.acts.ActScope
+import encore.acts.template.runForeverTimer
+import encore.acts.template.runTimer
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
 import encore.backstage.command.core.GetLogsCommand
@@ -11,6 +14,7 @@ import encore.backstage.command.core.GetOnlineCommand
 import encore.backstage.command.core.GetRuntimeInfoCommand
 import encore.backstage.command.core.VerifySessionCommand
 import encore.backstage.command.core.GetVenueCommand
+import encore.backstage.command.core.ListActsCommand
 import encore.backstage.command.core.ListOnlineCommand
 import encore.backstage.command.core.ListWebSocketClientCommand
 import encore.backstage.command.core.ListSessionCommand
@@ -48,6 +52,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.seconds
 
 var runningSince: Long = 0
 
@@ -154,6 +159,10 @@ suspend fun Application.configureApplication() {
     celebrate(LocalDate.now(SystemTimezone))
     runningSince = TimeCenter.now()
 
+
+    serverContext.stageActDirector.runTimer(20.seconds, ActScope("fsdfsd", appScope)) {}
+    serverContext.stageActDirector.runForeverTimer(5.seconds, 10.seconds, ActScope("sdfsdf", appScope)) {}
+
     // install shutdown hook
     shutdownHook(appScope, serverSubunitScope, serverContext.subunits, servers)
 }
@@ -178,6 +187,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(ListWebSocketClientCommand())
         register(ListOnlineCommand())
         register(GetOnlineCommand())
+        register(ListActsCommand())
     }
 }
 

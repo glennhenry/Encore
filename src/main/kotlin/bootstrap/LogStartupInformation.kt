@@ -14,7 +14,7 @@ fun logStartupInformation() {
 
     Fancam.info(Tags.Startup) { "Server and framework components initialized." }
     Fancam.info(Tags.Startup) { "HTTP server live at (${serverHost}:$apiPort)." }
-    Fancam.info(Tags.Startup) { "Devtools live at (${serverHost}:$apiPort/backstage)." }
+    Fancam.info(Tags.Startup) { "Devtools live at http://${serverHost}:$apiPort/backstage." }
 
     if (File("docs_build/index.html").exists()) {
         Fancam.info(Tags.Startup) { "Docs website available on ${serverHost}:$apiPort." }
