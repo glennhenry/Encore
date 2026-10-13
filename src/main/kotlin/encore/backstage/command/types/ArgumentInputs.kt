@@ -41,7 +41,7 @@ class ArgumentInputs(
                     if (inputArg !is String && defaultValue == null) {
                         throw IllegalArgumentException(
                             "Type mismatch on argument '$id' for command '$commandId'; " +
-                                    "expecting '${type.name}' got '${inputArg.className()}'"
+                                    "expecting '${type.name}' got '${inputArg.className()}': $inputArg"
                         )
                     }
                 }
@@ -50,7 +50,7 @@ class ArgumentInputs(
                     if (inputArg !is Int && defaultValue == null) {
                         throw IllegalArgumentException(
                             "Type mismatch on argument '$id' for command '$commandId'; " +
-                                    "expecting '${type.name}' got '${inputArg.className()}'"
+                                    "expecting '${type.name}' got '${inputArg.className()}': $inputArg"
                         )
                     }
                 }
@@ -59,7 +59,7 @@ class ArgumentInputs(
                     if (inputArg !is Double && defaultValue == null) {
                         throw IllegalArgumentException(
                             "Type mismatch on argument '$id' for command '$commandId'; " +
-                                    "expecting '${type.name}' got '${inputArg.className()}'"
+                                    "expecting '${type.name}' got '${inputArg.className()}': $inputArg"
                         )
                     }
                 }
@@ -68,7 +68,7 @@ class ArgumentInputs(
                     if (inputArg !is Boolean && defaultValue == null) {
                         throw IllegalArgumentException(
                             "Type mismatch on argument '$id' for command '$commandId'; " +
-                                    "expecting '${type.name}' got '${inputArg.className()}'"
+                                    "expecting '${type.name}' got '${inputArg.className()}': $inputArg"
                         )
                     }
                 }
