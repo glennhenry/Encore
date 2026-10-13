@@ -5,6 +5,7 @@ import encore.fancam.events.Level
 import game.config.CustomConfig
 import game.config.SecretConfig
 import game.Globals
+import kotlinx.serialization.Serializable
 
 /**
  * Definition of config required by the framework.
@@ -19,6 +20,7 @@ import game.Globals
  * @property database
  * @property fancam
  */
+@Serializable
 data class EncoreConfig(
     /**
      * Whether to enable development mode, which will enable feature
@@ -53,6 +55,7 @@ data class EncoreConfig(
  * @property port
  * @property socketPort
  */
+@Serializable
 data class EncoreServerConfig(
     /**
      * Host URL where this server is serving from.
@@ -76,6 +79,7 @@ data class EncoreServerConfig(
 /**
  * Database configuration which is tailored to Mongo
  */
+@Serializable
 data class EncoreDatabaseConfig(
     /**
      * Database name used in non-tests environment (dev/production)
@@ -93,6 +97,7 @@ data class EncoreDatabaseConfig(
 /**
  * Fancam (logger) configuration.
  */
+@Serializable
 data class EncoreFancamConfig(
     /**
      * Filter the minimum level of log messages.

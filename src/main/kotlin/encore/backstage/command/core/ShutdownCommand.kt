@@ -14,8 +14,10 @@ import kotlin.time.Duration.Companion.seconds
 class ShutdownCommand : Command {
     override val id: String = "shutdown"
     override val name: String = "Shutdown"
-    override val description: String = "Shutdown the server (real 😀)." +
-            "The server will actually shutdown after 5 seconds."
+    override val description: String = """
+        Shutdown the server (real 😀). 
+         The server will actually shutdown after 5 seconds.
+    """.trimIndent()
     override val arguments: List<Argument> = emptyList()
 
     override suspend fun execute(

@@ -1,6 +1,7 @@
 package game.config
 
 import encore.annotation.runtime.VenueKey
+import kotlinx.serialization.Serializable
 
 /**
  * Custom application config definition.
@@ -10,6 +11,7 @@ import encore.annotation.runtime.VenueKey
  *
  * All field is preferred to be immutable.
  */
+@Serializable
 data class CustomConfig(
     val dummy: Int = 0
 )

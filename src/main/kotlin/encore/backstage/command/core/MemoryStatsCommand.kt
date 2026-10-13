@@ -10,7 +10,9 @@ import kotlinx.serialization.Serializable
 class MemoryStatsCommand : Command {
     override val id: String = "mem-stats"
     override val name: String = "Memory stats"
-    override val description: String = "Get the server memory usage stats"
+    override val description: String = """
+        Get the server memory usage stats.
+    """.trimIndent()
     override val arguments: List<Argument> = emptyList()
 
     override suspend fun execute(
