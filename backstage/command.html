@@ -123,12 +123,17 @@
     }
 
     .cmd-argument-name {
-      font-size: 11px;
+      font-size: 13px;
+    }
+
+    .cmd-argument-description {
+      font-size: 12px;
+      color: #5b5b5b;
     }
 
     .cmd-argument-text-input {
-      width: 500px;
-      height: 40px;
+      width: 400px;
+      height: 35px;
       padding: 4px;
       border: 1px solid var(--color-primary);
       border-radius: 4px;
@@ -267,7 +272,8 @@
 
       for (const arg of command.arguments) {
         const cmdArgument = $("<div></div>").addClass("cmd-argument")
-        const argLabel = $("<label></label>").addClass("cmd-argument-name").attr("for", arg.id).text(arg.name)
+        const argLabelName = $("<label></label>").addClass("cmd-argument-name").attr("for", arg.id).text(arg.name)
+        const argLabelDescription = $("<label></label>").addClass("cmd-argument-description").attr("for", arg.id).text(arg.description)
 
         let argInput;
         if (arg.type === "Boolean") {
@@ -284,12 +290,11 @@
             .attr("id", arg.id)
             .attr("name", arg.id)
             .attr("type", "text")
-            .attr("placeholder", arg.description)
             .attr("autocomplete", "off")
         }
 
         if (arg.defaultValue !== null && arg.defaultValue !== "null") {
-          argLabel.append($("<span></span>").text(` (optional; default=${arg.defaultValue})`).css("color", "#355d42"))
+          argLabelName.append($("<span></span>").text(` (optional; default=${arg.defaultValue})`).css("color", "#355d42"))
           if (arg.type === "Boolean") {
             argInput.children().first().val(arg.defaultValue)
           } else {
@@ -297,7 +302,7 @@
           }
         } else {
           if (argInput.attr("type") != "checkbox") {
-            argLabel.append($("<span></span>").text(` (required)`).css("color", "red"))
+            argLabelName.append($("<span></span>").text(` (required)`).css("color", "red"))
             if (arg.type === "Boolean") {
               argInput.children().first().attr("required", true)
             } else {
@@ -306,7 +311,7 @@
           }
         }
 
-        cmdArgumentForm.append(cmdArgument.append(argLabel).append(argInput))
+        cmdArgumentForm.append(cmdArgument.append(argLabelName).append(argLabelDescription).append(argInput))
       }
 
       const executeButton = $("<button></button>")
