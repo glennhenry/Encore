@@ -7,6 +7,7 @@ import encore.EncoreIdentity.celebrate
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
 import encore.backstage.command.core.GetLogsCommand
+import encore.backstage.command.core.GetRuntimeInfoCommand
 import encore.definition.GameReference
 import encore.fancam.impl.OfficialFancam
 import encore.network.lifecycle.PlayerLifecycle
@@ -151,6 +152,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
     with(serverContext.commandDispatcher) {
         register(ExampleCommand())
         register(GetLogsCommand(fancam))
+        register(GetRuntimeInfoCommand())
     }
 }
 
