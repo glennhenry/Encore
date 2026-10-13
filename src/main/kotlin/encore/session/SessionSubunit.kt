@@ -163,8 +163,8 @@ class SessionSubunit(
     /**
      * Get all active sessions.
      */
-    fun getAllActiveSessions(): List<UserSession> {
-        return sessions.values.toList()
+    fun getAllActiveSessions(limit: Int = 20): List<UserSession> {
+        return sessions.values.take(limit)
     }
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)

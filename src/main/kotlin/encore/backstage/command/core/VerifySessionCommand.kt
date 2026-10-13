@@ -31,8 +31,6 @@ class VerifySessionCommand : Command {
             return CommandResult.ExecutionFailure("Please fill the session token.")
         }
 
-        serverContext.subunits.session.create("asdf")
-
         val ses = serverContext.subunits.session.getSession(token)
         if (ses != null) {
             return CommandResult.Success(

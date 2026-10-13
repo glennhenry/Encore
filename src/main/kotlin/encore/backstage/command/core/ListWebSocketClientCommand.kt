@@ -9,14 +9,16 @@ import game.context.ServerContext
 class ListWebSocketClientCommand : Command {
     override val id: String = "list-ws-client"
     override val name: String = "List WebSocket client"
-    override val description: String = "Retrieve all WebSocket client."
+    override val description: String = """
+        Retrieve all WebSocket client (limit 20).
+    """.trimIndent()
     override val arguments: List<Argument> = emptyList()
 
     override suspend fun execute(
         serverContext: ServerContext,
         args: ArgumentInputs
     ): CommandResult {
-        val clients = serverContext.webSocketManager.getAllClients().toList()
+        val clients = serverContext.webSocketManager.getAllClients(20)
         return CommandResult.Success(
             buildString {
                 if (clients.isEmpty()) {
