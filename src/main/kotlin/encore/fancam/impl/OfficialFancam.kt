@@ -12,6 +12,7 @@ import encore.fancam.producer.FancamProducer
 import encore.fancam.producer.FileFancamProducer
 import encore.fancam.utils.SourceCallResolver
 import encore.time.TimeCenter
+import encore.utils.dataStructure.CircularList
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -90,8 +91,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * ### Three output targets
  *
  * Any log call is printed to the console, optionally to the file via [LogEvent.targetFile]
- * or for structured logging via [TrackEvent.route]. Log events are also sent to client
- * via ... (todo).
+ * or for structured logging via [TrackEvent.route]. Log events are also sent to backstage tools.
  *
  * #### Client output
  *
@@ -132,6 +132,12 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     // TrackEvent producers
     // consoleTrackProducer reuses consoleLogProducer
     private val fileTrackProducer = FileFancamProducer(config, fileTrackFormatter)
+
+    val lastTrace = CircularList<LogEvent>(25)
+    val lastDebug = CircularList<LogEvent>(25)
+    val lastInfo = CircularList<LogEvent>(25)
+    val lastWarn = CircularList<LogEvent>(25)
+    val lastError = CircularList<LogEvent>(25)
 
     override fun trace(tag: String, msg: () -> String) {
         if (Level.Trace < config.level.toLogLevel()) return
@@ -255,6 +261,14 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
             when (event) {
                 is LogQueueEvent -> {
                     val log = event.event
+                    when (event.event.level) {
+                        Level.Trace -> lastTrace.add(log)
+                        Level.Debug -> lastDebug.add(log)
+                        Level.Info -> lastInfo.add(log)
+                        Level.Warn -> lastWarn.add(log)
+                        Level.Error -> lastError.add(log)
+                        Level.Off -> {}
+                    }
                     if (!event.fileOnlyOutput) {
                         consoleLogProducer.produce(log)
                     }
