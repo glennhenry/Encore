@@ -36,6 +36,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * `ServerContext` includes various server-side components needed on the server.
  * It acts as a dependency container which is distributed across the server code.
  *
+ * @property appScope Root coroutine scope system components can use.
  * @property dataStore [DataStore] instance of the server.
  * @property contextRegistry Tracks and manages [PlayerContext].
  * @property commandDispatcher Tracks and executes server commands.
@@ -45,6 +46,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @property subunits Container for server subunit instances.
  */
 data class ServerContext(
+    val appScope: CoroutineScope,
     val dataStore: DataStore,
     val contextRegistry: ContextRegistry,
     val commandDispatcher: CommandDispatcher,
@@ -81,6 +83,7 @@ data class ServerContext(
             val extra = PlayerExtraSubunit.createForTest(extraRepository)
 
             return ServerContext(
+                appScope = parentScope,
                 dataStore = dataStore,
                 contextRegistry = ContextRegistry(contextFactory),
                 commandDispatcher = CommandDispatcher(),

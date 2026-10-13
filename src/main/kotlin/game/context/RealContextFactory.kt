@@ -105,6 +105,7 @@ class RealContextFactory(
         subunits.debut(serverSubunitScope)
 
         val serverContext = ServerContext(
+            appScope = appScope,
             dataStore = dataStore,
             contextRegistry = contextRegistry,
             stageActDirector = stageActDirector,
