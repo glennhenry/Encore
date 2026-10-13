@@ -7,9 +7,11 @@ import encore.EncoreIdentity.celebrate
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
 import encore.backstage.command.core.GetLogsCommand
+import encore.backstage.command.core.GetOnlineCommand
 import encore.backstage.command.core.GetRuntimeInfoCommand
 import encore.backstage.command.core.VerifySessionCommand
 import encore.backstage.command.core.GetVenueCommand
+import encore.backstage.command.core.ListOnlineCommand
 import encore.backstage.command.core.ListWebSocketClientCommand
 import encore.backstage.command.core.ListSessionCommand
 import encore.backstage.command.core.MemoryStatsCommand
@@ -174,6 +176,8 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(ListSessionCommand())
         register(VerifySessionCommand())
         register(ListWebSocketClientCommand())
+        register(ListOnlineCommand())
+        register(GetOnlineCommand())
     }
 }
 

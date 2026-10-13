@@ -6,6 +6,9 @@ import encore.backstage.command.types.ArgumentInputs
 import encore.backstage.command.types.CommandResult
 import game.context.ServerContext
 
+/**
+ * Command to list all websocket clients.
+ */
 class ListWebSocketClientCommand : Command {
     override val id: String = "list-ws-client"
     override val name: String = "List WebSocket client"
