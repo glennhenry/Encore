@@ -10,6 +10,7 @@ import encore.backstage.command.core.GetLogsCommand
 import encore.backstage.command.core.GetRuntimeInfoCommand
 import encore.backstage.command.core.GetVenueCommand
 import encore.backstage.command.core.MemoryStatsCommand
+import encore.backstage.command.core.ServerTimeCommand
 import encore.backstage.command.core.ShutdownCommand
 import encore.definition.GameReference
 import encore.fancam.impl.OfficialFancam
@@ -41,6 +42,8 @@ import kotlinx.serialization.modules.SerializersModule
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
+
+var runningSince: Long = 0
 
 fun main() {
     Venue.prepare()
@@ -140,6 +143,7 @@ suspend fun Application.configureApplication() {
     // prints encore banner
     println(EncoreIdentity.banner(GameIdentity))
     celebrate(LocalDate.now(SystemTimezone))
+    runningSince = TimeCenter.now()
 
     // install shutdown hook
     shutdownHook(appScope, serverSubunitScope, serverContext.subunits, servers)
@@ -159,6 +163,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(MemoryStatsCommand())
         register(ShutdownCommand())
         register(GetVenueCommand())
+        register(ServerTimeCommand())
     }
 }
 
