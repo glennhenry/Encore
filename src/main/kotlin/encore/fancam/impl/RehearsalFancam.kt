@@ -6,7 +6,7 @@ import encore.fancam.formatter.toLimitedString
 import encore.serialization.toJsonElement
 import encore.time.TimeCenter
 import kotlinx.serialization.json.Json
-import java.text.SimpleDateFormat
+import preciseBasicDateFormatter
 
 /**
  * A minimal fancam implementation intended for bootstrap or testing.
@@ -51,12 +51,11 @@ class RehearsalFancam : FancamTemplate {
     private val warntrack = mutableListOf<TrackEvent>()
     private val errortrack = mutableListOf<TrackEvent>()
 
-    private val date = SimpleDateFormat("HH:mm:ss.SSS")
     private val json = Json { prettyPrint = false }
 
     private fun formatLog(event: LogEvent): String {
         return buildString {
-            append("[${date.format(event.timestamp)}][${event.level.label()}] ${event.message()}")
+            append("[${preciseBasicDateFormatter.format(event.timestamp)}][${event.level.label()}] ${event.message()}")
             if (event.level == Level.Error && event.throwable != null) {
                 appendLine()
                 appendLine(event.throwable.toLimitedString(false))
@@ -66,7 +65,7 @@ class RehearsalFancam : FancamTemplate {
 
     private fun formatTrack(event: TrackEvent, level: Level): String {
         val data = event.data.toJsonElement(useReflection = false)
-        return "[${date.format(event.timestamp)}][${level.label()}] ${json.encodeToString(data)}"
+        return "[${preciseBasicDateFormatter.format(event.timestamp)}][${level.label()}] ${json.encodeToString(data)}"
     }
 
     override fun trace(tag: String, msg: () -> String) {

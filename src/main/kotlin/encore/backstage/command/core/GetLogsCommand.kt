@@ -9,7 +9,7 @@ import encore.fancam.events.LogEvent
 import encore.fancam.events.TrackEvent
 import encore.fancam.impl.OfficialFancam
 import game.context.ServerContext
-import java.text.SimpleDateFormat
+import preciseBasicDateFormatter
 
 /**
  * A command to retrieve the last N recent server logs.
@@ -44,7 +44,6 @@ class GetLogsCommand(private val fancam: OfficialFancam) : Command {
         )
     )
 
-    private val dateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
     override suspend fun execute(
         serverContext: ServerContext,
         args: ArgumentInputs
@@ -100,7 +99,7 @@ class GetLogsCommand(private val fancam: OfficialFancam) : Command {
                 }
                 for (i in logs.indices) {
                     val log = logs[i]
-                    appendLine("${i + 1}) [${dateFormatter.format(log.timestamp)}][${log.level}][${log.tag}] ${log.message()}")
+                    appendLine("${i + 1}) [${preciseBasicDateFormatter.format(log.timestamp)}][${log.level}][${log.tag}] ${log.message()}")
                 }
             }
         )

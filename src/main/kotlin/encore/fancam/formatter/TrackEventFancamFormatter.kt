@@ -1,11 +1,11 @@
 package encore.fancam.formatter
 
+import detailedDateFormatter
 import encore.fancam.events.SimpleTrackEvent
 import encore.fancam.events.TrackEvent
 import encore.serialization.toJsonElement
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import java.text.SimpleDateFormat
 
 /**
  * Formatter implementation for track event tailored for file output.
@@ -15,12 +15,11 @@ import java.text.SimpleDateFormat
  */
 class TrackEventFancamFormatter : FancamFormatter<TrackEvent> {
     private val jsonSerializer = Json { prettyPrint = true }
-    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
     override fun format(event: TrackEvent): String {
         val jsonElement = SimpleTrackEvent(
             name = event.name,
-            datetime = dateFormatter.format(event.timestamp),
+            datetime = detailedDateFormatter.format(event.timestamp),
             data = event.data,
             tags = event.tags,
             source = event.source,

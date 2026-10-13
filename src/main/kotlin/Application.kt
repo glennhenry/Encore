@@ -63,6 +63,7 @@ fun main() {
 
 val SystemTimezone: ZoneId = ZoneId.systemDefault()
 val basicDateFormatter = SimpleDateFormat("HH:mm:ss")
+val preciseBasicDateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
 val detailedDateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
 /**

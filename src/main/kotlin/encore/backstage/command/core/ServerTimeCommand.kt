@@ -1,5 +1,6 @@
 package encore.backstage.command.core
 
+import detailedDateFormatter
 import encore.backstage.command.Command
 import encore.backstage.command.types.Argument
 import encore.backstage.command.types.ArgumentInputs
@@ -7,7 +8,6 @@ import encore.backstage.command.types.CommandResult
 import encore.time.TimeCenter
 import game.context.ServerContext
 import runningSince
-import java.text.SimpleDateFormat
 
 class ServerTimeCommand : Command {
     override val id: String = "time"
@@ -17,8 +17,6 @@ class ServerTimeCommand : Command {
     """.trimIndent()
     override val arguments: List<Argument> = emptyList()
 
-    private val dateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-
     override suspend fun execute(
         serverContext: ServerContext,
         args: ArgumentInputs
@@ -27,8 +25,8 @@ class ServerTimeCommand : Command {
         return CommandResult.Success(
             buildString {
                 appendLine("serverTime (epoch): ${info.serverTime}")
-                appendLine("serverTime (yyyy-MM-dd HH:mm:ss.SSS): ${dateFormatter.format(info.serverTime)}")
-                appendLine("runningSince (yyyy-MM-dd HH:mm:ss.SSS): ${dateFormatter.format(runningSince)}")
+                appendLine("serverTime (yyyy-MM-dd HH:mm:ss.SSS): ${detailedDateFormatter.format(info.serverTime)}")
+                appendLine("runningSince (yyyy-MM-dd HH:mm:ss.SSS): ${detailedDateFormatter.format(runningSince)}")
                 appendLine("hasBeenRunningFor: ${TimeCenter.formatToDurationString(info.hasBeenRunningFor)}")
             }
         )

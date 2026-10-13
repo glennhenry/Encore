@@ -1,5 +1,6 @@
 package encore.acts
 
+import basicDateFormatter
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
@@ -17,7 +18,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -256,14 +256,12 @@ class StageActDirector(
         return id
     }
 
-    val formatter = SimpleDateFormat("HH:mm:ss")
-
     fun formatFinishTime(delay: Long): String {
         val future = (timeSource.now() + delay)
         val formattedDuration = delay.milliseconds.toComponents { days, hours, minutes, seconds, _ ->
             String.format("%01dd %01dhr %01dm %01ds", days, hours, minutes, seconds)
         }
-        val finishDate = formatter.format(future)
+        val finishDate = basicDateFormatter.format(future)
         return "($formattedDuration / at $finishDate)"
     }
 

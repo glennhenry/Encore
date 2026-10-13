@@ -1,11 +1,12 @@
 package encore.fancam.formatter
 
+import detailedDateFormatter
 import encore.EncoreFancamConfig
 import encore.fancam.events.Level
 import encore.fancam.events.LogEvent
 import encore.fancam.events.TraceElement
 import encore.fancam.events.label
-import java.text.SimpleDateFormat
+import preciseBasicDateFormatter
 import kotlin.text.padStart
 import kotlin.text.take
 
@@ -20,9 +21,6 @@ class LogEventFancamFormatter(
     private val config: EncoreFancamConfig,
     private val isFileTarget: Boolean,
 ) : FancamFormatter<LogEvent> {
-    private val logTimeFormat = SimpleDateFormat("HH:mm:ss.SSS")
-    private val fileTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-
     override fun format(event: LogEvent): String {
         val timestamp = formatTimestamp(event.timestamp, isFileTarget)
         val source = formatSourceHint(event.source, config.fileNamePadding, isFileTarget)
@@ -85,9 +83,9 @@ class LogEventFancamFormatter(
 
     private fun formatTimestamp(timestamp: Long, isFileTarget: Boolean): String {
         return if (isFileTarget) {
-            fileTimeFormat.format(timestamp)
+            detailedDateFormatter.format(timestamp)
         } else {
-            logTimeFormat.format(timestamp)
+            preciseBasicDateFormatter.format(timestamp)
         }
     }
 
