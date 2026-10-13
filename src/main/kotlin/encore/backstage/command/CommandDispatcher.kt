@@ -77,13 +77,13 @@ class CommandDispatcher {
      * @return [Set] of registered `commandId`(s).
      */
     fun getAllRegisteredCommandsId(): Set<String> {
-        return commands.keys
+        return commands.keys.sorted().toSet()
     }
 
     /**
      * @return [Set] of registered commands.
      */
     fun getAllRegisteredCommands(): Set<Command> {
-        return commands.values.toSet()
+        return commands.values.sortedBy { it.name }.toSet()
     }
 }
