@@ -1,6 +1,5 @@
 package encore.session
 
-import encore.backstage.command.core.SessionInfo
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.subunit.Subunit
@@ -8,8 +7,8 @@ import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
 import encore.time.source.MutableTimeSource
 import encore.time.source.TimeSource
-import game.Globals
 import encore.utils.identifier.Ids
+import game.Globals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -56,6 +55,7 @@ class SessionSubunit(
      * Create a session for the [userId] with:
      * - base duration of [validFor], default 1 hour.
      * - lifetime of [lifetime], default 6 hours.
+     * - [UserSession.userId] as provided.
      */
     fun create(userId: String, validFor: Duration = 1.hours, lifetime: Duration = 6.hours): UserSession {
         val now = timeSource.now()
@@ -93,6 +93,19 @@ class SessionSubunit(
         val now = timeSource.now()
 
         return now < session.expiresAt
+    }
+
+    /**
+     * Verify and retrieve the session by its [token].
+     *
+     * @return the session or `null` if session is invalid or not found.
+     */
+    fun getSession(token: String): UserSession? {
+        return if (verify(token)) {
+            sessions[token]
+        } else {
+            null
+        }
     }
 
     /**
@@ -150,10 +163,8 @@ class SessionSubunit(
     /**
      * Get all active sessions.
      */
-    fun getAllActiveSessions(): List<SessionInfo> {
-        return sessions.map {
-            SessionInfo(it.key, it.value.issuedAt, it.value.expiresAt)
-        }
+    fun getAllActiveSessions(): List<UserSession> {
+        return sessions.values.toList()
     }
 
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)

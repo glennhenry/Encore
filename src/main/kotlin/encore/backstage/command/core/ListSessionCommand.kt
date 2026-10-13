@@ -6,6 +6,7 @@ import encore.backstage.command.types.Argument
 import encore.backstage.command.types.ArgumentInputs
 import encore.backstage.command.types.CommandResult
 import encore.session.SessionSubunit
+import encore.session.UserSession
 import encore.time.TimeCenter
 import game.context.ServerContext
 
@@ -43,31 +44,19 @@ class ListSessionCommand : Command {
 }
 
 /**
- * Format [SessionInfo] into human-readable list.
+ * Format [UserSession] into human-readable list.
  */
-fun formatSessionInfo(ses: SessionInfo): String {
+fun formatSessionInfo(ses: UserSession): String {
     val isExpired = if (TimeCenter.now() > ses.expiresAt) {
         "yes"
     } else {
         "no"
     }
     return """
-        id=${ses.id}
+        userId=${ses.userId}
+           token=${ses.token}
            issuedAt=${basicDateFormatter.format(ses.issuedAt)}
            expiresAt=${basicDateFormatter.format(ses.expiresAt)}
            isExpired=$isExpired
     """.trimIndent()
 }
-
-/**
- * Session info from [SessionSubunit].
- *
- * @property id userId
- * @property issuedAt
- * @property expiresAt
- */
-data class SessionInfo(
-    val id: String,
-    val issuedAt: Long,
-    val expiresAt: Long
-)

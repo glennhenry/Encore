@@ -8,6 +8,7 @@ import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
 import encore.backstage.command.core.GetLogsCommand
 import encore.backstage.command.core.GetRuntimeInfoCommand
+import encore.backstage.command.core.VerifySessionCommand
 import encore.backstage.command.core.GetVenueCommand
 import encore.backstage.command.core.ListSessionCommand
 import encore.backstage.command.core.MemoryStatsCommand
@@ -170,6 +171,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(GetVenueCommand())
         register(ServerTimeCommand())
         register(ListSessionCommand())
+        register(VerifySessionCommand())
     }
 }
 
