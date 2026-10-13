@@ -8,6 +8,9 @@ import encore.backstage.command.types.CommandResult
 import game.GameIdentity
 import game.context.ServerContext
 
+/**
+ * Command to get the [RuntimeInfo] of server.
+ */
 class GetRuntimeInfoCommand : Command {
     override val id: String = "get-runtime-info"
     override val name: String = "Get runtime info"

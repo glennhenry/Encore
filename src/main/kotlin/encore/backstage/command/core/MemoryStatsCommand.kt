@@ -7,6 +7,9 @@ import encore.backstage.command.types.CommandResult
 import game.context.ServerContext
 import kotlinx.serialization.Serializable
 
+/**
+ * Command to get the information of server memory.
+ */
 class MemoryStatsCommand : Command {
     override val id: String = "mem-stats"
     override val name: String = "Memory stats"

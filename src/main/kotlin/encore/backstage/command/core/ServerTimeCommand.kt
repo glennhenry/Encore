@@ -9,6 +9,9 @@ import encore.time.TimeCenter
 import game.context.ServerContext
 import runningSince
 
+/**
+ * Command to get the server time and uptime.
+ */
 class ServerTimeCommand : Command {
     override val id: String = "time"
     override val name: String = "Server time"

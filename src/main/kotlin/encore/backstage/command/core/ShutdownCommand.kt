@@ -11,6 +11,9 @@ import game.mongo.collection.ServerId
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Command to shutdown the server.
+ */
 class ShutdownCommand : Command {
     override val id: String = "shutdown"
     override val name: String = "Shutdown"

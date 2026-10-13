@@ -7,10 +7,12 @@ import encore.backstage.command.types.ArgumentInputs
 import encore.backstage.command.types.CommandResult
 import encore.session.SessionSubunit
 import encore.time.TimeCenter
-import encore.utils.identifier.Ids
 import encore.utils.identifier.shortUuid
 import game.context.ServerContext
 
+/**
+ * Command to list the active sessions of [SessionSubunit].
+ */
 class ListSessionCommand : Command {
     override val id: String = "list-session"
     override val name: String = "List sessions"
@@ -25,10 +27,6 @@ class ListSessionCommand : Command {
         args: ArgumentInputs
     ): CommandResult {
         val sb = StringBuilder()
-
-        serverContext.subunits.session.create(Ids.uuid())
-        serverContext.subunits.session.create(Ids.uuid())
-        serverContext.subunits.session.create(Ids.uuid())
 
         val sessions = serverContext.subunits.session.getAllActiveSessions()
         if (sessions.isEmpty()) {
