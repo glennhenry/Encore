@@ -47,8 +47,8 @@ class WebSocketManager {
     /**
      * Returns the `clientId` of all actively tracked websocket session.
      */
-    fun getAllClients(limit: Int = 20): List<String> {
-        return clients.keys.take(limit)
+    fun getAllClients(): List<String> {
+        return clients.keys.toList()
     }
 
     /**

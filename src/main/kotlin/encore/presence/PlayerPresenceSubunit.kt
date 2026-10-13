@@ -72,6 +72,13 @@ class PlayerPresenceSubunit : Subunit<ServerScope> {
     }
 
     /**
+     * Get the amount of online players currently.
+     */
+    fun getNumOnlinePlayers(): Int {
+        return onlinePlayers.size
+    }
+
+    /**
      * Get all currently online players.
      */
     fun getAllPlayers(limit: Int = 20): List<PlayerPresence> {
