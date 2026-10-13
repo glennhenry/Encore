@@ -6,7 +6,9 @@ import encore.EncoreIdentity
 import encore.EncoreIdentity.celebrate
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
+import encore.backstage.command.core.GetLogsCommand
 import encore.definition.GameReference
+import encore.fancam.impl.OfficialFancam
 import encore.network.lifecycle.PlayerLifecycle
 import encore.network.stage.GameStage
 import encore.network.stage.GameStageInitContext
@@ -59,12 +61,16 @@ suspend fun Application.configureApplication() {
     // install system time
     TimeCenter.update(source = SystemTimeSource())
 
+    // configure fancam (logger)
+    val fancam = OfficialFancam(Venue.encore.fancam)
+
     // configure security
     val bannedAddresses = mutableSetOf<String>()
     val security = DefaultSecurity(bannedAddresses, TimeCenter.source)
 
     // setup the framework
     val db = installEncore(
+        fancam = fancam,
         module = SerializersModule { },
         security = security
     )
@@ -89,7 +95,7 @@ suspend fun Application.configureApplication() {
     websocketHandlers(serverContext)
 
     // register commands
-    commandHandlers(serverContext)
+    commandHandlers(fancam, serverContext)
 
     // configure routing
     // ephemeral token storage for /backstage entry
@@ -141,9 +147,10 @@ fun websocketHandlers(serverContext: ServerContext) {
     }
 }
 
-fun commandHandlers(serverContext: ServerContext) {
+fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
     with(serverContext.commandDispatcher) {
         register(ExampleCommand())
+        register(GetLogsCommand(fancam))
     }
 }
 

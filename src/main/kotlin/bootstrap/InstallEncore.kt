@@ -7,7 +7,7 @@ import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.fancam.formatter.colorizeSegmentFg
-import encore.fancam.impl.OfficialFancam
+import encore.fancam.impl.FancamTemplate
 import encore.route.colorizeHttpMethod
 import encore.route.guard.GuardResult
 import encore.route.guard.SecurityGuard
@@ -62,11 +62,12 @@ import kotlin.time.Duration.Companion.seconds
  * @return [MongoDatabase] for application usage.
  */
 suspend fun Application.installEncore(
+    fancam: FancamTemplate,
     module: SerializersModule = SerializersModule { },
     security: SecurityGuard
 ): MongoDatabase {
     configureSerialization(module)
-    configureFancam()
+    configureFancam(fancam)
     configureCors()
     configureStatusPages()
     configureDoubleReceive()
@@ -99,8 +100,8 @@ fun Application.configureSerialization(module: SerializersModule = SerializersMo
     Protobuf.initialize(protobuf)
 }
 
-fun configureFancam() {
-    Fancam.initialize(OfficialFancam(Venue.encore.fancam))
+fun configureFancam(fancam: FancamTemplate) {
+    Fancam.initialize(fancam)
     if (Venue.encore.devMode) {
         Fancam.info(Tags.Startup) { "Running server on ${colorizeSegmentFg(33, "development mode")} (developmentMode=true)" }
     } else {
