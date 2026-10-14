@@ -29,8 +29,14 @@ class RepeatingTimerAct : StageAct<RepeatingTimerConcept> {
         val initialDelay = TimeCenter.formatToDurationString(concept.initialDelay)
         val interval = TimeCenter.formatToDurationString(concept.interval)
         return mapOf(
-            "describe" to "Repeat timer run after $initialDelay, " +
+            "explain" to "Repeat timer run after $initialDelay, " +
                     "then every $interval for ${concept.repetition} times."
+        ).plus(
+            if (concept.description != null) {
+                mapOf("description" to concept.description)
+            } else {
+                emptyMap()
+            }
         )
     }
 
@@ -45,11 +51,13 @@ class RepeatingTimerAct : StageAct<RepeatingTimerConcept> {
  * @property initialDelay The initial time to wait before first execution.
  * @property repetition The amount of repetition to do, which excludes the first execution.
  * @property interval Time to wait on between each repetition.
+ * @property description An optional description on what is this timer used for.
  * @property onPerform Block of code to run on each execution.
  */
 data class RepeatingTimerConcept(
     val initialDelay: Duration,
     val repetition: Int,
     val interval: Duration,
+    val description: String? = null,
     val onPerform: suspend (Int) -> Unit
 ) : ActConcept

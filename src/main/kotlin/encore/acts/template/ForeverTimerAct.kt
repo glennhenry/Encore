@@ -28,7 +28,13 @@ class ForeverTimerAct : StageAct<ForeverTimerConcept> {
         val initialDelay = TimeCenter.formatToDurationString(concept.initialDelay)
         val interval = TimeCenter.formatToDurationString(concept.interval)
         return mapOf(
-            "describe" to "Forever timer run after $initialDelay, then every $interval."
+            "explain" to "Forever timer run after $initialDelay, then every $interval."
+        ).plus(
+            if (concept.description != null) {
+                mapOf("description" to concept.description)
+            } else {
+                emptyMap()
+            }
         )
     }
 
@@ -42,10 +48,12 @@ class ForeverTimerAct : StageAct<ForeverTimerConcept> {
  *
  * @property initialDelay The initial time to wait before first execution.
  * @property interval Time to wait on between each repetition.
+ * @property description An optional description on what is this timer used for.
  * @property onPerform Block of code to run on each execution.
  */
 data class ForeverTimerConcept(
     val initialDelay: Duration,
     val interval: Duration,
+    val description: String? = null,
     val onPerform: suspend (Int) -> Unit
 ) : ActConcept

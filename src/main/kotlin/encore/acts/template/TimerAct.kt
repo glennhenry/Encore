@@ -25,7 +25,13 @@ class TimerAct : StageAct<TimerConcept> {
 
     override fun metadata(concept: TimerConcept): Map<String, String> {
         return mapOf(
-            "describe" to "Timer run after ${TimeCenter.formatToDurationString(concept.time)}."
+            "explain" to "Timer run after ${TimeCenter.formatToDurationString(concept.time)}."
+        ).plus(
+            if (concept.description != null) {
+                mapOf("description" to concept.description)
+            } else {
+                emptyMap()
+            }
         )
     }
 
@@ -38,9 +44,11 @@ class TimerAct : StageAct<TimerConcept> {
  * Input for [TimerAct].
  *
  * @property time The amount of time to wait before execution.
+ * @property description An optional description on what is this timer used for.
  * @property onPerform Block of code to run after waiting the amount of [time].
  */
 data class TimerConcept(
     val time: Duration,
+    val description: String? = null,
     val onPerform: suspend (Int) -> Unit
 ) : ActConcept
