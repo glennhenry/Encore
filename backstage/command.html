@@ -452,6 +452,7 @@
         .append($("<span></span>").text(id).css("color", "blue"))
         .append($("<span></span>").text(` (${argsText})`))
       $(".output").append($("<div></div>").addClass("output-child").append(text))
+      $(".output").scrollTop($(".output").prop('scrollHeight'))
     }
 
     function addResponseToOutput(status, message) {
@@ -466,6 +467,7 @@
         .append($("<span></span>").text(`\n${message}`))
 
       $(".output").append($("<div></div>").addClass("output-child").css("border-bottom", "1px solid black").append(text))
+      $(".output").scrollTop($(".output").prop('scrollHeight'))
     }
   </script>
 </body>
