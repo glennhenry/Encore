@@ -178,6 +178,7 @@ class StageActDirector(
     ): String {
         val id = Ids.uuid()
         val choreo = act.choreography(concept)
+        val metadata = act.metadata(concept)
 
         val job = scope.coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             var performCount = 0
@@ -189,7 +190,7 @@ class StageActDirector(
 
             try {
                 activeActsInfo.putIfAbsent(
-                    id, ActiveActInfo(id, scope.ownerId, startedAt, -1, -1, -1, 0)
+                    id, ActiveActInfo(id, scope.ownerId, metadata, startedAt, -1, -1, -1, 0)
                 )
 
                 if (callOnStart) {
@@ -197,9 +198,7 @@ class StageActDirector(
                 }
 
                 if (performDirectly) {
-                    if (act.enableLogging) {
-                        Fancam.debug(Tags.Acts) {
-                            "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=${id.shortUuid()})"
+                    if (act.logScheduling) {
                         Fancam.info(Tags.Acts) {
                             "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=$id)"
                         }
@@ -230,9 +229,7 @@ class StageActDirector(
 
                     if (delay == null) break
 
-                    if (act.enableLogging) {
-                        Fancam.debug(Tags.Acts) {
-                            "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=${id.shortUuid()})"
+                    if (act.logScheduling) {
                         Fancam.info(Tags.Acts) {
                             "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=$id)"
                         }
@@ -376,6 +373,7 @@ class StageActDirector(
  * A running [StageAct] on [StageActDirector].
  * @property actId
  * @property ownerId
+ * @property metadata
  * @property startedAt
  * @property firstPerformAt
  * @property prevPerformAt
@@ -385,6 +383,7 @@ class StageActDirector(
 data class ActiveActInfo(
     val actId: String,
     val ownerId: String,
+    val metadata: Map<String, String>,
     val startedAt: Long,
     var firstPerformAt: Long,
     var prevPerformAt: Long,

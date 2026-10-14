@@ -5,6 +5,7 @@ import encore.acts.StageAct
 import encore.acts.choreo.BasicChoreography
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
+import encore.time.TimeCenter
 import kotlin.time.Duration
 
 /**
@@ -15,12 +16,21 @@ import kotlin.time.Duration
  * [RepeatingTimerConcept.interval].
  */
 class RepeatingTimerAct : StageAct<RepeatingTimerConcept> {
-    override val enableLogging: Boolean = false
+    override val logScheduling: Boolean = false
 
     override fun choreography(concept: RepeatingTimerConcept): Choreography<RepeatingTimerConcept> {
         return BasicChoreography(
             initialDelay = concept.initialDelay,
             performMode = PerformMode.Repeat(concept.repetition, concept.interval)
+        )
+    }
+
+    override fun metadata(concept: RepeatingTimerConcept): Map<String, String> {
+        val initialDelay = TimeCenter.formatToDurationString(concept.initialDelay)
+        val interval = TimeCenter.formatToDurationString(concept.interval)
+        return mapOf(
+            "describe" to "Repeat timer run after $initialDelay, " +
+                    "then every $interval for ${concept.repetition} times."
         )
     }
 

@@ -411,7 +411,7 @@ class StageActDirectorTest {
 }
 
 class TimerWithOnStartAct : StageAct<TimerWithOnStartConcept> {
-    override val enableLogging: Boolean = false
+    override val logScheduling: Boolean = false
 
     override suspend fun onStart(concept: TimerWithOnStartConcept) {
         concept.onStart()
@@ -422,6 +422,10 @@ class TimerWithOnStartAct : StageAct<TimerWithOnStartConcept> {
             initialDelay = concept.delay,
             performMode = PerformMode.Once
         )
+    }
+
+    override fun metadata(concept: TimerWithOnStartConcept): Map<String, String> {
+        return mapOf()
     }
 
     override suspend fun perform(concept: TimerWithOnStartConcept, performNumber: Int) {
@@ -436,7 +440,7 @@ data class TimerWithOnStartConcept(
 ) : ActConcept
 
 class RepeatTimerWithOnStartAct : StageAct<RepeatTimerWithOnStartConcept> {
-    override val enableLogging: Boolean = false
+    override val logScheduling: Boolean = false
 
     override suspend fun onStart(concept: RepeatTimerWithOnStartConcept) {
         concept.onStart()
@@ -447,6 +451,10 @@ class RepeatTimerWithOnStartAct : StageAct<RepeatTimerWithOnStartConcept> {
             initialDelay = concept.initialDelay,
             performMode = PerformMode.Repeat(concept.repeat, concept.interval)
         )
+    }
+
+    override fun metadata(concept: RepeatTimerWithOnStartConcept): Map<String, String> {
+        return mapOf()
     }
 
     override suspend fun perform(concept: RepeatTimerWithOnStartConcept, performNumber: Int) {

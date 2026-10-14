@@ -5,6 +5,7 @@ import encore.acts.StageAct
 import encore.acts.choreo.BasicChoreography
 import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
+import encore.time.TimeCenter
 import kotlin.time.Duration
 
 /**
@@ -14,12 +15,20 @@ import kotlin.time.Duration
  * and will perform repeatedly forever between interval of [ForeverTimerConcept.interval].
  */
 class ForeverTimerAct : StageAct<ForeverTimerConcept> {
-    override val enableLogging: Boolean = false
+    override val logScheduling: Boolean = false
 
     override fun choreography(concept: ForeverTimerConcept): Choreography<ForeverTimerConcept> {
         return BasicChoreography(
             initialDelay = concept.initialDelay,
             performMode = PerformMode.Forever(concept.interval)
+        )
+    }
+
+    override fun metadata(concept: ForeverTimerConcept): Map<String, String> {
+        val initialDelay = TimeCenter.formatToDurationString(concept.initialDelay)
+        val interval = TimeCenter.formatToDurationString(concept.interval)
+        return mapOf(
+            "describe" to "Forever timer run after $initialDelay, then every $interval."
         )
     }
 

@@ -48,12 +48,22 @@ interface StageAct<T : ActConcept> {
      * Act 'TimerWithOnStartAct' will perform directly for 'TestScope' (actId=69b19aff-e735-4dcd-832e-3d1f80c547d8)
      * ```
      */
-    val enableLogging: Boolean
+    val logScheduling: Boolean
 
     /**
      * Produces the choreography for this act.
      */
     fun choreography(concept: T): Choreography<T>
+
+    /**
+     * Produce metadata information for this act.
+     *
+     * The metadata includes miscellaneous information about the act,
+     * such as the subject of this act, domain explanation, or timing details.
+     *
+     * This will only be used for logging and it's optional.
+     */
+    fun metadata(concept: T): Map<String, String>
 
     /**
      * Called once when the act is first scheduled.

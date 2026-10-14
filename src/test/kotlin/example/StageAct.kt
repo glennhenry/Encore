@@ -6,6 +6,7 @@ import encore.acts.choreo.Choreography
 import encore.acts.choreo.PerformMode
 import encore.acts.template.runTimer
 import encore.fancam.Fancam
+import encore.time.TimeCenter
 import encore.time.source.TimeSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -119,13 +120,26 @@ class BuildingConstructionAct(
     private val repo: BuildingRepo,
     private val timeSource: TimeSource
 ) : StageAct<BuildingConstructionConcept> {
-    override val enableLogging: Boolean = true
+    override val logScheduling: Boolean = true
 
     override fun choreography(concept: BuildingConstructionConcept): Choreography<BuildingConstructionConcept> {
         // building construction only perform once when build duration finish
         return BasicChoreography(
             initialDelay = concept.buildDuration,
             performMode = PerformMode.Once
+        )
+    }
+
+    override fun metadata(concept: BuildingConstructionConcept): Map<String, String> {
+        return mapOf(
+            "playerId" to concept.playerId,
+            "buildingId" to concept.buildingId,
+            "duration" to TimeCenter.formatToDurationString(concept.buildDuration),
+            "describe" to "Building '${concept.buildingId}' construction for playerId '${concept.playerId}' buildTime: ${
+                TimeCenter.formatToDurationString(
+                    concept.buildDuration
+                )
+            }"
         )
     }
 
