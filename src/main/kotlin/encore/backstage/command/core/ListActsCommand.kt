@@ -34,12 +34,31 @@ class ListActsCommand : Command {
             buildString {
                 appendLine("Total running acts: $totalActs")
                 appendLine("Showing results of ${acts.size} acts:")
+                appendLine("now: ${detailedDateFormatter.format(TimeCenter.now())}")
                 acts.forEachIndexed { idx, act ->
                     appendLine("${idx + 1})   actId: ${act.actId}")
                     appendLine("     ownerId: ${act.ownerId}")
-                    appendLine("     startedAt: ${detailedDateFormatter.format(act.startedAt)} (${TimeCenter.formatToDurationString((TimeCenter.now() - act.startedAt))} ago)")
-                    appendLine("     prevPerformAt: ${detailedDateFormatter.format(act.prevPerformAt)} (${TimeCenter.formatToDurationString((TimeCenter.now() - act.prevPerformAt))} ago)")
-                    appendLine("     firstPerformAt: ${detailedDateFormatter.format(act.firstPerformAt)} (${TimeCenter.formatToDurationString((TimeCenter.now() - act.firstPerformAt))} ago)")
+                    appendLine(
+                        "     startedAt: ${detailedDateFormatter.format(act.startedAt)} (${
+                            TimeCenter.formatToDurationString(
+                                (TimeCenter.now() - act.startedAt)
+                            )
+                        } ago)"
+                    )
+                    appendLine(
+                        "     prevPerformAt: ${detailedDateFormatter.format(act.prevPerformAt)} (${
+                            TimeCenter.formatToDurationString(
+                                (TimeCenter.now() - act.prevPerformAt)
+                            )
+                        } ago)"
+                    )
+                    appendLine(
+                        "     firstPerformAt: ${detailedDateFormatter.format(act.firstPerformAt)} (${
+                            TimeCenter.formatToDurationString(
+                                (TimeCenter.now() - act.firstPerformAt)
+                            )
+                        } ago)"
+                    )
                     appendLine(
                         "     nextPerformAt: ${detailedDateFormatter.format(act.nextPerformAt)} (in ${
                             TimeCenter.formatToDurationString(
