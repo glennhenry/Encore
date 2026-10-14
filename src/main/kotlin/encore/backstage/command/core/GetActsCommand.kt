@@ -25,40 +25,42 @@ class GetActsCommand : Command {
     ): CommandResult {
         val actId = args.getString("actId")
         val act = serverContext.stageActDirector.getAct(actId)
+        val now = TimeCenter.now()
+
         if (act == null) {
             return CommandResult.Success("actId '$actId' is not found or not running.")
         } else {
             return CommandResult.Success(
                 buildString {
                     appendLine("Found act currently running:")
-                    appendLine("now: ${detailedDateFormatter.format(TimeCenter.now())}")
+                    appendLine("now: ${detailedDateFormatter.format(now)}")
                     appendLine("actId: ${act.actId}")
                     appendLine("ownerId: ${act.ownerId}")
                     appendLine(
                         "startedAt: ${detailedDateFormatter.format(act.startedAt)} (${
                             TimeCenter.formatToDurationString(
-                                (TimeCenter.now() - act.startedAt)
+                                (now - act.startedAt)
                             )
                         } ago)"
                     )
                     appendLine(
                         "prevPerformAt: ${detailedDateFormatter.format(act.prevPerformAt)} (${
                             TimeCenter.formatToDurationString(
-                                (TimeCenter.now() - act.prevPerformAt)
+                                (now - act.prevPerformAt)
                             )
                         } ago)"
                     )
                     appendLine(
                         "firstPerformAt: ${detailedDateFormatter.format(act.firstPerformAt)} (${
                             TimeCenter.formatToDurationString(
-                                (TimeCenter.now() - act.firstPerformAt)
+                                (now - act.firstPerformAt)
                             )
                         } ago)"
                     )
                     appendLine(
                         "nextPerformAt: ${detailedDateFormatter.format(act.nextPerformAt)} (in ${
                             TimeCenter.formatToDurationString(
-                                (act.nextPerformAt - TimeCenter.now())
+                                (act.nextPerformAt - now)
                             )
                         })"
                     )
