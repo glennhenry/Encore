@@ -47,16 +47,16 @@ class ListActsCommand : Command {
                         } ago)"
                     )
                     appendLine(
-                        "     prevPerformAt: ${detailedDateFormatter.format(act.prevPerformAt)} (${
+                        "     firstPerformAt: ${detailedDateFormatter.format(act.firstPerformAt)} (${
                             TimeCenter.formatToDurationString(
-                                (now - act.prevPerformAt)
+                                (now - act.firstPerformAt)
                             )
                         } ago)"
                     )
                     appendLine(
-                        "     firstPerformAt: ${detailedDateFormatter.format(act.firstPerformAt)} (${
+                        "     prevPerformAt: ${detailedDateFormatter.format(act.prevPerformAt)} (${
                             TimeCenter.formatToDurationString(
-                                (now - act.firstPerformAt)
+                                (now - act.prevPerformAt)
                             )
                         } ago)"
                     )

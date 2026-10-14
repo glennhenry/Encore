@@ -1,6 +1,9 @@
 package encore.backstage
 
 import encore.EncoreIdentity
+import encore.backstage.command.MonitorData
+import encore.backstage.command.core.getRuntimeInfo
+import encore.backstage.command.core.getUptimeInfo
 import encore.backstage.command.types.CommandRequest
 import encore.fancam.Fancam
 import encore.fancam.Tags
@@ -168,15 +171,39 @@ class BackstageRoutes(
             }
         }
 
-        get("/backstage/logger") {
-            handle(call, backstageAuthGuard) {
-                call.respondFile(File("backstage/logger.html"))
+        get("/backstage/init") {
+            guard(call, backstageAuthGuard) {
+                val runtimeInfo = getRuntimeInfo()
+                val uptimeInfo = getUptimeInfo()
+                call.respond(
+                    JSON.encode(
+                        mapOf(
+                            "javaVersion" to runtimeInfo.javaVersion,
+                            "osDetails" to runtimeInfo.osDetails,
+                            "serverTime" to uptimeInfo.serverTime.toString(),
+                            "runningSince" to uptimeInfo.runningSince.toString()
+                        )
+                    )
+                )
             }
         }
 
         get("/backstage/monitor") {
+            guard(call, backstageAuthGuard) {
+                call.respond(
+                    JSON.encode(
+                        MonitorData(
+                            numPlayers = serverContext.subunits.presence.getNumOnlinePlayers(),
+                            acts = serverContext.stageActDirector.getAllRunningActs()
+                        )
+                    )
+                )
+            }
+        }
+
+        get("/backstage/logger") {
             handle(call, backstageAuthGuard) {
-                call.respondFile(File("backstage/monitor.html"))
+                call.respondFile(File("backstage/logger.html"))
             }
         }
 

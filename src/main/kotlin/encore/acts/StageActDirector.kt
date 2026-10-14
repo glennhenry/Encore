@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -389,6 +390,7 @@ class StageActDirector(
  * @property nextPerformAt
  * @property performCount
  */
+@Serializable
 data class ActiveActInfo(
     val actId: String,
     val ownerId: String,
