@@ -44,6 +44,7 @@ class GetActsCommand : Command {
                         })"
                     )
                     appendLine("performCount: ${act.performCount}")
+                    appendLine("——class: ${act.actClassName}")
                     appendLine("——describe: ${act.metadata}")
                 }
             )

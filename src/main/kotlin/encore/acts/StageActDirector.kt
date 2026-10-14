@@ -190,7 +190,7 @@ class StageActDirector(
 
             try {
                 activeActsInfo.putIfAbsent(
-                    id, ActiveActInfo(id, scope.ownerId, metadata, startedAt, -1, -1, -1, 0)
+                    id, ActiveActInfo(id, scope.ownerId, metadata, act.className(), startedAt, -1, -1, -1, 0)
                 )
 
                 if (callOnStart) {
@@ -382,6 +382,7 @@ class StageActDirector(
  * @property actId
  * @property ownerId
  * @property metadata
+ * @property actClassName
  * @property startedAt
  * @property firstPerformAt
  * @property prevPerformAt
@@ -392,6 +393,7 @@ data class ActiveActInfo(
     val actId: String,
     val ownerId: String,
     val metadata: Map<String, String>,
+    val actClassName: String,
     val startedAt: Long,
     var firstPerformAt: Long,
     var prevPerformAt: Long,
