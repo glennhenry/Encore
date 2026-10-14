@@ -6,6 +6,7 @@ import encore.acts.choreo.ChoreographyContext
 import encore.fancam.Fancam
 import encore.fancam.Tags
 import encore.fancam.events.Level
+import encore.time.TimeCenter
 import encore.time.source.SystemTimeSource
 import encore.time.source.TimeSource
 import encore.utils.Emoji
@@ -184,6 +185,7 @@ class StageActDirector(
             var previousPerformAt: Long? = null
             var finished = false
             val startedAt = timeSource.now()
+            Fancam.info(Tags.Acts) { "Act '${act.className()}' has just started (actId=${id})." }
 
             try {
                 activeActsInfo.putIfAbsent(
@@ -198,6 +200,8 @@ class StageActDirector(
                     if (act.enableLogging) {
                         Fancam.debug(Tags.Acts) {
                             "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=${id.shortUuid()})"
+                        Fancam.info(Tags.Acts) {
+                            "Act '${act.className()}' will perform directly for '${scope.ownerId}' (actId=$id)"
                         }
                     }
 
@@ -229,6 +233,8 @@ class StageActDirector(
                     if (act.enableLogging) {
                         Fancam.debug(Tags.Acts) {
                             "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=${id.shortUuid()})"
+                        Fancam.info(Tags.Acts) {
+                            "Act '${act.className()}' next perform in ${formatFinishTime(delay)} for '${scope.ownerId}' (actId=$id)"
                         }
                     }
                     activeActsInfo[id]?.nextPerformAt = now + delay
@@ -255,7 +261,7 @@ class StageActDirector(
                     safelySuspend {
                         act.onCancelled(concept)
                     }
-                    Fancam.debug(Tags.Acts) { "Cancelled act '${act.className()}' for '${scope.ownerId}' (actId=${id.shortUuid()})" }
+                    Fancam.info(Tags.Acts) { "Cancelled act '${act.className()}' for '${scope.ownerId}' (actId=${id.shortUuid()})" }
                 }
             } catch (e: Exception) {
                 Fancam.error(
@@ -277,10 +283,8 @@ class StageActDirector(
     }
 
     private fun formatFinishTime(delay: Long): String {
+        val formattedDuration = TimeCenter.formatToDurationString(delay)
         val future = (timeSource.now() + delay)
-        val formattedDuration = delay.milliseconds.toComponents { days, hours, minutes, seconds, _ ->
-            String.format("%01dd %01dhr %01dm %01ds", days, hours, minutes, seconds)
-        }
         val finishDate = basicDateFormatter.format(future)
         return "($formattedDuration / at $finishDate)"
     }

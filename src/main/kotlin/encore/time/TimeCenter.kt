@@ -137,13 +137,44 @@ object TimeCenter {
     }
 
     /**
-     * Format [time] into duration string like:
+     * Format [time] (in milliseconds) into duration string like:
      *
-     * `3 days 8 hours 21 minutes 8 seconds`
+     * `3 day 8 hr 21 min 8 sec`
      */
     fun formatToDurationString(time: Long): String {
-        return time.milliseconds.toComponents { days, hours, minutes, seconds, _ ->
-            String.format("%01dd %01dhr %01dm %01ds", days, hours, minutes, seconds)
+        return formatToDurationString(time.milliseconds)
+    }
+
+    /**
+     * Format [time] into duration string like:
+     *
+     * `3 day 8 hr 21 min 8 sec`
+     */
+    fun formatToDurationString(time: Duration): String {
+        return when {
+            time.inWholeDays > 0 -> {
+                time.toComponents { d, h, m, s, _ ->
+                    String.format("%01d day %01d hr %01d min %01d sec", d, h, m, s)
+                }
+            }
+
+            time.inWholeHours > 0 -> {
+                time.toComponents { _, h, m, s, _ ->
+                    String.format("%01d hr %01d min %01d sec", h, m, s)
+                }
+            }
+
+            time.inWholeMinutes > 0 -> {
+                time.toComponents { _, _, m, s, _ ->
+                    String.format("%01d min %01d sec", m, s)
+                }
+            }
+
+            else -> {
+                time.toComponents { _, _, _, s, _ ->
+                    String.format("%01d sec", s)
+                }
+            }
         }
     }
 }
