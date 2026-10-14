@@ -300,7 +300,7 @@
         }
 
         if (arg.defaultValue !== null && arg.defaultValue !== "null") {
-          argLabelName.append($("<span></span>").text(` (optional; default=${arg.defaultValue})`).css("color", "rgb(17, 134, 54)"))
+          argLabelName.append($("<span></span>").text(` (type: ${arg.type}; optional; default=${arg.defaultValue})`).css("color", "rgb(17, 134, 54)"))
           if (arg.type === "Boolean") {
             argInput.children().first().val(arg.defaultValue)
           } else {
@@ -308,7 +308,7 @@
           }
         } else {
           if (argInput.attr("type") != "checkbox") {
-            argLabelName.append($("<span></span>").text(` (required)`).css("color", "red"))
+            argLabelName.append($("<span></span>").text(` (type: ${arg.type}; required)`).css("color", "red"))
             if (arg.type === "Boolean") {
               argInput.children().first().attr("required", true)
             } else {
