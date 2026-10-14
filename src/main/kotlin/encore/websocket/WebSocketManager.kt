@@ -6,10 +6,22 @@ import encore.fancam.Tags
 import encore.utils.support.className
 import encore.websocket.handler.WebSocketHandler
 import io.ktor.server.websocket.*
-import java.util.*
+import kotlinx.serialization.json.JsonElement
 import java.util.concurrent.ConcurrentHashMap
 
-typealias ClientSessions = ConcurrentHashMap<String, DefaultWebSocketServerSession>
+/**
+ * WebSocket client representation.
+ *
+ * @property id Unique identifier WS client ID.
+ * @property session Reference to the websocket connection.
+ * @property listens The set of WS messages the client cares about.
+ *                   The server should only send a WS message if it exists here.
+ */
+data class WebSocketClient(
+    val id: String,
+    val session: DefaultWebSocketServerSession,
+    val listens: Set<String>
+)
 
 /**
  * Track websocket connections and dispatch incoming message to handlers.
@@ -21,7 +33,7 @@ typealias ClientSessions = ConcurrentHashMap<String, DefaultWebSocketServerSessi
  * - Dispatch message to handlers via [handleMessage].
  */
 class WebSocketManager {
-    private val clients = ClientSessions()
+    private val clients = ConcurrentHashMap<String, WebSocketClient>()
 
     /**
      * Add a new websocket session.
@@ -29,11 +41,17 @@ class WebSocketManager {
      * Does nothing if the client was added before.
      *
      * @param clientId Unique identifier to associate with the session.
+     * @param listens Set of WS message type the clients wants to receive.
+     *                Comma-separated string.
      * @param session The websocket connection.
      */
-    fun addClient(clientId: String, session: DefaultWebSocketServerSession) {
+    fun addClient(clientId: String, listens: String, session: DefaultWebSocketServerSession) {
         if (!clients.contains(clientId)) {
-            clients[clientId] = session
+            clients[clientId] = WebSocketClient(
+                id = clientId,
+                listens = listens.split(",").map { it.trim() }.toSet(),
+                session = session
+            )
         }
     }
 
@@ -54,10 +72,10 @@ class WebSocketManager {
     /**
      * Get the associated websocket session of [clientId].
      *
-     * @return The websocket session which may be `null`.
+     * @return WS session or `null` if the client is not found.
      */
     fun getSessionFromId(clientId: String): DefaultWebSocketServerSession? {
-        return clients[clientId]
+        return clients[clientId]?.session
     }
 
     private val handlers = mutableMapOf<String, WebSocketHandler>()
@@ -98,5 +116,22 @@ class WebSocketManager {
         }
 
         handler?.handle(message, session)
+    }
+
+    /**
+     * Sends a WS message to all client.
+     *
+     * This will also filter the target client depending on their
+     * [WebSocketClient.listens].
+     *
+     * @param type The type of the WS message.
+     * @param payload The payload.
+     */
+    suspend fun sendToAllClients(type: String, payload: JsonElement) {
+        clients.values.forEach { client ->
+            if (client.listens.contains(type) || client.listens.contains("all")) {
+                client.session.sendJson(client.id, type, payload)
+            }
+        }
     }
 }

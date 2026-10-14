@@ -18,6 +18,7 @@ import encore.time.TimeCenter
 import encore.utils.identifier.Ids
 import encore.venue.Venue
 import encore.websocket.WebSocketMessage
+import encore.websocket.WebSocketMessageType
 import game.GameIdentity
 import game.context.ServerContext
 import io.ktor.http.*
@@ -243,7 +244,7 @@ class BackstageRoutes(
             }
         }
 
-        webSocket("/backstage/ws") {
+        webSocket("/backstage/logger") {
             val token = if (Venue.encore.devMode) {
                 // dev mode uses arbitrary identifier
                 "DEV-${TimeCenter.now()}"
@@ -255,29 +256,31 @@ class BackstageRoutes(
             }
 
             if (token == null) {
-                Fancam.trace(Tags.Backstage) { "Can't connect to /backstage WebSocket with invalid token=$token" }
+                Fancam.trace(Tags.Backstage) { "Can't connect to /backstage/logger WebSocket with invalid token=$token" }
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
                 return@webSocket
             }
-            Fancam.trace(Tags.Backstage) { "Connected to /backstage WebSocket" }
 
-            serverContext.webSocketManager.addClient(token, this)
+            val listens = call.request.queryParameters["listens"] ?: run {
+                Fancam.trace(Tags.Backstage) { "Can't connect to /backstage/logger WebSocket with bad request: missing 'listens'." }
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Bad request missing listens"))
+                return@webSocket
+            }
+            serverContext.webSocketManager.addClient(
+                clientId = token,
+                listens = listens,
+                session = this
+            )
+
+            Fancam.trace(Tags.Backstage) { "Client with token '$token' is now connected to /backstage/logger WebSocket" }
 
             try {
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
-                        // re-check token on every WS request
-                        // dispose session if token has expired
-                        if (!verifyToken(token)) {
-                            Fancam.trace(Tags.Backstage) { "Client with token $token has expired" }
-                            serverContext.webSocketManager.removeClient(token)
-                            break
-                        }
-
                         val msg = frame.readText()
                         try {
                             val wsMessage = Json.decodeFromString<WebSocketMessage>(msg)
-                            if (wsMessage.type == "close") {
+                            if (wsMessage.type == WebSocketMessageType.Close) {
                                 serverContext.webSocketManager.removeClient(token)
                                 break
                             }
@@ -289,7 +292,7 @@ class BackstageRoutes(
                 }
             } catch (_: CancellationException) {
             } catch (e: Exception) {
-                Fancam.error(e, Tags.Backstage) { "Scandal on /backstage WebSocket for clientId=$token" }
+                Fancam.error(e, Tags.Backstage) { "Scandal on /backstage/logger WebSocket for clientId=$token" }
             } finally {
                 serverContext.webSocketManager.removeClient(token)
                 Fancam.trace(Tags.Backstage) { "Client $token is disconnected from websocket" }
