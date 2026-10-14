@@ -3,19 +3,24 @@ package encore.fancam.impl
 import encore.EncoreFancamConfig
 import encore.fancam.Tags
 import encore.fancam.events.*
-import encore.fancam.formatter.ConsoleTrackEventFancamFormatter
-import encore.fancam.formatter.FancamFormatter
-import encore.fancam.formatter.LogEventFancamFormatter
-import encore.fancam.formatter.TrackEventFancamFormatter
+import encore.fancam.formatter.*
 import encore.fancam.producer.ConsoleFancamProducer
 import encore.fancam.producer.FancamProducer
 import encore.fancam.producer.FileFancamProducer
 import encore.fancam.utils.SourceCallResolver
 import encore.time.TimeCenter
+import encore.websocket.WebSocketManager
+import encore.websocket.WebSocketMessageType
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Default implementation of fancam template.
@@ -94,8 +99,8 @@ import java.util.concurrent.atomic.AtomicInteger
  *
  * #### Client output
  *
- * An external web client to see advanced version of the logger is available at ...
- * Allows for filtration, search, and etc.
+ * An external web client to see advanced version of the logger is available.
+ * The tools allows for filtration, search, and etc.
  *
  * ## Implementation Details
  *
@@ -103,6 +108,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * disturb the main thread because it is done on separate thread.
  * Log calls should be processed completely before the app is terminated with the shutdown
  * hook enabled. See [eventQueue] and the following code for details.
+ *
+ * The logs are also sent to websocket. This is done via non-suspending channel
+ * with an extra coroutine worker that is also included in the shutdown hook.
  *
  * Below is the spec of [FancamFormatter] and [FancamProducer] used for
  * log or track event and console or file output.
@@ -260,6 +268,13 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
                 Thread.sleep(10)
             }
             executor.awaitTermination(1, TimeUnit.SECONDS)
+            wsLogChannel.close()
+            runBlocking {
+                withTimeoutOrNull(5_000.milliseconds) {
+                    wsWorker.join()
+                }
+            }
+            wsScope.cancel()
         })
     }
 
@@ -277,6 +292,14 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
         }
     }
 
+    private val wsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * [WebSocketManager] to stream log messages to backstage client.
+     */
+    var wsManager: WebSocketManager? = null
+    private val wsLogChannel = Channel<LogEvent>(capacity = 1024)
+
     private fun process(event: QueueEvent) {
         try {
             when (event) {
@@ -291,6 +314,12 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
                     if (event.fileOnlyOutput && log.filename == null) {
                         warn(Tags.Fancam) { "Unexpected condition fileOnlyOutput=$event.fileOnlyOutput but filename=${log.filename}" }
                     }
+                    if (wsManager?.clientExists(WebSocketMessageType.NewLog) == true) {
+                        val result = wsLogChannel.trySend(log)
+                        if (result.isFailure) {
+                            println("[WARN] WebSocket log channel full; client may miss some log messages.")
+                        }
+                    }
                 }
 
                 is TrackQueueEvent -> {
@@ -301,6 +330,28 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
             e.printStackTrace()
         } finally {
             pendingEvents.decrementAndGet()
+        }
+    }
+
+    private val wsWorker = wsScope.launch {
+        for ((message, timestamp, level, tag, _, source, throwable) in wsLogChannel) {
+            try {
+                wsManager?.sendToAllClients(
+                    type = WebSocketMessageType.NewLog,
+                    payload = buildJsonObject {
+                        put("message", message())
+                        put("timestamp", timestamp)
+                        put("level", level.name)
+                        put("tag", tag)
+                        put("source", "${source?.filename}:${source?.lineNumber}")
+                        put("throwable", throwable?.toLimitedString(false))
+                        put("timestamp", timestamp)
+                    }
+                )
+            } catch (_: CancellationException) {
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

@@ -35,6 +35,9 @@ data class WebSocketClient(
 class WebSocketManager {
     private val clients = ConcurrentHashMap<String, WebSocketClient>()
 
+    // the number of clients that listen to newlog message
+    private var listeningToNewLog = 0
+
     /**
      * Add a new websocket session.
      *
@@ -51,7 +54,11 @@ class WebSocketManager {
                 id = clientId,
                 listens = listens.split(",").map { it.trim() }.toSet(),
                 session = session
-            )
+            ).also {
+                if (it.listens.contains(WebSocketMessageType.NewLog) || it.listens.contains("all")) {
+                    listeningToNewLog += 1
+                }
+            }
         }
     }
 
@@ -59,7 +66,11 @@ class WebSocketManager {
      * Remove the tracked websocket session associated with [clientId].
      */
     fun removeClient(clientId: String) {
-        clients.remove(clientId)
+        clients.remove(clientId)?.let {
+            if (it.listens.contains(WebSocketMessageType.NewLog) || it.listens.contains("all")) {
+                listeningToNewLog -= 1
+            }
+        }
     }
 
     /**
@@ -67,6 +78,17 @@ class WebSocketManager {
      */
     fun getAllClients(): List<String> {
         return clients.keys.toList()
+    }
+
+    /**
+     * Returns `true` if there is at least one client listening
+     * to the [type] of WS message.
+     */
+    fun clientExists(type: String): Boolean {
+        if (type == WebSocketMessageType.NewLog) {
+            return listeningToNewLog > 0
+        }
+        return clients.values.find { it.listens.contains(type) } != null
     }
 
     /**

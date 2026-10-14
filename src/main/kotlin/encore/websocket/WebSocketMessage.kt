@@ -30,17 +30,22 @@ data class WebSocketMessage(
  * Response will be formatted in JSON and transmitted in [Frame.Text] form.
  * The repsonse will also be logged.
  *
+ * Note: A websocket send to client for `newlog` is intentionally not logged.
+ * This is the recursive loop of send to client -> new log in server -> send again...
+ *
  * @param clientId The client unique identifier, for logging purpose.
  * @param type The type of this websocket message.
  * @param payload The payload of the message in [JsonElement].
  */
 suspend fun DefaultWebSocketServerSession.sendJson(clientId: String, type: String, payload: JsonElement) {
-    Fancam.debug(Tags.Websocket) {
-        buildString {
-            appendLine("##### [WebSocket Send]")
-            appendLine("$INDENT clientId   : $clientId")
-            appendLine("$INDENT type       : $type")
-            append("$INDENT payload    : $payload")
+    if (type != WebSocketMessageType.NewLog) {
+        Fancam.debug(Tags.Websocket) {
+            buildString {
+                appendLine("##### [WebSocket Send]")
+                appendLine("$INDENT clientId   : $clientId")
+                appendLine("$INDENT type       : $type")
+                append("$INDENT payload    : $payload")
+            }
         }
     }
 
