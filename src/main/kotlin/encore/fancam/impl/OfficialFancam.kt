@@ -12,7 +12,6 @@ import encore.fancam.producer.FancamProducer
 import encore.fancam.producer.FileFancamProducer
 import encore.fancam.utils.SourceCallResolver
 import encore.time.TimeCenter
-import encore.utils.dataStructure.CircularList
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -133,11 +132,11 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     // consoleTrackProducer reuses consoleLogProducer
     private val fileTrackProducer = FileFancamProducer(config, fileTrackFormatter)
 
-    val lastTrace = CircularList<LogEvent>(25)
-    val lastDebug = CircularList<LogEvent>(25)
-    val lastInfo = CircularList<LogEvent>(25)
-    val lastWarn = CircularList<LogEvent>(25)
-    val lastError = CircularList<LogEvent>(25)
+    val lastTrace = ArrayDeque<LogEvent>(25)
+    val lastDebug = ArrayDeque<LogEvent>(25)
+    val lastInfo = ArrayDeque<LogEvent>(25)
+    val lastWarn = ArrayDeque<LogEvent>(25)
+    val lastError = ArrayDeque<LogEvent>(25)
 
     override fun trace(tag: String, msg: () -> String) {
         if (Level.Trace < config.level.toLogLevel()) return
@@ -179,8 +178,23 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
     )
 
     private fun log(event: LogEvent, fileOnlyOutput: Boolean = false) {
+        when (event.level) {
+            Level.Trace -> addToLastLogs(lastTrace, event)
+            Level.Debug -> addToLastLogs(lastDebug, event)
+            Level.Info -> addToLastLogs(lastInfo, event)
+            Level.Warn -> addToLastLogs(lastWarn, event)
+            Level.Error -> addToLastLogs(lastError, event)
+            Level.Off -> {}
+        }
         pendingEvents.incrementAndGet()
         eventQueue.offer(LogQueueEvent(event, fromTrackEvent = false, fileOnlyOutput))
+    }
+
+    private fun addToLastLogs(arr: ArrayDeque<LogEvent>, event: LogEvent) {
+        if (arr.size > 25) {
+            arr.removeFirstOrNull()
+        }
+        arr.add(event)
     }
 
     override fun event(level: Level, tag: String): LogEventBuilder {
@@ -201,22 +215,29 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
                 eventQueue.offer(TrackQueueEvent(it))
             },
             onLogCalled = { trackEvent, level, logFull ->
+                val event = LogEvent(
+                    message = { consoleTrackFormatter.format(trackEvent) },
+                    timestamp = trackEvent.timestamp,
+                    level = level,
+                    tag = trackEvent.tags.tagsToCommaSeparated(),
+                    logFull = logFull,
+                    source = trackEvent.source,
+                    targetFile = trackEvent.route
+                )
+                when (event.level) {
+                    Level.Trace -> addToLastLogs(lastTrace, event)
+                    Level.Debug -> addToLastLogs(lastDebug, event)
+                    Level.Info -> addToLastLogs(lastInfo, event)
+                    Level.Warn -> addToLastLogs(lastWarn, event)
+                    Level.Error -> addToLastLogs(lastError, event)
+                    Level.Off -> {}
+                }
                 pendingEvents.incrementAndGet()
                 eventQueue.offer(
-                    LogQueueEvent(
-                        LogEvent(
-                            message = { consoleTrackFormatter.format(trackEvent) },
-                            timestamp = trackEvent.timestamp,
-                            level = level,
-                            tag = trackEvent.tags.tagsToCommaSeparated(),
-                            logFull = logFull,
-                            source = trackEvent.source,
-                            targetFile = trackEvent.route
-                        ), fromTrackEvent = true, fileOnlyOutput = false
-                        // track event is only outputted to file via onRecordCalled
-                        // fromTrackEvent flag prevent the console log event
-                        // from producing file output
-                    )
+                    // track event is only outputted to file via onRecordCalled
+                    // fromTrackEvent flag prevent the console log event
+                    // from producing file output
+                    LogQueueEvent(event, fromTrackEvent = true, fileOnlyOutput = false)
                 )
             }
         )
@@ -261,14 +282,6 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
             when (event) {
                 is LogQueueEvent -> {
                     val log = event.event
-                    when (event.event.level) {
-                        Level.Trace -> lastTrace.add(log)
-                        Level.Debug -> lastDebug.add(log)
-                        Level.Info -> lastInfo.add(log)
-                        Level.Warn -> lastWarn.add(log)
-                        Level.Error -> lastError.add(log)
-                        Level.Off -> {}
-                    }
                     if (!event.fileOnlyOutput) {
                         consoleLogProducer.produce(log)
                     }

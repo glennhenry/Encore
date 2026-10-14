@@ -52,32 +52,17 @@ class GetLogsCommand(private val fancam: OfficialFancam) : Command {
         val amount = minOf(25, args.getInt("amount"))
 
         val logs = when (level) {
-            "trace" -> {
-                fancam.lastTrace.get(amount)
-            }
-
-            "debug" -> {
-                fancam.lastDebug.get(amount)
-            }
-
-            "info" -> {
-                fancam.lastInfo.get(amount)
-            }
-
-            "warn" -> {
-                fancam.lastWarn.get(amount)
-            }
-
-            "error" -> {
-                fancam.lastError.get(amount)
-            }
-
+            "trace" -> fancam.lastTrace.takeLast(amount)
+            "debug" -> fancam.lastDebug.takeLast(amount)
+            "info" -> fancam.lastInfo.takeLast(amount)
+            "warn" -> fancam.lastWarn.takeLast(amount)
+            "error" -> fancam.lastError.takeLast(amount)
             "any" -> {
-                (fancam.lastTrace.get(amount) +
-                        fancam.lastDebug.get(amount) +
-                        fancam.lastInfo.get(amount) +
-                        fancam.lastWarn.get(amount) +
-                        fancam.lastError.get(amount))
+                (fancam.lastTrace.takeLast(amount) +
+                        fancam.lastDebug.takeLast(amount) +
+                        fancam.lastInfo.takeLast(amount) +
+                        fancam.lastWarn.takeLast(amount) +
+                        fancam.lastError.takeLast(amount))
                     .sortedByDescending { it.timestamp }
                     .take(25)
             }
