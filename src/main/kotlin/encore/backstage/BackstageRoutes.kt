@@ -2,6 +2,7 @@ package encore.backstage
 
 import encore.EncoreIdentity
 import encore.backstage.command.MonitorData
+import encore.backstage.command.core.getMemoryStats
 import encore.backstage.command.core.getRuntimeInfo
 import encore.backstage.command.core.getUptimeInfo
 import encore.backstage.command.types.CommandRequest
@@ -195,6 +196,7 @@ class BackstageRoutes(
                     JSON.encode(
                         MonitorData(
                             numPlayers = serverContext.subunits.presence.getNumOnlinePlayers(),
+                            memStats = getMemoryStats(),
                             acts = serverContext.stageActDirector.getAllRunningActs()
                         )
                     )

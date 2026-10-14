@@ -223,6 +223,22 @@
             </li>
           </ul>
           <div class="space-y-md"></div>
+          <p>Memory stats:</p>
+          <ul>
+            <li>
+              <p>max JVM memory: <span id="maxMemory">—</span> MB</p>
+            </li>
+            <li>
+              <p>current JVM memory: <span id="totalMemory">—</span> MB</p>
+            </li>
+            <li>
+              <p>free JVM memory: <span id="freeMemory">—</span> MB</p>
+            </li>
+            <li>
+              <p>used JVM memory: <span id="usedMemory">—</span> MB</p>
+            </li>
+          </ul>
+          <div class="space-y-md"></div>
           <p class="connected-players">Connected players: <span id="connected-players"></span></p>
           <p class="running-acts-text">Running acts (not live):</p>
           <div class="acts"></div>
@@ -329,6 +345,12 @@
 
           // num players
           $("#connected-players").text(data.numPlayers)
+
+          // mem stats
+          $("#maxMemory").text(Math.trunc(Number(data.memStats.maxMemory) / 1_000_000))
+          $("#totalMemory").text(Math.trunc(Number(data.memStats.totalMemory) / 1_000_000))
+          $("#freeMemory").text(Math.trunc(Number(data.memStats.freeMemory) / 1_000_000))
+          $("#usedMemory").text(Math.trunc(Number(data.memStats.usedMemory) / 1_000_000))
 
           // acts
           $(".acts").empty()
