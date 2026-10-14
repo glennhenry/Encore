@@ -41,6 +41,117 @@
       color: #9e9e9e;
       border-top: 1px solid #ccc;
     }
+
+    .output {
+      width: 1100px;
+      height: 600px;
+      background-color: white;
+      border: 1px solid #ccc;
+      font-family: monospace;
+      font-size: 14px;
+      color: black;
+    }
+
+    .menu-bar {
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .logger-title {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .logger-title p {
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .menu-icon-button {
+      all: unset;
+      width: 16px;
+      height: 16px;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    .plain-text {
+      padding: 8px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .logmsg {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .logmsg:nth-child(odd) {}
+
+    .logmsg:nth-child(even) {}
+
+    .timestamp {
+      width: 110px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .source {
+      width: 250px
+    }
+
+    .level {
+      display: flex;
+      justify-content: center;
+      width: 50px;
+    }
+
+    .tag {
+      width: 200px;
+      background-color: #f0f0f0;
+    }
+
+    .message {
+      flex: 1;
+    }
+
+    .timestamp,
+    .source,
+    .level,
+    .tag,
+    .message {
+      padding: 4px;
+    }
+
+    .trace {
+      background-color: #5F8787;
+    }
+
+    .debug {
+      background-color: #fbbfff
+    }
+
+    .info {
+      background-color: #b6dbff
+    }
+
+    .warn {
+      background-color: #ffeb80
+    }
+
+    .error {
+      background-color: #ffa5a5;
+    }
   </style>
 </head>
 
@@ -58,8 +169,20 @@
       </a>
     </div>
     <div class="content">
-      <h1>Logger</h1>
-      <em>Not implemeted</em>
+      <div class="output">
+        <div class="menu-bar">
+          <div class="logger-title">
+            <img id="connect-status" src="/backstage/assets/offline.png" width="16px" title="Not connected">
+            <p>Logger</p>
+          </div>
+          <div class="actions">
+            <button class="menu-icon-button">
+              <img id="clear-logs" src="/backstage/assets/delete.png" width="16px" alt="Trash" title="Clear">
+            </button>
+          </div>
+        </div>
+        <div class="logs"></div>
+      </div>
     </div>
     <footer class="footer">
       <p>Made possible by <a class="link" href="https://github.com/glennhenry/Encore" target="_blank">Encore</a>,
@@ -69,8 +192,71 @@
   </div>
   <div class="toast-container"></div>
   <script>
+    function getCookie(name) {
+      const cookies = document.cookie.split(";").map(c => c.trim());
+      for (const cookie of cookies) {
+        if (cookie.startsWith(name + "=")) {
+          return cookie.substring((name + "=").length);
+        }
+      }
+      return null;
+    }
+
+    const token = getCookie("backstage-clientId");
+    const websocket = new WebSocket(`ws://127.0.0.1:8080/backstage/logger?token=${token}&listens=all`);
+
     $(document).ready(function () {
+      $("#clear-logs").click(function () {
+        $(".logs").empty()
+      })
     })
+
+    websocket.onopen = () => {
+      addPlainText("Connected to WS")
+      $("#connect-status").attr("src", "/backstage/assets/online.png")
+    };
+
+    websocket.onclose = (event) => {
+      addPlainText(`WS closed. code=${event.code}, clean=${event.wasClean}, reason=${event.reason}`)
+      $("#connect-status").attr("src", "/backstage/assets/offline.png")
+    };
+
+    const logs = []
+    const MAX_LOGS = 1000
+
+    websocket.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        const type = msg.type;
+        const payload = msg.payload;
+
+        switch (type) {
+          case "newlog":
+            console.log(payload)
+            break;
+          default:
+            Toast.warn("Unknown message", `Received an unknown message type: ${type}`)
+        }
+      } catch (e) {
+        Toast.error("WS error", e.message)
+      }
+    };
+
+    function addPlainText(text) {
+      $(".logs").append($(`<p class="plain-text">${text}</p>`).text(text))
+    }
+
+    function addLogMessage() {
+      /*
+                <div class="logmsg">
+                  <p class="timestamp">19:43:06.585</p>
+                  <p class="source">GameReference.kt:80</p>
+                  <p class="level trace">TRACE</p>
+                  <p class="tag">reference</p>
+                  <p class="message">reference</p>
+                </div>
+      */
+    }
   </script>
 </body>
 
