@@ -9,6 +9,7 @@ import encore.acts.template.runForeverTimer
 import encore.acts.template.runTimer
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
+import encore.backstage.command.core.GetActsCommand
 import encore.backstage.command.core.GetLogsCommand
 import encore.backstage.command.core.GetOnlineCommand
 import encore.backstage.command.core.GetRuntimeInfoCommand
@@ -73,7 +74,8 @@ fun main() {
 val SystemTimezone: ZoneId = ZoneId.systemDefault()
 val basicDateFormatter = SimpleDateFormat("HH:mm:ss")
 val preciseBasicDateFormatter = SimpleDateFormat("HH:mm:ss.SSS")
-val detailedDateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+val detailedDateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+val preciseDetailedDateFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
 /**
  * Main configuration and wiring code for the application.
@@ -159,10 +161,6 @@ suspend fun Application.configureApplication() {
     celebrate(LocalDate.now(SystemTimezone))
     runningSince = TimeCenter.now()
 
-
-    serverContext.stageActDirector.runTimer(20.seconds, ActScope("fsdfsd", appScope)) {}
-    serverContext.stageActDirector.runForeverTimer(5.seconds, 10.seconds, ActScope("sdfsdf", appScope)) {}
-
     // install shutdown hook
     shutdownHook(appScope, serverSubunitScope, serverContext.subunits, servers)
 }
@@ -188,6 +186,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(ListOnlineCommand())
         register(GetOnlineCommand())
         register(ListActsCommand())
+        register(GetActsCommand())
     }
 }
 

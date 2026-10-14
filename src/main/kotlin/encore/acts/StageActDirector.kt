@@ -313,6 +313,14 @@ class StageActDirector(
     }
 
     /**
+     * Get the act's [ActiveActInfo] associated with its [actId].
+     * @return `null` if `actId` is not found or the act is not running.
+     */
+    fun getAct(actId: String): ActiveActInfo? {
+        return activeActsInfo[actId]
+    }
+
+    /**
      * Get the total number of running acts.
      */
     fun getNumRunningActs(): Int {

@@ -1,6 +1,6 @@
 package encore.fancam.formatter
 
-import detailedDateFormatter
+import preciseDetailedDateFormatter
 import encore.EncoreFancamConfig
 import encore.fancam.events.Level
 import encore.fancam.events.LogEvent
@@ -83,7 +83,7 @@ class LogEventFancamFormatter(
 
     private fun formatTimestamp(timestamp: Long, isFileTarget: Boolean): String {
         return if (isFileTarget) {
-            detailedDateFormatter.format(timestamp)
+            preciseDetailedDateFormatter.format(timestamp)
         } else {
             preciseBasicDateFormatter.format(timestamp)
         }

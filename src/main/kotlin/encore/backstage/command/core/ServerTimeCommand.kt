@@ -1,6 +1,6 @@
 package encore.backstage.command.core
 
-import detailedDateFormatter
+import preciseDetailedDateFormatter
 import encore.backstage.command.Command
 import encore.backstage.command.types.Argument
 import encore.backstage.command.types.ArgumentInputs
@@ -28,8 +28,8 @@ class ServerTimeCommand : Command {
         return CommandResult.Success(
             buildString {
                 appendLine("serverTime (epoch): ${info.serverTime}")
-                appendLine("serverTime (yyyy-MM-dd HH:mm:ss.SSS): ${detailedDateFormatter.format(info.serverTime)}")
-                appendLine("runningSince (yyyy-MM-dd HH:mm:ss.SSS): ${detailedDateFormatter.format(runningSince)}")
+                appendLine("serverTime (yyyy-MM-dd HH:mm:ss.SSS): ${preciseDetailedDateFormatter.format(info.serverTime)}")
+                appendLine("runningSince (yyyy-MM-dd HH:mm:ss.SSS): ${preciseDetailedDateFormatter.format(runningSince)}")
                 appendLine("hasBeenRunningFor: ${TimeCenter.formatToDurationString(info.hasBeenRunningFor)}")
             }
         )

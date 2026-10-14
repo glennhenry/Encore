@@ -37,9 +37,9 @@ class ListActsCommand : Command {
                 acts.forEachIndexed { idx, act ->
                     appendLine("${idx + 1})   actId: ${act.actId}")
                     appendLine("     ownerId: ${act.ownerId}")
-                    appendLine("     startedAt: ${detailedDateFormatter.format(act.startedAt)}")
-                    appendLine("     prevPerformAt: ${detailedDateFormatter.format(act.prevPerformAt)}")
-                    appendLine("     firstPerformAt: ${detailedDateFormatter.format(act.firstPerformAt)}")
+                    appendLine("     startedAt: ${detailedDateFormatter.format(act.startedAt)} (${TimeCenter.formatToDurationString((TimeCenter.now() - act.startedAt))} ago)")
+                    appendLine("     prevPerformAt: ${detailedDateFormatter.format(act.prevPerformAt)} (${TimeCenter.formatToDurationString((TimeCenter.now() - act.prevPerformAt))} ago)")
+                    appendLine("     firstPerformAt: ${detailedDateFormatter.format(act.firstPerformAt)} (${TimeCenter.formatToDurationString((TimeCenter.now() - act.firstPerformAt))} ago)")
                     appendLine(
                         "     nextPerformAt: ${detailedDateFormatter.format(act.nextPerformAt)} (in ${
                             TimeCenter.formatToDurationString(
@@ -48,6 +48,7 @@ class ListActsCommand : Command {
                         })"
                     )
                     appendLine("     performCount: ${act.performCount}")
+                    appendLine("     ——describe: ${act.metadata}")
                     appendLine()
                 }
             }

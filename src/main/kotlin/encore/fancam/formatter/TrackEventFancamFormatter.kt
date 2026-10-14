@@ -1,6 +1,6 @@
 package encore.fancam.formatter
 
-import detailedDateFormatter
+import preciseDetailedDateFormatter
 import encore.fancam.events.SimpleTrackEvent
 import encore.fancam.events.TrackEvent
 import encore.serialization.toJsonElement
@@ -19,7 +19,7 @@ class TrackEventFancamFormatter : FancamFormatter<TrackEvent> {
     override fun format(event: TrackEvent): String {
         val jsonElement = SimpleTrackEvent(
             name = event.name,
-            datetime = detailedDateFormatter.format(event.timestamp),
+            datetime = preciseDetailedDateFormatter.format(event.timestamp),
             data = event.data,
             tags = event.tags,
             source = event.source,
