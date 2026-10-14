@@ -4,24 +4,9 @@ import bootstrap.logStartupInformation
 import bootstrap.shutdownHook
 import encore.EncoreIdentity
 import encore.EncoreIdentity.celebrate
-import encore.acts.ActScope
-import encore.acts.template.runForeverTimer
-import encore.acts.template.runTimer
 import encore.backstage.BackstageRoutes
 import encore.backstage.command.ExampleCommand
-import encore.backstage.command.core.GetActsCommand
-import encore.backstage.command.core.GetLogsCommand
-import encore.backstage.command.core.GetOnlineCommand
-import encore.backstage.command.core.GetRuntimeInfoCommand
-import encore.backstage.command.core.VerifySessionCommand
-import encore.backstage.command.core.GetVenueCommand
-import encore.backstage.command.core.ListActsCommand
-import encore.backstage.command.core.ListOnlineCommand
-import encore.backstage.command.core.ListWebSocketClientCommand
-import encore.backstage.command.core.ListSessionCommand
-import encore.backstage.command.core.MemoryStatsCommand
-import encore.backstage.command.core.ServerTimeCommand
-import encore.backstage.command.core.ShutdownCommand
+import encore.backstage.command.core.*
 import encore.definition.GameReference
 import encore.fancam.impl.OfficialFancam
 import encore.network.lifecycle.PlayerLifecycle
@@ -53,7 +38,6 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Duration.Companion.seconds
 
 var runningSince: Long = 0
 
@@ -187,6 +171,7 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(GetOnlineCommand())
         register(ListActsCommand())
         register(GetActsCommand())
+        register(StopActsCommand())
     }
 }
 
