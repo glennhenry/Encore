@@ -37,13 +37,14 @@ class ArgumentInputs(
                 )
             }
             when (type) {
+                // if type is string, any values are valid unless its blank string
                 ArgumentType.String -> {
-                    if (inputArg !is String && defaultValue == null) {
-                        throw IllegalArgumentException(
-                            "Type mismatch on argument '$id' for command '$commandId'; " +
-                                    "expecting '${type.name}' got '${inputArg.className()}': $inputArg"
-                        )
+                    if (inputArg != null && inputArg.toString().isNotBlank()) {
+                        arguments[id] = inputArg.toString()
+                    } else {
+                        arguments[id] = defaultValue!!
                     }
+                    continue
                 }
 
                 ArgumentType.Int -> {
@@ -211,8 +212,10 @@ class ArgumentInputs(
             } else {
                 // argument id is in schema, but not in clean arguments
                 // unexpected error: constructor should have thrown an error earlier
-                throw IllegalStateException("Unexpected absence of argument '$id' on command '$commandId'; " +
-                        "all clean arguments: $arguments")
+                throw IllegalStateException(
+                    "Unexpected absence of argument '$id' on command '$commandId'; " +
+                            "all clean arguments: $arguments"
+                )
             }
         }
         return value

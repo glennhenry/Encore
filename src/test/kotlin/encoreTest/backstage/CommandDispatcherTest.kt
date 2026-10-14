@@ -144,6 +144,51 @@ class CommandDispatcherTest {
     }
 
     @Test
+    fun `argument inputs creation success when expected string got number`() {
+        assertDoesNotFail {
+            ArgumentInputs(
+                commandId = "abc",
+                expectedArguments = listOf(
+                    Argument("a", "a", "a", ArgumentType.String),
+                ),
+                inputArguments = mapOf(
+                    "a" to "123"
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `argument inputs creation success when expected string got double`() {
+        assertDoesNotFail {
+            ArgumentInputs(
+                commandId = "abc",
+                expectedArguments = listOf(
+                    Argument("a", "a", "a", ArgumentType.String),
+                ),
+                inputArguments = mapOf(
+                    "a" to "1.0"
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `argument inputs creation success when expected string got weird characters`() {
+        assertDoesNotFail {
+            ArgumentInputs(
+                commandId = "abc",
+                expectedArguments = listOf(
+                    Argument("a", "a", "a", ArgumentType.String),
+                ),
+                inputArguments = mapOf(
+                    "a" to "_#$(@afowenfioa"
+                )
+            )
+        }
+    }
+
+    @Test
     fun `argument inputs get success`() {
         val args = ArgumentInputs(
             commandId = "abc",
@@ -193,6 +238,24 @@ class CommandDispatcherTest {
         )
         assertFailsWith<IllegalArgumentException> {
             args.getInt("b")
+        }
+    }
+
+    @Test
+    fun `argument inputs get and creation success to  use input when expected string and has default, but got number`() {
+        assertDoesNotFail {
+            ArgumentInputs(
+                commandId = "abc",
+                expectedArguments = listOf(
+                    Argument("a", "a", "a", ArgumentType.String, ""),
+                ),
+                inputArguments = mapOf(
+                    "a" to "3.0"
+                    // note: using 3.0 without string is still valid
+                    // there is no way to distinguish a JSON-decoded 3.0
+                    // whether it is intended as a string or double
+                )
+            ).getString("a")
         }
     }
 
