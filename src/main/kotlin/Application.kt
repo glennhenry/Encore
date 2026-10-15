@@ -175,6 +175,8 @@ fun commandHandlers(fancam: OfficialFancam, serverContext: ServerContext) {
         register(ListActsCommand())
         register(GetActsCommand())
         register(StopActsCommand())
+        register(GetEasyStorageItemCommand())
+        register(PeekEasyStorageCommand())
     }
 }
 
