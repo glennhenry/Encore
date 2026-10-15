@@ -268,8 +268,8 @@
 
         switch (type) {
           case "newlog":
-            console.log(payload)
             addLogMessage(payload)
+            $(".logs").scrollTop($(".logs").prop('scrollHeight'))
             break;
           default:
             Toast.warn("Unknown message", `Received an unknown message type: ${type}`)
@@ -286,14 +286,68 @@
     function addLogMessage(log) {
       const logMsg = $(`<div class="logmsg"></div>`)
 
+      // trim indents
+      const msg = $(`<p class="message"></p>`)
+      for (const line of log.message.split(/\r?\n/g)) {
+        msg.append($("<span></span>").text(line.replace(/[^\S\r\n]{10,}/g, '') + "\n"))
+      }
+
+      const fgRegex = /\u001b\[38;5;(\d+)m(.+?)\u001b\[0m/g
+      const bgRegex = /\u001b\[48;5;(\d+)m(.+?)\u001b\[0m/g
+      const boldRegex = /\u001b\[1m(.+?)\u001b\[22m/g
+
+      // replace ansi colors
+      msg.children().each(function () {
+        let rawText = $(this).text();
+
+        if (rawText.includes("\u001b")) {
+          let htmlContent = rawText
+            // Handle Foreground Colors
+            .replace(fgRegex, function (match, colorNum, actualText) {
+              const cssColor = getAnsiColor(colorNum);
+              return `<span style="color: ${cssColor};">${actualText}</span>`;
+            })
+            // Handle Background Colors
+            .replace(bgRegex, function (match, colorNum, actualText) {
+              return `<span style="background-color: red;">${actualText}</span>`;
+            })
+            // Handle Bold
+            .replace(boldRegex, function (match, actualText) {
+              return `<span style="font-weight: bold;">${actualText}</span>`;
+            });
+
+          $(this).html(htmlContent);
+        }
+      })
+
       logMsg
         .append($(`<p class="timestamp">${formatDate(log.timestamp)}</p>`))
         .append($(`<p class="source">${log.source}</p>`))
         .append($(`<p class="level ${getColorClass(log.level)}">${log.level.toUpperCase()}</p>`))
         .append($(`<p class="tag">${log.tag}</p>`))
-        .append($(`<p class="message">${log.message}</p>`))
+        .append(msg)
 
       $(".logs-content").append(logMsg)
+    }
+
+    function getAnsiColor(num) {
+      const colorMap = {
+        '5': '#800080',
+        '28': '#008700',
+        '33': '#0087ff',
+        '54': ' #5f0087',
+        '68': '#5f87d7',
+        '103': '#8787af',
+        '108': '#87af87',
+        '110': '#87afd7',
+        '124': '#af0000',
+        '130': '#af5f00',
+        '140': '#af87d7',
+        '161': '#d7005f',
+        '249': '#b2b2b2',
+        '254': ' #e4e4e4'
+      };
+      return colorMap[num] || 'red';
     }
 
     // HH:mm:ss.SSS
