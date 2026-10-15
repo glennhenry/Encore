@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.firstOrNull
 class MongoPlayerExtraRepository(
     private val psCollection: MongoCollection<PlayerServerObjects>
 ) : PlayerExtraRepository {
-    override suspend fun getExtra(playerId: PlayerId, key: String): Result<String?> {
+    override suspend fun getExtra(playerId: PlayerId, key: String): Result<String> {
         return runMongoCatching {
             psCollection
                 .find(Filters.eq(FieldPlayerId, playerId))
@@ -22,7 +22,7 @@ class MongoPlayerExtraRepository(
         }
     }
 
-    override suspend fun getAllExtra(playerId: PlayerId, key: String): Result<Map<String, String>?> {
+    override suspend fun getAllExtra(playerId: PlayerId): Result<Map<String, String>> {
         return runMongoCatching {
             psCollection
                 .find(Filters.eq(FieldPlayerId, playerId))

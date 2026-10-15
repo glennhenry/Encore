@@ -1,5 +1,6 @@
 package encore.extra
 
+import encore.datastore.DocumentNotFoundException
 import game.mongo.collection.PlayerId
 
 class InMemoryPlayerExtraRepository(
@@ -8,15 +9,27 @@ class InMemoryPlayerExtraRepository(
     override suspend fun getExtra(
         playerId: PlayerId,
         key: String
-    ): Result<String?> {
-        return Result.success(initialMap[playerId]?.get(key))
+    ): Result<String> {
+        if (initialMap[playerId] == null) {
+            return Result.failure(
+                DocumentNotFoundException("playerId '$playerId' not found")
+            )
+        }
+        val value = initialMap[playerId]!![key] ?: return Result.failure(
+            DocumentNotFoundException("playerId '$playerId' found but key '$key' not found")
+        )
+        return Result.success(value)
     }
 
     override suspend fun getAllExtra(
-        playerId: PlayerId,
-        key: String
-    ): Result<Map<String, String>?> {
-        return Result.success(initialMap[playerId])
+        playerId: PlayerId
+    ): Result<Map<String, String>> {
+        if (initialMap[playerId] == null) {
+            return Result.failure(
+                DocumentNotFoundException("playerId '$playerId' not found")
+            )
+        }
+        return Result.success(initialMap[playerId]!!)
     }
 
     override suspend fun updateExtra(

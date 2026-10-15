@@ -13,14 +13,14 @@ interface PlayerExtraRepository {
      * @return [Result.failure] for any repository error,
      *         otherwise [Result.success] with the value.
      */
-    suspend fun getExtra(playerId: PlayerId, key: String): Result<String?>
+    suspend fun getExtra(playerId: PlayerId, key: String): Result<String>
 
     /**
      * Retrieve all extra data owned by [playerId].
      * @return [Result.failure] for any repository error,
      *         otherwise [Result.success] with the value.
      */
-    suspend fun getAllExtra(playerId: PlayerId, key: String): Result<Map<String, String>?>
+    suspend fun getAllExtra(playerId: PlayerId): Result<Map<String, String>>
 
     /**
      * Update the extra data of [key] owned by [playerId] by [value].
