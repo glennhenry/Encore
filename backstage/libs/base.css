@@ -42,3 +42,7 @@ body {
 .icon-link:hover p {
   text-decoration: underline;
 }
+
+.hidden {
+  display: none;
+}

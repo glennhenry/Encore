@@ -100,14 +100,81 @@
       height: 40px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 4px 8px;
+      padding-right: 8px;
       border-bottom: 1px solid #ccc;
     }
 
-    .plain-text {
-      padding: 8px;
-      border-bottom: 1px solid #ccc;
+    .filter-timestamp {
+      width: 98px;
+    }
+
+    .filter-source {
+      width: 180px;
+    }
+
+    .filter-level-selector {
+      background-color: white;
+      border: 1px solid #817f84;
+      border-radius: 4px;
+      padding: 4px;
+    }
+
+    .filter-tag {
+      width: 160px;
+      position: relative;
+      display: flex;
+      gap: 4px;
+    }
+
+    #tags-notice {
+      font-size: 10px;
+    }
+
+    .filter-tag-input {
+      position: absolute;
+      top: 32;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      background-color: white;
+    }
+
+    .tag-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px;
+    }
+
+    .tag-option:not(:first-child) {
+      border-top: 1px solid #ccc;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+
+    .options {
+      border-top: 1px solid #ccc;
+    }
+
+    .disabled {
+      cursor: default;
+      pointer-events: none;
+      color: #888;
+      background-color: #e5e5e5;
+    }
+
+    .filter-timestamp,
+    .filter-source,
+    .filter-level-selector,
+    .filter-tag {
+      padding: 4px;
+    }
+
+    .filter-message {
+      flex: 1;
+      padding: 4px;
     }
 
     .logs {
@@ -205,6 +272,8 @@
           <div class="logger-title">
             <img id="connect-status" src="/backstage/assets/offline.png" width="16px" title="Not connected">
             <p>Logger</p>
+            <p>(total logs: <span id="total-logs">0</span>)</p>
+            <p>(displayed: <span id="displayed-logs">0</span>)</p>
           </div>
           <div class="actions">
             <button class="menu-icon-button">
@@ -213,7 +282,33 @@
           </div>
         </div>
         <div class="filter-bar">
-          <p>Hi</p>
+          <div class="filter-timestamp"></div>
+          <div style="width:12px"></div>
+          <input class="filter-source" type="text" placeholder="Source">
+          <div style="width:60px"></div>
+          <select id="filter-level-selector" class="filter-level-selector" name="filter-level-selector">
+            <option id="filter-all-level" selected value="all">ALL</option>
+            <option value="trace">TRACE</option>
+            <option value="debug">DEBUG</option>
+            <option value="info">INFO</option>
+            <option value="warn">WARN</option>
+            <option value="error">ERROR</option>
+            <option value="off">OFF</option>
+          </select>
+          <div style="width:12px"></div>
+          <div class="filter-tag">
+            <button id="open-filter-tag">Tags</button>
+            <p id="tags-notice"></p>
+            <div class="filter-tag-input hidden">
+              <div class="tag-option">
+                <label for="tag-any">Any</label>
+                <input id="tag-any" type="checkbox" checked>
+              </div>
+              <div class="options"></div>
+            </div>
+          </div>
+          <div style="width:18px"></div>
+          <input class="filter-message" type="text" placeholder="Message">
         </div>
         <div class="logs">
           <div class="logs-content"></div>
@@ -241,11 +336,182 @@
     const token = getCookie("backstage-clientId");
     const websocket = new WebSocket(`ws://127.0.0.1:8080/backstage/logger?token=${token}&listens=all`);
 
+    let logs = []
+    let sourceQuery = ""
+    let levelFilter = "all"
+    let notUsingTagsFilter = true
+    let activeTagsFilter = new Set()
+    let availableTags = new Set()
+    let messageQuery = ""
+
+    function clearLogs() {
+      $(".logs-content").empty()
+      logs = []
+      $("#total-logs").text("0")
+      $("#displayed-logs").text("0")
+      resetAllFilters()
+    }
+
+    function isChecked(checkbox) {
+      return checkbox.prop("checked")
+    }
+
+    function resetAllFilters() {
+      $(".filter-source").val("")
+      $("#filter-level-selector").val("all")
+      $("#tag-any").prop("checked", true)
+      $(".filter-message").val("")
+      sourceQuery = ""
+      levelFilter = "all"
+      notUsingTagsFilter = true
+      activeTagsFilter = new Set()
+      availableTags = new Set()
+      $(".options").empty()
+      messageQuery = ""
+    }
+
     $(document).ready(function () {
+      resetAllFilters()
       $("#clear-logs").click(function () {
-        $(".logs").empty()
+        clearLogs()
+      })
+
+      $(".filter-source").change(function () {
+        sourceQuery = $(this).val()
+        console.log(sourceQuery)
+        updateLogsDisplayAfterFilter()
+      })
+
+      $("#filter-level-selector").change(function () {
+        levelFilter = $(this).val()
+        updateLogsDisplayAfterFilter()
+      })
+
+      $("#open-filter-tag").click(function (event) {
+        event.stopPropagation();
+        $(".filter-tag-input").toggleClass("hidden");
+      });
+
+      $(".filter-tag-input").click(function (event) {
+        event.stopPropagation();
+      });
+
+      $("#tag-any").change(function () {
+        if (this.checked) {
+          clearTagFilter()
+          activeTagsFilter.clear()
+          notUsingTagsFilter = true
+        } else {
+          enableTagFilter(true)
+          notUsingTagsFilter = false
+        }
+        updateEmptyTagNotice()
+        updateLogsDisplayAfterFilter()
+      })
+
+      $(".tag-option").each(function () {
+        const input = $(this).children().eq(1)
+        if (input.attr("id") != "tag-any") {
+          onTagFilterChecked(input)
+        }
+        updateEmptyTagNotice()
+      })
+
+      $(".filter-message").change(function () {
+        messageQuery = $(this).val()
+        updateLogsDisplayAfterFilter()
       })
     })
+
+    $(document).click(function (event) {
+      const clickedInsideOption = $(event.target).closest(".filter-tag-input").length
+      if (!clickedInsideOption) {
+        $(".filter-tag-input").addClass("hidden");
+      }
+    });
+
+    function clearTagFilter() {
+      $(".tag-option").each(function () {
+        const input = $(this).children().eq(1)
+        if (input.attr("id") != "tag-any") {
+          input.attr("disabled", true)
+          input.prop("checked", false)
+          $(this).addClass("disabled")
+        }
+      })
+    }
+
+    function enableTagFilter() {
+      $(".tag-option").each(function () {
+        const input = $(this).children().eq(1)
+        if (input.attr("id") != "tag-any") {
+          input.attr("disabled", false)
+          $(this).removeClass("disabled")
+        }
+      })
+    }
+
+    function onTagFilterChecked(input) {
+      input.change(function () {
+        const tag = input.attr("id").toLowerCase()
+
+        if (this.checked) {
+          activeTagsFilter.add(tag)
+        } else {
+          activeTagsFilter.delete(tag)
+        }
+
+        updateEmptyTagNotice()
+        updateLogsDisplayAfterFilter()
+      })
+    }
+
+    function updateEmptyTagNotice() {
+      if (!notUsingTagsFilter && activeTagsFilter.size == 0) {
+        $("#tags-notice").text("no tags applied")
+      } else {
+        $("#tags-notice").text("")
+      }
+    }
+
+    function sourceMatch(value) {
+      return sourceQuery === "" ||
+        String(value ?? "").toLowerCase().includes(sourceQuery.toLowerCase())
+    }
+
+    function levelMatch(value) {
+      return levelFilter === "all" ||
+        String(value ?? "").toLowerCase() === levelFilter.toLowerCase()
+    }
+
+    function tagMatch(value) {
+      if (notUsingTagsFilter) return true
+      if (value == null || value === "") return false
+
+      const tags = String(value).split(",").map(t => t.trim().toLowerCase())
+      return tags.some(tag => activeTagsFilter.has(tag))
+    }
+
+    function messageMatch(value) {
+      return messageQuery === "" ||
+        String(value ?? "").toLowerCase().includes(messageQuery.toLowerCase())
+    }
+
+    function matchAllTerms(log) {
+      return sourceMatch(log.source) && levelMatch(log.level) && tagMatch(log.tag) && (messageMatch(log.message) || messageMatch(log.throwable))
+    }
+
+    function updateLogsDisplayAfterFilter() {
+      $(".logs-content").empty()
+      let count = 0
+      for (const log of logs) {
+        if (matchAllTerms(log)) {
+          addLogMessage(log)
+          count++
+        }
+      }
+      $("#displayed-logs").text(count)
+    }
 
     websocket.onopen = () => {
       $("#connect-status").attr("src", "/backstage/assets/online.png")
@@ -257,9 +523,6 @@
       Toast.info("Disconnected!", "Disconnected from the logger WebSocket.", true)
     };
 
-    const logs = []
-    const MAX_LOGS = 1000
-
     websocket.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
@@ -268,7 +531,18 @@
 
         switch (type) {
           case "newlog":
-            addLogMessage(payload)
+            if (logs.length > 1000) {
+              logs.shift()
+            }
+            logs.push(payload)
+            addNewTagFilter(payload.tag)
+
+            if (matchAllTerms(payload)) {
+              addLogMessage(payload)
+              $("#displayed-logs").text(Number($("#displayed-logs").text()) + 1)
+            }
+
+            $("#total-logs").text(logs.length)
             $(".logs").scrollTop($(".logs").prop('scrollHeight'))
             break;
           default:
@@ -279,8 +553,38 @@
       }
     };
 
-    function addPlainText(text) {
-      $(".logs").append($(`<p class="plain-text">${text}</p>`).text(text))
+    function addNewTagFilter(tag) {
+      if (tag == null || tag.trim() === "" || tag === "null") return
+
+      const tags = tag.split(",")
+      for (const rawTag of tags) {
+        const t = rawTag.trim()
+        if (!t) continue
+
+        const key = t.toLowerCase()
+        if (availableTags.has(key)) continue
+        availableTags.add(key)
+
+        const option = $('<div class="tag-option"></div>')
+        const input = $("<input>")
+          .attr("id", key)
+          .attr("type", "checkbox")
+
+        onTagFilterChecked(input)
+
+        if (notUsingTagsFilter) {
+          option.addClass("disabled")
+          input.prop("disabled", true)
+        }
+
+        $(".options").append(
+          option
+            .append($("<label></label>")
+              .attr("for", key)
+              .text(t))
+            .append(input)
+        )
+      }
     }
 
     function addLogMessage(log) {
