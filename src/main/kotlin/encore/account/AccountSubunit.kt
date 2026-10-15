@@ -3,6 +3,7 @@ package encore.account
 import encore.account.model.Credentials
 import encore.account.model.Profile
 import encore.auth.AuthSubunit
+import encore.datastore.DocumentNotFoundException
 import game.mongo.collection.PlayerAccount
 import game.mongo.collection.PlayerId
 import encore.fancam.Fancam
@@ -34,6 +35,12 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun getAccountByPlayerId(playerId: PlayerId): Outcome<PlayerAccount?> {
         return accountRepository.getAccountByPlayerId(playerId)
             .onFailure {
+                if (it is DocumentNotFoundException) {
+                    Fancam.error(tag = Tags.Account) {
+                        "getAccountByPlayerId not found for playerId=$playerId"
+                    }
+                    return Outcome.Ok(null)
+                }
                 Fancam.error(it, Tags.Account) {
                     "getAccountByPlayerId failed: repository scandal for '$playerId'"
                 }
@@ -50,6 +57,12 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun getAccountByUsername(username: String): Outcome<PlayerAccount?> {
         return accountRepository.getAccountByUsername(username)
             .onFailure {
+                if (it is DocumentNotFoundException) {
+                    Fancam.error(tag = Tags.Account) {
+                        "getAccountByUsername not found for username=$username"
+                    }
+                    return Outcome.Ok(null)
+                }
                 Fancam.error(it, Tags.Account) {
                     "getAccountByUsername failed: repository scandal for '$username'"
                 }
@@ -66,6 +79,12 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun getPlayerIdByUsername(username: String): Outcome<PlayerId?> {
         return accountRepository.getPlayerIdByUsername(username)
             .onFailure {
+                if (it is DocumentNotFoundException) {
+                    Fancam.error(tag = Tags.Account) {
+                        "getPlayerIdByUsername not found for username=$username"
+                    }
+                    return Outcome.Ok(null)
+                }
                 Fancam.error(it, Tags.Account) {
                     "getPlayerIdByUsername failed: repository scandal for '$username'"
                 }
@@ -82,6 +101,12 @@ class AccountSubunit(private val accountRepository: AccountRepository) : Subunit
     suspend fun getProfile(playerId: PlayerId): Outcome<Profile?> {
         return accountRepository.getProfile(playerId)
             .onFailure {
+                if (it is DocumentNotFoundException) {
+                    Fancam.error(tag = Tags.Account) {
+                        "getProfile not found for playerId=$playerId"
+                    }
+                    return Outcome.Ok(null)
+                }
                 Fancam.error(it, Tags.Account) {
                     "getProfile failed: repository scandal for '$playerId'"
                 }

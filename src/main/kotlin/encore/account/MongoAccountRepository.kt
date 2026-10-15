@@ -66,7 +66,7 @@ class MongoAccountRepository(val accountCollection: MongoCollection<PlayerAccoun
         }
     }
 
-    override suspend fun getProfile(playerId: PlayerId): Result<Profile?> {
+    override suspend fun getProfile(playerId: PlayerId): Result<Profile> {
         return runMongoCatching {
             accountCollection
                 .withDocumentClass<QueryProfile>()

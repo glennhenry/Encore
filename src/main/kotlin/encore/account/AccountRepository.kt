@@ -29,7 +29,7 @@ interface AccountRepository {
      *
      * Returns [Result.failure] if an error occurs while retrieving the data.
      */
-    suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount?>
+    suspend fun getAccountByPlayerId(playerId: PlayerId): Result<PlayerAccount>
 
     /**
      * Returns [PlayerAccount] associated with the given [username], if it exists.
@@ -40,7 +40,7 @@ interface AccountRepository {
      *
      * Returns [Result.failure] if an error occurs while retrieving the data.
      */
-    suspend fun getAccountByUsername(username: String): Result<PlayerAccount?>
+    suspend fun getAccountByUsername(username: String): Result<PlayerAccount>
 
     /**
      * Returns [PlayerId] associated with the given [username], if it exists.
@@ -51,7 +51,7 @@ interface AccountRepository {
      *
      * Returns [Result.failure] if an error occurs while retrieving the data.
      */
-    suspend fun getPlayerIdByUsername(username: String): Result<PlayerId?>
+    suspend fun getPlayerIdByUsername(username: String): Result<PlayerId>
 
     /**
      * Returns [Profile] associated with the given [playerId], if it exists.
@@ -62,7 +62,7 @@ interface AccountRepository {
      *
      * Returns [Result.failure] if an error occurs while retrieving the data.
      */
-    suspend fun getProfile(playerId: PlayerId): Result<Profile?>
+    suspend fun getProfile(playerId: PlayerId): Result<Profile>
 
     /**
      * Returns the [Credentials] of the provided [username], if the account exists.
