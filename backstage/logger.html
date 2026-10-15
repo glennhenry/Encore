@@ -266,6 +266,23 @@
     .kp {
       background-color: #af87d7;
     }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #print-section,
+      #print-section * {
+        visibility: visible;
+      }
+
+      #print-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+    }
   </style>
 </head>
 
@@ -282,7 +299,7 @@
         <p>Command</p>
       </a>
     </div>
-    <div class="content">
+    <div id="print-section" class="content">
       <div class="screen">
         <div class="menu-bar">
           <div class="logger-title">
@@ -298,6 +315,13 @@
             <button id="go-down" class="menu-icon-button">
               <img src="/backstage/assets/down.png" width="24px" alt="Down" title="Scroll to end" style="padding:4px;">
             </button>
+            <button class="menu-icon-button" onclick="window.print()">
+              <img src="/backstage/assets/print.png" width="24px" alt="Printer" title="Print to PDF">
+            </button>
+            <button id="export-logs" class="menu-icon-button">
+              <img src="/backstage/assets/share.png" width="24px" alt="Export" title="Export to log file"
+                style="padding:2px;">
+            </button>
             <button id="toggle-scroll" class="toggle-icon-button">
               <img src="/backstage/assets/bottom.png" width="24px" alt="Bottom" title="Toggle scroll to end"
                 style="padding:3px;">
@@ -310,7 +334,8 @@
               <img src="/backstage/assets/nolimit.png" width="24px" alt="Limit" title="Disable logs limit (max 1000)">
             </button>
             <button id="clear-logs" class="menu-icon-button">
-              <img src="/backstage/assets/delete.png" width="24px" alt="Trash" title="Clear all logs" style="padding:4px;">
+              <img src="/backstage/assets/delete.png" width="24px" alt="Trash" title="Clear all logs"
+                style="padding:4px;">
             </button>
           </div>
         </div>
@@ -406,6 +431,7 @@
     let toggleScroll = false
     let stopReceive = false
     let disableLimit = false
+    let isExporting = false
 
     $(document).ready(function () {
       resetAllFilters()
@@ -419,6 +445,9 @@
       })
       $("#go-down").click(function () {
         $(".logs").scrollTop($(".logs").prop("scrollHeight"))
+      })
+      $("#export-logs").click(function () {
+        downloadLogs()
       })
       $("#toggle-scroll").click(function () {
         toggleScroll = $(this).hasClass("enabled")
@@ -489,6 +518,36 @@
         $(".filter-tag-input").addClass("hidden");
       }
     });
+
+    function exportLogs() {
+      const lines = []
+
+      $(".logs-content .logmsg").each(function () {
+        const columns = $(this).children().map(function () {
+          return $(this).text()
+        }).get()
+
+        lines.push(columns.join(" "))
+      })
+
+      return lines.join("")
+    }
+
+    function downloadLogs() {
+      const text = exportLogs()
+      const blob = new Blob([text], {
+        type: "text/plain;charset=utf-8"
+      })
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+
+      a.href = url
+      a.download = "logs.log"
+      a.click()
+
+      URL.revokeObjectURL(url)
+    }
 
     function clearTagFilter() {
       $(".tag-option").each(function () {
