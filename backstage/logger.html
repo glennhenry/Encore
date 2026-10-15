@@ -292,6 +292,13 @@
         msg.append($("<span></span>").text(line.replace(/[^\S\r\n]{10,}/g, '') + "\n"))
       }
 
+      // add throwables
+      if (log.throwable != null) {
+        for (const line of log.throwable.split(/\r?\n/g)) {
+          msg.append($("<span></span>").text(line + "\n"))
+        }
+      }
+
       const fgRegex = /\u001b\[38;5;(\d+)m(.+?)\u001b\[0m/g
       const bgRegex = /\u001b\[48;5;(\d+)m(.+?)\u001b\[0m/g
       const boldRegex = /\u001b\[1m(.+?)\u001b\[22m/g

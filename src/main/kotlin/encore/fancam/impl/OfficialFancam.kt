@@ -344,7 +344,7 @@ class OfficialFancam(private val config: EncoreFancamConfig) : FancamTemplate {
                         put("level", level.name)
                         put("tag", tag)
                         put("source", "${source?.filename}:${source?.lineNumber}")
-                        put("throwable", throwable?.toLimitedString(false))
+                        put("throwable", throwable?.toLimitedString(true))
                         put("timestamp", timestamp)
                     }
                 )
