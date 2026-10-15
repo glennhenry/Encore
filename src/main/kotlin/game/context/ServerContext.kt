@@ -17,11 +17,11 @@ import encore.datastore.DataStore
 import encore.extra.InMemoryPlayerExtraRepository
 import encore.extra.PlayerExtraRepository
 import encore.extra.PlayerExtraSubunit
-import game.mongo.collection.PlayerId
 import encore.fancam.Fancam
 import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.session.SessionSubunit
 import encore.subunit.Subunit
+import encore.subunit.SubunitLocator
 import encore.subunit.scope.ServerScope
 import encore.time.source.SystemTimeSource
 import encore.time.source.TimeSource
@@ -44,6 +44,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * @property stageActDirector Provide API to start and stop stage acts.
  * @property webSocketManager Manages client websocket connections.
  * @property subunits Container for server subunit instances.
+ * @property locator Component to store subunits.
  */
 data class ServerContext(
     val appScope: CoroutineScope,
@@ -53,7 +54,8 @@ data class ServerContext(
     val playerLifecycleHandler: PlayerLifecycleHandler,
     val stageActDirector: StageActDirector,
     val webSocketManager: WebSocketManager,
-    val subunits: ServerSubunits
+    val subunits: ServerSubunits,
+    val locator: SubunitLocator
 ) {
     companion object {
         /**
@@ -97,20 +99,11 @@ data class ServerContext(
                     extra = extra,
                     presence = PlayerPresenceSubunit(),
                     session = session
-                )
+                ),
+                locator = SubunitLocator(),
             )
         }
     }
-}
-
-/**
- * Shorthand to retrieve [PlayerContext] of [playerId] from [ContextRegistry].
- *
- * @throws IllegalStateException if context is not found.
- */
-fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext {
-    return contextRegistry.getContext(playerId)
-        ?: error("PlayerContext not found for playerId=$playerId")
 }
 
 /**

@@ -1,7 +1,7 @@
 package encore.subunit
 
-import encore.subunit.scope.SubunitScope
 import encore.subunit.scope.ServerScope
+import encore.subunit.scope.SubunitScope
 import encore.utils.types.Outcome
 import encore.utils.types.Report
 
@@ -21,8 +21,15 @@ import encore.utils.types.Report
  * providing domain-specific functionality without necessarily
  * managing data or persistence.
  *
- * For example, a Subunit bound to [ServerScope] operates at the
+ * - For example, a Subunit bound to [ServerScope] operates at the
  * server level, supporting a particular server concern.
+ *
+ * A `Subunit` may not live forever. It may be created temporarily while
+ * a particular scope is active, then destroyed when it is dead.
+ *
+ * - A subunit may be created to serve an online functionality between
+ * two connected player connections. When one of the player disconnects,
+ * the subunit is destroyed.
  *
  * Subunits typically are not aware of each other and are orchestrated
  * externally (e.g., by handlers or controllers).

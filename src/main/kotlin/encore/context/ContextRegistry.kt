@@ -48,3 +48,13 @@ class ContextRegistry(private val factory: ContextFactory) {
         players.remove(playerId)
     }
 }
+
+/**
+ * Shorthand to retrieve [PlayerContext] of [playerId] from [ContextRegistry].
+ *
+ * @throws IllegalStateException if context is not found.
+ */
+fun ServerContext.requirePlayerContext(playerId: PlayerId): PlayerContext {
+    return contextRegistry.getContext(playerId)
+        ?: error("PlayerContext not found for playerId=$playerId")
+}

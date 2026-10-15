@@ -16,6 +16,7 @@ import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.network.transport.Connection
 import encore.presence.PlayerPresenceSubunit
 import encore.session.SessionSubunit
+import encore.subunit.SubunitLocator
 import encore.subunit.scope.PlayerScope
 import encore.subunit.scope.ServerScope
 import encore.time.TimeCenter
@@ -112,7 +113,8 @@ class RealContextFactory(
             commandDispatcher = commandDispatcher,
             playerLifecycleHandler = playerLifecycleHandler,
             webSocketManager = webSocketManager,
-            subunits = subunits
+            subunits = subunits,
+            locator = SubunitLocator()
         )
 
         return serverContext
