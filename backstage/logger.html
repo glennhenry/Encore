@@ -83,6 +83,13 @@
       font-weight: bold;
     }
 
+    .option-flag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+    }
+
     .actions {
       display: flex;
       gap: 4px;
@@ -274,6 +281,16 @@
             <p>Logger</p>
             <p>(total logs: <span id="total-logs">0</span>)</p>
             <p>(displayed: <span id="displayed-logs">0</span>)</p>
+            <div class="space-x-md"></div>
+            <div class="option-flag">
+              <input id="stop-receive" type="checkbox">
+              <label for="stop-receive">Stop receiving new logs</label>
+            </div>
+            <div class="space-x-md"></div>
+            <div class="option-flag">
+              <input id="disable-limit" type="checkbox">
+              <label for="disable-limit">Disable logs limit (max 1000)</label>
+            </div>
           </div>
           <div class="actions">
             <button class="menu-icon-button">
@@ -344,6 +361,9 @@
     let availableTags = new Set()
     let messageQuery = ""
 
+    let stopReceive = false
+    let disableLimit = false
+
     function clearLogs() {
       $(".logs-content").empty()
       logs = []
@@ -372,6 +392,13 @@
 
     $(document).ready(function () {
       resetAllFilters()
+      $("#stop-receive").change(function () {
+        stopReceive = this.checked
+      })
+      $("#disable-limit").change(function () {
+        disableLimit = this.checked
+      })
+
       $("#clear-logs").click(function () {
         clearLogs()
       })
@@ -531,7 +558,8 @@
 
         switch (type) {
           case "newlog":
-            if (logs.length > 1000) {
+            if (stopReceive) return
+            if (!disableLimit && logs.length > 1000) {
               logs.shift()
             }
             logs.push(payload)
