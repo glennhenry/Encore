@@ -83,24 +83,33 @@
       font-weight: bold;
     }
 
-    .option-flag {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-    }
-
     .actions {
       display: flex;
-      gap: 4px;
+      align-items: center;
+    }
+
+    .toggle-icon-button {
+      all: unset;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    .toggle-icon-button:hover {
+      background-color: #e5e5e5;
+    }
+
+    .toggle-icon-button.enabled {
+      background-color: #ccc;
     }
 
     .menu-icon-button {
       all: unset;
-      width: 16px;
-      height: 16px;
       padding: 4px;
       cursor: pointer;
+    }
+
+    .menu-icon-button:hover {
+      background-color: #e5e5e5;
     }
 
     .filter-bar {
@@ -281,20 +290,27 @@
             <p>Logger</p>
             <p>(total logs: <span id="total-logs">0</span>)</p>
             <p>(displayed: <span id="displayed-logs">0</span>)</p>
-            <div class="space-x-md"></div>
-            <div class="option-flag">
-              <input id="stop-receive" type="checkbox">
-              <label for="stop-receive">Stop receiving new logs</label>
-            </div>
-            <div class="space-x-md"></div>
-            <div class="option-flag">
-              <input id="disable-limit" type="checkbox">
-              <label for="disable-limit">Disable logs limit (max 1000)</label>
-            </div>
           </div>
           <div class="actions">
-            <button class="menu-icon-button">
-              <img id="clear-logs" src="/backstage/assets/delete.png" width="16px" alt="Trash" title="Clear">
+            <button id="go-up" class="menu-icon-button">
+              <img src="/backstage/assets/up.png" width="24px" alt="Up" title="Scroll to start" style="padding:4px;">
+            </button>
+            <button id="go-down" class="menu-icon-button">
+              <img src="/backstage/assets/down.png" width="24px" alt="Down" title="Scroll to end" style="padding:4px;">
+            </button>
+            <button id="toggle-scroll" class="toggle-icon-button">
+              <img src="/backstage/assets/bottom.png" width="24px" alt="Bottom" title="Toggle scroll to end"
+                style="padding:3px;">
+            </button>
+            <button id="stop-receive" class="toggle-icon-button">
+              <img src="/backstage/assets/stop.png" width="24px" alt="Stop" title="Stop receiving new logs"
+                style="padding:2px;">
+            </button>
+            <button id="disable-limit" class="toggle-icon-button">
+              <img src="/backstage/assets/nolimit.png" width="24px" alt="Limit" title="Disable logs limit (max 1000)">
+            </button>
+            <button id="clear-logs" class="menu-icon-button">
+              <img src="/backstage/assets/delete.png" width="24px" alt="Trash" title="Clear all logs" style="padding:4px;">
             </button>
           </div>
         </div>
@@ -361,9 +377,6 @@
     let availableTags = new Set()
     let messageQuery = ""
 
-    let stopReceive = false
-    let disableLimit = false
-
     function clearLogs() {
       $(".logs-content").empty()
       logs = []
@@ -390,15 +403,35 @@
       messageQuery = ""
     }
 
+    let toggleScroll = false
+    let stopReceive = false
+    let disableLimit = false
+
     $(document).ready(function () {
       resetAllFilters()
-      $("#stop-receive").change(function () {
-        stopReceive = this.checked
-      })
-      $("#disable-limit").change(function () {
-        disableLimit = this.checked
-      })
 
+      // actions
+      $(".toggle-icon-button").click(function () {
+        $(this).toggleClass("enabled")
+      })
+      $("#go-up").click(function () {
+        $(".logs").scrollTop(0)
+      })
+      $("#go-down").click(function () {
+        $(".logs").scrollTop($(".logs").prop("scrollHeight"))
+      })
+      $("#toggle-scroll").click(function () {
+        toggleScroll = $(this).hasClass("enabled")
+        if (toggleScroll) {
+          $(".logs").scrollTop($(".logs").prop("scrollHeight"))
+        }
+      })
+      $("#stop-receive").click(function () {
+        stopReceive = $(this).hasClass("enabled")
+      })
+      $("#disable-limit").click(function () {
+        disableLimit = $(this).hasClass("enabled")
+      })
       $("#clear-logs").click(function () {
         clearLogs()
       })
@@ -571,7 +604,9 @@
             }
 
             $("#total-logs").text(logs.length)
-            $(".logs").scrollTop($(".logs").prop('scrollHeight'))
+            if (toggleScroll) {
+              $(".logs").scrollTop($(".logs").prop("scrollHeight"))
+            }
             break;
           default:
             Toast.warn("Unknown message", `Received an unknown message type: ${type}`)
