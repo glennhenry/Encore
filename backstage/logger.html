@@ -401,6 +401,8 @@
     let activeTagsFilter = new Set()
     let availableTags = new Set()
     let messageQuery = ""
+    const MAX_CHAR_PER_LINES = 3000
+    const MAX_LOGS_STORAGE = 1000
 
     function clearLogs() {
       $(".logs-content").empty()
@@ -651,7 +653,7 @@
         switch (type) {
           case "newlog":
             if (stopReceive) return
-            if (!disableLimit && logs.length > 1000) {
+            if (!disableLimit && logs.length > MAX_LOGS_STORAGE) {
               logs.shift()
             }
             logs.push(payload)
@@ -715,7 +717,12 @@
       // trim indents
       const msg = $(`<p class="message"></p>`)
       for (const line of log.message.split(/\r?\n/g)) {
-        msg.append($("<span></span>").text(line.replace(/[^\S\r\n]{10,}/g, '') + "\n"))
+        let indentTrimmed = line.replace(/[^\S\r\n]{10,}/g, '')
+        if (indentTrimmed.length > MAX_CHAR_PER_LINES) {
+          indentTrimmed = indentTrimmed.slice(0, 2985) + '... [TRUNCATED]';
+        }
+
+        msg.append($("<span></span>").text(indentTrimmed + "\n"))
       }
 
       // add throwables
