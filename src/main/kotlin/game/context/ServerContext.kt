@@ -14,9 +14,9 @@ import encore.context.ContextRegistry
 import encore.context.FakeContextFactory
 import encore.datastore.BlankDataStore
 import encore.datastore.DataStore
-import encore.extra.InMemoryPlayerExtraRepository
-import encore.extra.PlayerExtraRepository
-import encore.extra.PlayerExtraSubunit
+import encore.extra.player.InMemoryPlayerExtraRepository
+import encore.extra.player.PlayerExtraRepository
+import encore.extra.player.PlayerExtraSubunit
 import encore.extra.server.InMemoryServerExtraRepository
 import encore.extra.server.ServerExtraRepository
 import encore.extra.server.ServerExtraSubunit

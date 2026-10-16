@@ -1,4 +1,4 @@
-package encore.extra
+package encore.extra.player
 
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Updates

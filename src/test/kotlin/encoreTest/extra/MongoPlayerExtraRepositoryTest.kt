@@ -1,7 +1,7 @@
 package encoreTest.extra
 
 import TestMongoCollections
-import encore.extra.MongoPlayerExtraRepository
+import encore.extra.player.MongoPlayerExtraRepository
 import game.mongo.collection.PlayerServerObjects
 import initMongo
 import kotlinx.coroutines.test.runTest

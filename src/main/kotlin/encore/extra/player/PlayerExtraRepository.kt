@@ -1,4 +1,4 @@
-package encore.extra
+package encore.extra.player
 
 import game.mongo.collection.PlayerId
 

@@ -1,4 +1,4 @@
-package encore.extra
+package encore.extra.player
 
 import encore.datastore.DocumentNotFoundException
 import game.mongo.collection.PlayerId

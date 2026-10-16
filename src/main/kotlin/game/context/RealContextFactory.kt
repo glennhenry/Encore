@@ -10,8 +10,8 @@ import encore.backstage.command.CommandDispatcher
 import encore.context.*
 import encore.creation.PlayerCreationSubunit
 import encore.datastore.MongoDataStore
-import encore.extra.MongoPlayerExtraRepository
-import encore.extra.PlayerExtraSubunit
+import encore.extra.player.MongoPlayerExtraRepository
+import encore.extra.player.PlayerExtraSubunit
 import encore.extra.server.MongoServerExtraRepository
 import encore.extra.server.ServerExtraSubunit
 import encore.network.lifecycle.PlayerLifecycleHandler
