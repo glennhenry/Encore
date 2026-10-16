@@ -107,6 +107,14 @@ java -jar encore.jar
 
 More information in [Venue.kt](https://github.com/glennhenry/Encore/blob/main/src/main/kotlin/encore/venue/Venue.kt)
 
+## Backstage
+
+The backstage is an interface to various developer tools. The framework provides a logger and command system. Implementation may extend as needed.
+
+Exclusive to `127.0.0.1:8080/backstage` (open image to see it larger):
+
+<img src="backstage.png" alt="backstage preview" width="600px"/>
+
 ## Docs
 
 Empty documentation template ([built with Starlight](https://starlight.astro.build/), based on [sl-obsidian-starter](https://github.com/glennhenry/sl-obsidian-starter)) is available on `docs/`
@@ -162,7 +170,7 @@ description: example
 │   │   ├── creation/               # Player creation mechanism
 │   │   ├── datastore/              # Persistence and database components
 │   │   ├── definition/             # Gameplay rules and data abstractions
-│   │   ├── extra/                  # Player extra data service
+│   │   ├── extra/                  # Player and server extra data service
 │   │   ├── fancam/                 # Logging system
 │   │   ├── network/                # Server networking components
 │   │   │   ├── fanchant/           # Game message abstractions
