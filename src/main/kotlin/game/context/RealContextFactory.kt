@@ -12,6 +12,8 @@ import encore.creation.PlayerCreationSubunit
 import encore.datastore.MongoDataStore
 import encore.extra.MongoPlayerExtraRepository
 import encore.extra.PlayerExtraSubunit
+import encore.extra.server.MongoServerExtraRepository
+import encore.extra.server.ServerExtraSubunit
 import encore.network.lifecycle.PlayerLifecycleHandler
 import encore.network.transport.Connection
 import encore.presence.PlayerPresenceSubunit
@@ -74,7 +76,8 @@ class RealContextFactory(
         val accountRepository = MongoAccountRepository(
             accountCollection = mongoDatabase.getCollection(collections.playerAccount)
         )
-        val extraRepository = MongoPlayerExtraRepository(mongoDatabase.getCollection(collections.playerServerObjects))
+        val playerExtraRepository = MongoPlayerExtraRepository(mongoDatabase.getCollection(collections.playerServerObjects))
+        val serverExtraRepository = MongoServerExtraRepository(mongoDatabase.getCollection(collections.serverObjects))
         val contextRegistry = ContextRegistry(RealContextFactory(collections, mongoDatabase))
         val creationFactory = RealPlayerCreationFactory()
         val stageActDirector = StageActDirector(
@@ -91,7 +94,8 @@ class RealContextFactory(
         val sessionSubunit = SessionSubunit(appScope, TimeCenter.source)
         val playerCreationSubunit = PlayerCreationSubunit(dataStore, creationFactory)
         val authSubunit = AuthSubunit(accountSubunit, playerCreationSubunit, sessionSubunit)
-        val extra = PlayerExtraSubunit(extraRepository)
+        val extraPlayer = PlayerExtraSubunit(playerExtraRepository)
+        val extraServer = ServerExtraSubunit(serverExtraRepository)
 
         val subunits = ServerSubunits(
             account = accountSubunit,
@@ -99,7 +103,8 @@ class RealContextFactory(
             auth = authSubunit,
             session = sessionSubunit,
             creation = playerCreationSubunit,
-            extra = extra
+            extraPlayer = extraPlayer,
+            extraServer = extraServer,
         )
 
         // debut all subunits
