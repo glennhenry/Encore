@@ -167,6 +167,16 @@ class SessionSubunit(
         return sessions.values.take(limit)
     }
 
+    /**
+     * Clear all sessions
+     * @return The total amount of sessions deleted.
+     */
+    fun clearAllSessions(): Int {
+        val total = sessions.size
+        sessions.clear()
+        return total
+    }
+
     override suspend fun debut(scope: ServerScope): Result<Unit> = Result.success(Unit)
     override suspend fun disband(scope: ServerScope): Result<Unit> {
         return runCatching {
