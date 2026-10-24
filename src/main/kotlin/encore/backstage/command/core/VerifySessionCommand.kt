@@ -1,6 +1,6 @@
 package encore.backstage.command.core
 
-import basicDateFormatter
+import detailedDateFormatter
 import encore.backstage.command.Command
 import encore.backstage.command.types.Argument
 import encore.backstage.command.types.ArgumentInputs
@@ -38,8 +38,8 @@ class VerifySessionCommand : Command {
                     appendLine("Session valid:")
                     appendLine("  userId: ${ses.userId}")
                     appendLine("  token: ${ses.token}")
-                    appendLine("  issuedAt: ${basicDateFormatter.format(ses.issuedAt)}")
-                    appendLine("  expiresAt: ${basicDateFormatter.format(ses.expiresAt)}")
+                    appendLine("  issuedAt: ${detailedDateFormatter.format(ses.issuedAt)}")
+                    appendLine("  expiresAt: ${detailedDateFormatter.format(ses.expiresAt)}")
                     appendLine("  lifetime: ${TimeCenter.formatToDurationString(ses.lifetime)}")
                     appendLine("  baseDuration: ${ses.baseDuration.inWholeMinutes} minutes")
                 }

@@ -1,6 +1,6 @@
 package encore.backstage.command.core
 
-import basicDateFormatter
+import detailedDateFormatter
 import encore.backstage.command.Command
 import encore.backstage.command.types.Argument
 import encore.backstage.command.types.ArgumentInputs
@@ -58,8 +58,8 @@ fun formatSessionInfo(ses: UserSession): String {
     return """
         userId=${ses.userId}
            token=${ses.token}
-           issuedAt=${basicDateFormatter.format(ses.issuedAt)}
-           expiresAt=${basicDateFormatter.format(ses.expiresAt)}
+           issuedAt=${detailedDateFormatter.format(ses.issuedAt)}
+           expiresAt=${detailedDateFormatter.format(ses.expiresAt)}
            isExpired=$isExpired
     """.trimIndent()
 }
