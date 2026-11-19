@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "dev.encore"
-version = "1.3.1"
+version = "1.3.2"
 
 application {
     mainClass = "ApplicationKt"
@@ -60,6 +60,21 @@ tasks.named<JavaExec>("run") {
         "--sun-misc-unsafe-memory-access=allow",
         "--enable-native-access=ALL-UNNAMED"
     )
+}
+
+tasks.register<JavaExec>("runTool") {
+    group = "tools"
+    description = "Run a specific Tools.kt"
+    classpath = sourceSets["test"].runtimeClasspath
+    val toolName = project.findProperty("tool")?.toString()?.takeIf { it.isNotBlank() }
+    if (toolName != null) {
+        mainClass.set(toolName)
+    }
+    doFirst {
+        if (toolName.isNullOrBlank()) {
+            throw GradleException("Missing required argument. Usage: ./gradlew runTool -Ptool=<ToolObjectName>")
+        }
+    }
 }
 
 tasks.test {
